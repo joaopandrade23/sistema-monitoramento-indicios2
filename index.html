@@ -2,54 +2,28 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <meta
-    name="referrer"
-    content="no-referrer"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
 
   <meta
     http-equiv="Content-Security-Policy"
     content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests;"
   >
 
-  <meta
-    name="robots"
-    content="noindex, nofollow, noarchive"
-  >
+  <meta name="robots" content="noindex, nofollow, noarchive">
 
   <title>Entrar | Monitoramento de Indícios</title>
 
-  <link
-    rel=head>
+  <link rel="stylesheet" href="./login.css">
+</head>
 
 <body>
   <main class="login-page">
-    <section
-      class="login-card"
-      aria-labelledby="login-title"
-    >
+    <section class="login-card" aria-labelledby="login-title">
       <header class="login-header">
-        <div
-          class="brand-mark"
-          aria-hidden="true"
-        >
-          MI
-        </div>
-
-        <p class="eyebrow">
-          SMSA/CE
-        </p>
-
-        <h1 id="login-title">
-          Monitoramento de Indícios
-        </h1>
-
+        <div class="brand-mark" aria-hidden="true">MI</div>
+        <p class="eyebrow">SMSA/CE</p>
+        <h1 id="login-title">Monitoramento de Indícios</h1>
         <p class="login-description">
           Acesse o ambiente interno com suas credenciais.
         </p>
@@ -63,16 +37,9 @@
         hidden
       ></div>
 
-      <form
-        id="login-form"
-        class="login-form"
-        autocomplete="on"
-      >
+      <form id="login-form" class="login-form" autocomplete="on">
         <div class="field">
-          <label for="email">
-            E-mail
-          </label>
-
+          <label for="email">E-mail</label>
           <input
             id="email"
             name="email"
@@ -89,10 +56,7 @@
 
         <div class="field">
           <div class="field-heading">
-            <label for="password">
-              Senha
-            </label>
-
+            <label for="password">Senha</label>
             <button
               class="forgot-password"
               type="button"
@@ -114,23 +78,17 @@
           >
         </div>
 
-        <button
-          id="login-button"
-          class="login-button"
-          type="submit"
-        >
+        <button id="login-button" class="login-button" type="submit">
           <span>Entrar</span>
         </button>
       </form>
 
       <footer class="login-footer">
-        <p>
-          Acesso restrito a usuários autorizados.
-        </p>
+        <p>Acesso restrito a usuários autorizados.</p>
       </footer>
     </section>
   </main>
 
-  ./js/autenticacao.jsscript>
+  <script type="module" src="./js/autenticacao.js"></script>
 </body>
 </html>
