@@ -5,35 +5,68 @@ const emailInput = document.querySelector("#email");
 const passwordInput = document.querySelector("#password");
 const loginButton = document.querySelector("#login-button");
 const messageBox = document.querySelector("#login-message");
-const forgotPasswordButton = document.querySelector(".forgot-password");
+const forgotPasswordButton = document.querySelector(
+  ".forgot-password"
+);
 
 const LOGIN_DEFAULT_TEXT = "Entrar";
 const LOGIN_LOADING_TEXT = "Entrando...";
 
-function showMessage(message) {
-  messageBox.textContent = message;
+function verificarElementosDaPagina() {
+  const elementosObrigatorios = [
+    form,
+    emailInput,
+    passwordInput,
+    loginButton,
+    messageBox,
+    forgotPasswordButton,
+  ];
+
+  const existeElementoAusente = elementosObrigatorios.some(
+    (elemento) => !elemento
+  );
+
+  if (existeElementoAusente) {
+    throw new Error(
+      "A página de login não possui todos os elementos obrigatórios."
+    );
+  }
+}
+
+function mostrarMensagem(mensagem) {
+  messageBox.textContent = mensagem;
   messageBox.hidden = false;
 }
 
-function hideMessage() {
+function ocultarMensagem() {
   messageBox.textContent = "";
   messageBox.hidden = true;
 }
 
-function setLoading(isLoading) {
-  loginButton.disabled = isLoading;
-  emailInput.readOnly = isLoading;
-  passwordInput.readOnly = isLoading;
-  loginButton.querySelector("span").textContent = isLoading
-    ? LOGIN_LOADING_TEXT
-    : LOGIN_DEFAULT_TEXT;
+function definirCarregamento(estaCarregando) {
+  loginButton.disabled = estaCarregando;
+  emailInput.readOnly = estaCarregando;
+  passwordInput.readOnly = estaCarregando;
+
+  loginButton.setAttribute(
+    "aria-busy",
+    String(estaCarregando)
+  );
+
+  const textoBotao = loginButton.querySelector("span");
+
+  if (textoBotao) {
+    textoBotao.textContent = estaCarregando
+      ? LOGIN_LOADING_TEXT
+      : LOGIN_DEFAULT_TEXT;
+  }
 }
 
-function normalizeEmail(value) {
-  return value.trim().toLowerCase();
+function normalizarEmail(valor) {
+  return valor.trim().toLowerCase();
 }
 
-async function validateFunctionalContext() {
+async function validarContextoFuncional() {
   const { data, error } = await supabase
     .from("v_meu_contexto")
     .select("*")
@@ -51,100 +84,184 @@ async function validateFunctionalContext() {
   return data;
 }
 
-async function safelySignOut() {
+async function encerrarSessaoComSeguranca() {
   try {
-    await supabase.auth.signOut({ scope: "local" });
+    await supabase.auth.signOut({
+      scope: "local",
+    });
   } catch {
-    // Nao exibe detalhes internos ao usuario.
+    /*
+     * Nenhum detalhe interno é exibido ao usuário.
+     * A sessão local será reavaliada no próximo acesso.
+     */
   }
 }
 
-async function handleLogin(event) {
-  event.preventDefault();
+async function processarLogin(evento) {
+  evento.preventDefault();
 
   if (loginButton.disabled) {
     return;
   }
 
-  hideMessage();
+  ocultarMensagem();
 
   if (!form.checkValidity()) {
     form.reportValidity();
     return;
   }
 
-  const email = normalizeEmail(emailInput.value);
-  const password = passwordInput.value;
+  const email = normalizarEmail(emailInput.value);
+  const senha = passwordInput.value;
 
-  if (!email || !password) {
-    showMessage("Preencha o e-mail e a senha.");
+  if (!email || !senha) {
+    mostrarMensagem(
+      "Preencha o e-mail e a senha."
+    );
+
     return;
   }
 
-  setLoading(true);
+  definirCarregamento(true);
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
 
-    if (error || !data.session || !data.user) {
-      await safelySignOut();
-      showMessage("Nao foi possivel entrar. Verifique suas credenciais.");
+    if (
+      error ||
+      !data ||
+      !data.session ||
+      !data.user
+    ) {
+      await encerrarSessaoComSeguranca();
+
+      passwordInput.value = "";
+
+      mostrarMensagem(
+        "Não foi possível entrar. Verifique suas credenciais."
+      );
+
+      passwordInput.focus();
+
       return;
     }
 
     try {
-      await validateFunctionalContext();
-    } catch (contextError) {
-      await safelySignOut();
+      await validarContextoFuncional();
+    } catch (erroContexto) {
+      await encerrarSessaoComSeguranca();
 
-      if (contextError.message === "FUNCTIONAL_ACCESS_DENIED") {
-        showMessage("Seu usuario nao possui acesso funcional ativo ao sistema.");
+      passwordInput.value = "";
+
+      if (
+        erroContexto.message ===
+        "FUNCTIONAL_ACCESS_DENIED"
+      ) {
+        mostrarMensagem(
+          "Seu usuário não possui acesso funcional ativo ao sistema."
+        );
       } else {
-        showMessage("Nao foi possivel validar seu acesso. Tente novamente.");
+        mostrarMensagem(
+          "Não foi possível validar seu acesso. Tente novamente."
+        );
       }
 
       return;
     }
 
     passwordInput.value = "";
-    window.location.replace("inicio.html");
+
+    window.location.replace("./inicio.html");
   } catch {
-    await safelySignOut();
-    showMessage("Nao foi possivel concluir o acesso. Tente novamente.");
+    await encerrarSessaoComSeguranca();
+
+    passwordInput.value = "";
+
+    mostrarMensagem(
+      "Não foi possível concluir o acesso. Tente novamente."
+    );
   } finally {
-    setLoading(false);
+    definirCarregamento(false);
   }
 }
 
-async function redirectIfAlreadyAuthenticated() {
+async function redirecionarSessaoExistente() {
+  definirCarregamento(true);
+
   try {
     const {
       data: { session },
+      error,
     } = await supabase.auth.getSession();
 
-    if (!session) {
+    if (error || !session) {
+      return;
+    }
+
+    /*
+     * getUser consulta o servidor de autenticação e confirma
+     * que a sessão armazenada corresponde a um usuário válido.
+     */
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      await encerrarSessaoComSeguranca();
       return;
     }
 
     try {
-      await validateFunctionalContext();
-      window.location.replace("inicio.html");
+      await validarContextoFuncional();
+
+      window.location.replace("./inicio.html");
     } catch {
-      await safelySignOut();
+      await encerrarSessaoComSeguranca();
     }
   } catch {
-    await safelySignOut();
+    await encerrarSessaoComSeguranca();
+  } finally {
+    definirCarregamento(false);
   }
 }
 
-form.addEventListener("submit", handleLogin);
+function informarRecuperacaoIndisponivel() {
+  ocultarMensagem();
 
-forgotPasswordButton.addEventListener("click", () => {
-  hideMessage();
-  showMessage("A recuperacao de senha ainda nao esta disponivel.");
-});
+  mostrarMensagem(
+    "A recuperação de senha ainda não está disponível."
+  );
+}
 
-redirectIfAlreadyAuthenticated();
+function iniciarPaginaLogin() {
+  try {
+    verificarElementosDaPagina();
+
+    form.addEventListener(
+      "submit",
+      processarLogin
+    );
+
+    forgotPasswordButton.addEventListener(
+      "click",
+      informarRecuperacaoIndisponivel
+    );
+
+    redirecionarSessaoExistente();
+  } catch {
+    /*
+     * Esta mensagem não revela nomes de arquivos,
+     * configurações, chaves ou detalhes internos.
+     */
+    document.body.textContent =
+      "Não foi possível carregar a página de acesso.";
+  }
+}
+
+iniciarPaginaLogin();
+``
