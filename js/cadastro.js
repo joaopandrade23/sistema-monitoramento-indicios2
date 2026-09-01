@@ -80,7 +80,6 @@ form.addEventListener("submit", async (e) => {
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  // Validações de campos obrigatórios
   if (!nomeCompleto) {
     mostrarErroCampo(nomeInput, "Preencha este campo.");
     return;
@@ -100,17 +99,23 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (!emailInput.checkValidity()) {
-    mostrarErroCampo(emailInput, "Digite um endereço de e-mail válido.");
+    mostrarErroCampo(
+      emailInput,
+      "Digite um endereço de e-mail válido."
+    );
     return;
   }
-  
+
   if (!password) {
     mostrarErroCampo(passwordInput, "Preencha este campo.");
     return;
   }
 
   if (password.length < 8) {
-    mostrarErroCampo(passwordInput, "A senha deve conter no mínimo 8 caracteres.");
+    mostrarErroCampo(
+      passwordInput,
+      "A senha deve conter no mínimo 8 caracteres."
+    );
     return;
   }
 
@@ -120,12 +125,15 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (password !== confirmPassword) {
-    mostrarErroCampo(confirmPasswordInput, "As senhas não coincidem.");
+    mostrarErroCampo(
+      confirmPasswordInput,
+      "As senhas não coincidem."
+    );
     return;
   }
 
   submitButton.disabled = true;
-
+  
   // Substitua o bloco try do submit em cadastro.js
 try {
   const { data, error } = await supabase.auth.signUp({
