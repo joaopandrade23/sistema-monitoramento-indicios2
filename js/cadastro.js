@@ -7,6 +7,17 @@ const passwordInput = document.querySelector("#cadastro-password");
 const confirmPasswordInput = document.querySelector("#confirmar-password");
 const submitButton = form.querySelector("#signup-button");
 
+// Dispara o balão nativo do navegador apontando para o campo com erro
+function mostrarErroNativo(input, mensagem) {
+  input.setCustomValidity(mensagem);
+  input.reportValidity();
+}
+
+// Limpa o estado de erro assim que o usuário começa a digitar novamente
+[nomeInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
+  input.addEventListener("input", () => input.setCustomValidity(""));
+});
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -15,20 +26,30 @@ form.addEventListener("submit", async (e) => {
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  // Valida se todos os campos do HTML foram preenchidos
-  if (!nomeCompleto || !email || !password || !confirmPassword) {
-    alert("Por favor, preencha todos os campos.");
+  // Validações de campos obrigatórios
+  if (!nomeCompleto) {
+    mostrarErroNativo(nomeInput, "Preencha este campo.");
     return;
   }
 
-  // Validações das senhas
+  if (!email) {
+    mostrarErroNativo(emailInput, "Preencha este campo.");
+    return;
+  }
+
+  if (!password) {
+    mostrarErroNativo(passwordInput, "Preencha este campo.");
+    return;
+  }
+
+  // Validações de regra de negócio
   if (password.length < 8) {
-    alert("A senha deve ter no mínimo 8 caracteres.");
+    mostrarErroNativo(passwordInput, "A senha deve ter no mínimo 8 caracteres.");
     return;
   }
 
   if (password !== confirmPassword) {
-    alert("As senhas não coincidem. Digite novamente.");
+    mostrarErroNativo(confirmPasswordInput, "As senhas não coincidem.");
     return;
   }
 
@@ -46,17 +67,19 @@ form.addEventListener("submit", async (e) => {
       ]);
 
     if (error) {
-      if (error.code === "23505") { // Código PostgreSQL para violação de registro único
-        throw new Error("Este e-mail já possui uma solicitação enviada.");
+      if (error.code === "23505") {
+        mostrarErroNativo(emailInput, "Este e-mail já possui uma solicitação enviada.");
+        return;
       }
-      throw new Error("Não foi possível enviar sua solicitação. Tente novamente.");
+      mostrarErroNativo(emailInput, "Não foi possível enviar sua solicitação. Tente novamente.");
+      return;
     }
 
     alert("Solicitação enviada com sucesso! Aguarde a análise da gestão.");
     form.reset();
     window.location.href = "./index.html";
   } catch (err) {
-    alert(err.message);
+    mostrarErroNativo(emailInput, err.message);
   } finally {
     submitButton.disabled = false;
   }
