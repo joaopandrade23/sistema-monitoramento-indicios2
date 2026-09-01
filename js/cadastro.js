@@ -5,21 +5,57 @@ const nomeInput = document.querySelector("#nome-completo");
 const emailInput = document.querySelector("#cadastro-email");
 const passwordInput = document.querySelector("#cadastro-password");
 const confirmPasswordInput = document.querySelector("#confirmar-password");
-const submitButton = form.querySelector("#signup-button");
+const submitButton = document.querySelector("#signup-button");
+const feedbackBanner = document.querySelector("#feedback-banner");
 
-// Dispara o balão nativo do navegador apontando para o campo com erro
-function mostrarErroNativo(input, mensagem) {
-  input.setCustomValidity(mensagem);
-  input.reportValidity();
+// Remove todos os erros visuais da tela
+function limparErros() {
+  document.querySelectorAll(".custom-tooltip").forEach((el) => el.remove());
+  document.querySelectorAll("input").forEach((input) => input.classList.remove("input-error"));
+  feedbackBanner.classList.add("hidden");
+  feedbackBanner.className = "feedback-banner hidden";
+  feedbackBanner.textContent = "";
 }
 
-// Limpa o estado de erro assim que o usuário começa a digitar novamente
+// Renderiza o balão customizado acoplado ao campo correspondente
+function mostrarErroCampo(input, mensagem) {
+  limparErros();
+
+  input.classList.add("input-error");
+  input.focus();
+
+  const fieldContainer = input.closest(".field");
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "custom-tooltip";
+  tooltip.innerHTML = `
+    <span class="tooltip-icon">!</span>
+    <span>${mensagem}</span>
+  `;
+
+  fieldContainer.appendChild(tooltip);
+}
+
+// Exibe alertas gerais de sucesso ou falha no topo do formulário
+function mostrarBannerGlobal(mensagem, tipo = "error") {
+  limparErros();
+  feedbackBanner.textContent = mensagem;
+  feedbackBanner.classList.remove("hidden");
+  feedbackBanner.classList.add(tipo);
+}
+
+// Remove o erro do campo no momento em que o usuário digita
 [nomeInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
-  input.addEventListener("input", () => input.setCustomValidity(""));
+  input.addEventListener("input", () => {
+    input.classList.remove("input-error");
+    const tooltip = input.closest(".field").querySelector(".custom-tooltip");
+    if (tooltip) tooltip.remove();
+  });
 });
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  limparErros();
 
   const nomeCompleto = nomeInput.value.trim();
   const email = emailInput.value.trim().toLowerCase();
@@ -28,28 +64,32 @@ form.addEventListener("submit", async (e) => {
 
   // Validações de campos obrigatórios
   if (!nomeCompleto) {
-    mostrarErroNativo(nomeInput, "Preencha este campo.");
+    mostrarErroCampo(nomeInput, "Preencha este campo.");
     return;
   }
 
   if (!email) {
-    mostrarErroNativo(emailInput, "Preencha este campo.");
+    mostrarErroCampo(emailInput, "Preencha este campo.");
     return;
   }
 
   if (!password) {
-    mostrarErroNativo(passwordInput, "Preencha este campo.");
+    mostrarErroCampo(passwordInput, "Preencha este campo.");
     return;
   }
 
-  // Validações de regra de negócio
   if (password.length < 8) {
-    mostrarErroNativo(passwordInput, "A senha deve ter no mínimo 8 caracteres.");
+    mostrarErroCampo(passwordInput, "A senha deve conter no mínimo 8 caracteres.");
+    return;
+  }
+
+  if (!confirmPassword) {
+    mostrarErroCampo(confirmPasswordInput, "Confirme sua senha.");
     return;
   }
 
   if (password !== confirmPassword) {
-    mostrarErroNativo(confirmPasswordInput, "As senhas não coincidem.");
+    mostrarErroCampo(confirmPasswordInput, "As senhas não coincidem.");
     return;
   }
 
@@ -68,18 +108,21 @@ form.addEventListener("submit", async (e) => {
 
     if (error) {
       if (error.code === "23505") {
-        mostrarErroNativo(emailInput, "Este e-mail já possui uma solicitação enviada.");
+        mostrarErroCampo(emailInput, "Este e-mail já possui uma solicitação enviada.");
         return;
       }
-      mostrarErroNativo(emailInput, "Não foi possível enviar sua solicitação. Tente novamente.");
+      mostrarBannerGlobal("Não foi possível enviar sua solicitação. Tente novamente.", "error");
       return;
     }
 
-    alert("Solicitação enviada com sucesso! Aguarde a análise da gestão.");
+    mostrarBannerGlobal("Solicitação enviada com sucesso! Aguarde a análise da gestão.", "success");
     form.reset();
-    window.location.href = "./index.html";
+
+    setTimeout(() => {
+      window.location.href = "./index.html";
+    }, 2500);
   } catch (err) {
-    mostrarErroNativo(emailInput, err.message);
+    mostrarBannerGlobal(err.message, "error");
   } finally {
     submitButton.disabled = false;
   }
