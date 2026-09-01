@@ -28,7 +28,11 @@
             type="text"
             id="nome-completo"
             name="nome-completo"
+            autocomplete="name"
+            minlength="3"
+            maxlength="150"
             placeholder="Digite seu nome completo"
+            required
           >
         </div>
 
@@ -38,7 +42,14 @@
             type="email"
             id="cadastro-email"
             name="cadastro-email"
+            inputmode="email"
+            autocomplete="email"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            maxlength="254"
             placeholder="login@saude.gov.br"
+            required
           >
         </div>
 
@@ -48,7 +59,11 @@
             type="password"
             id="cadastro-password"
             name="cadastro-password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="256"
             placeholder="Mínimo 8 caracteres"
+            required
           >
         </div>
 
@@ -58,7 +73,11 @@
             type="password"
             id="confirmar-password"
             name="confirmar-password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="256"
             placeholder="Repita sua senha"
+            required
           >
         </div>
 
