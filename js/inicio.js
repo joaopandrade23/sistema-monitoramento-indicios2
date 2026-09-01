@@ -46,16 +46,6 @@ function firstAvailableValue(source, keys, fallback = "Não informado") {
   return fallback;
 }
 
-function showMessage(message) {
-  pageMessage.textContent = message;
-  pageMessage.hidden = false;
-}
-
-function hideMessage() {
-  pageMessage.textContent = "";
-  pageMessage.hidden = true;
-}
-
 function showProtectedContent() {
   pageLoading.hidden = true;
   protectedContent.hidden = false;
@@ -69,22 +59,20 @@ async function safelySignOut() {
   try {
     await supabase.auth.signOut({ scope: "local" });
   } catch {
-    // O redirecionamento ocorre mesmo se a limpeza remota falhar.
+    // Redirecionamento ocorre mesmo se a limpeza remota falhar.
   }
 }
 
 async function fetchFunctionalContext() {
+  // Consulta isolada na camada segura de API (schema api)
   const { data, error } = await supabase
+    .schema("api")
     .from("v_meu_contexto")
     .select("*")
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    throw new Error("CONTEXT_QUERY_FAILED");
-  }
-
-  if (!data) {
+  if (error || !data) {
     throw new Error("FUNCTIONAL_ACCESS_DENIED");
   }
 
@@ -127,47 +115,29 @@ function renderContext(context, authenticatedUser) {
 }
 
 async function protectPage() {
-  hideMessage();
-
   try {
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session) {
-      await safelySignOut();
-      redirectToLogin();
-      return;
-    }
-
+    // 1. Validação remota obrigatória do Token JWT com o servidor de Auth
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      await safelySignOut();
-      redirectToLogin();
-      return;
+      throw new Error("AUTH_SESSION_INVALID");
     }
 
+    // 2. Validação do Perfil Funcional e Permissões no Banco de Dados
     const context = await fetchFunctionalContext();
 
+    // 3. Apenas após TODAS as validações, renderiza e exibe a tela protegida
     renderContext(context, user);
     showProtectedContent();
-  } catch (error) {
-    if (error.message === "FUNCTIONAL_ACCESS_DENIED") {
-      await safelySignOut();
-      redirectToLogin();
-      return;
-    }
-
-    pageLoading.hidden = true;
-    protectedContent.hidden = false;
-    showMessage(
-      "Não foi possível validar seu acesso neste momento. Saia e tente novamente."
-    );
+  } catch {
+    // SEGURANÇA: Falha-Fechada (Fail-Closed)
+    // Se ocorrer QUALQUER erro (token inválido, perfil ausente, falha de rede),
+    // a tela protegida NUNCA é exibida e o usuário é deslogado imediatamente.
+    await safelySignOut();
+    redirectToLogin();
   }
 }
 
@@ -179,21 +149,11 @@ async function handleLogout() {
   logoutInProgress = true;
   logoutButton.disabled = true;
   logoutButton.textContent = "Saindo...";
-  hideMessage();
 
   try {
-    const { error } = await supabase.auth.signOut({ scope: "local" });
-
-    if (error) {
-      throw error;
-    }
-
+    await supabase.auth.signOut({ scope: "local" });
+  } finally {
     redirectToLogin();
-  } catch {
-    logoutButton.disabled = false;
-    logoutButton.textContent = "Sair";
-    logoutInProgress = false;
-    showMessage("Não foi possível encerrar a sessão. Tente novamente.");
   }
 }
 
@@ -219,7 +179,8 @@ async function initializePage() {
     monitorAuthState();
     await protectPage();
   } catch {
-    document.body.textContent = "Não foi possível carregar a página inicial.";
+    await safelySignOut();
+    redirectToLogin();
   }
 }
 
