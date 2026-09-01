@@ -73,6 +73,11 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  if (!emailInput.checkValidity()) {
+    mostrarErroCampo(emailInput, "Digite um endereço de e-mail válido.");
+    return;
+  }
+  
   if (!password) {
     mostrarErroCampo(passwordInput, "Preencha este campo.");
     return;
