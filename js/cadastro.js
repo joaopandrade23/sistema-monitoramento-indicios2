@@ -86,6 +86,14 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  if (nomeCompleto.length < 3) {
+    mostrarErroCampo(
+      nomeInput,
+      "O nome completo deve conter pelo menos 3 caracteres."
+    );
+    return;
+  }
+
   if (!email) {
     mostrarErroCampo(emailInput, "Preencha este campo.");
     return;
