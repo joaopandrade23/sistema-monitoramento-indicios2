@@ -9,54 +9,45 @@
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/+esm";
 
-const SUPABASE_URL = "https://sdktnkaxmewxajkpshni.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2AWq-iYn9IoFpDDCMwvmdQ_ba3_Mhum";
+const CONFIG = Object.freeze({
+  URL: "https://sdktnkaxmewxajkpshni.supabase.co",
+  PUBLISHABLE_KEY: "sb_publishable_2AWq-iYn9IoFpDDCMwvmdQ_ba3_Mhum",
+});
 
 function validarConfiguracao() {
-  const urlNaoConfigurada = !SUPABASE_URL || SUPABASE_URL.includes("Base_Sistem_Indicios");
-  const chaveNaoConfigurada = !SUPABASE_PUBLISHABLE_KEY;
+  const urlNaoConfigurada = !CONFIG.URL || CONFIG.URL.includes("Base_Sistem_Indicios");
+  const chaveNaoConfigurada = !CONFIG.PUBLISHABLE_KEY;
 
   if (urlNaoConfigurada || chaveNaoConfigurada) {
-    throw new Error(
-      "Supabase ainda não configurado. Informe a URL do projeto e a chave pública."
-    );
+    throw new Error("CONFIG_INVALID_MISSING_KEYS");
   }
 
   let url;
 
   try {
-    url = new URL(SUPABASE_URL);
+    url = new URL(CONFIG.URL);
   } catch {
-    throw new Error(
-      "A URL configurada para o Supabase é inválida."
-    );
+    throw new Error("CONFIG_INVALID_URL_FORMAT");
   }
 
-  if (
-    url.protocol !== "https:" ||
-    !url.hostname.endsWith(".supabase.co")
-  ) {
-    throw new Error(
-      "A URL do Supabase deve usar HTTPS e o domínio oficial supabase.co."
-    );
+  if (url.protocol !== "https:" || !url.hostname.endsWith(".supabase.co")) {
+    throw new Error("CONFIG_INVALID_URL_DOMAIN");
   }
 
   const chavePublicaValida =
-    SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_") ||
-    SUPABASE_PUBLISHABLE_KEY.startsWith("eyJ");
+    CONFIG.PUBLISHABLE_KEY.startsWith("sb_publishable_") ||
+    CONFIG.PUBLISHABLE_KEY.startsWith("eyJ");
 
   if (!chavePublicaValida) {
-    throw new Error(
-      "A chave configurada não parece ser uma Publishable key ou anon public key."
-    );
+    throw new Error("CONFIG_INVALID_KEY_FORMAT");
   }
 }
 
 validarConfiguracao();
 
 export const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY,
+  CONFIG.URL,
+  CONFIG.PUBLISHABLE_KEY,
   {
     db: {
       schema: "api",
