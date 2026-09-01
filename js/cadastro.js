@@ -8,6 +8,24 @@ const confirmPasswordInput = document.querySelector("#confirmar-password");
 const submitButton = document.querySelector("#signup-button");
 const feedbackBanner = document.querySelector("#feedback-banner");
 
+function verificarElementosDaPagina() {
+  const elementosObrigatorios = [
+    form,
+    nomeInput,
+    emailInput,
+    passwordInput,
+    confirmPasswordInput,
+    submitButton,
+    feedbackBanner,
+  ];
+
+  if (elementosObrigatorios.some((elemento) => !elemento)) {
+    throw new Error("PAGE_STRUCTURE_INVALID");
+  }
+}
+
+verificarElementosDaPagina();
+
 // Remove todos os erros visuais da tela
 function limparErros() {
   document.querySelectorAll(".custom-tooltip").forEach((el) => el.remove());
