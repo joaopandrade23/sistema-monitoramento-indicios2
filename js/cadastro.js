@@ -46,10 +46,17 @@ function mostrarErroCampo(input, mensagem) {
 
   const tooltip = document.createElement("div");
   tooltip.className = "custom-tooltip";
-  tooltip.innerHTML = `
-    <span class="tooltip-icon">!</span>
-    <span>${mensagem}</span>
-  `;
+
+  const tooltipIcon = document.createElement("span");
+  tooltipIcon.className = "tooltip-icon";
+  tooltipIcon.setAttribute("aria-hidden", "true");
+  tooltipIcon.textContent = "!";
+
+  const tooltipText = document.createElement("span");
+  tooltipText.textContent = mensagem;
+
+  tooltip.appendChild(tooltipIcon);
+  tooltip.appendChild(tooltipText);
 
   fieldContainer.appendChild(tooltip);
 }
