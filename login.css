@@ -250,3 +250,7 @@ input:focus-visible {
 .notice-link:hover {
   text-decoration: underline;
 }
+
+.login-footer .login-message {
+  margin-top: 0.75rem;
+}
