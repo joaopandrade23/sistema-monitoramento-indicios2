@@ -5,9 +5,7 @@ const emailInput = document.querySelector("#email");
 const passwordInput = document.querySelector("#password");
 const loginButton = document.querySelector("#login-button");
 const messageBox = document.querySelector("#login-message");
-const forgotPasswordButton = document.querySelector(
-  ".forgot-password"
-);
+const forgotPasswordButton = document.querySelector(".forgot-password");
 
 const LOGIN_DEFAULT_TEXT = "Entrar";
 const LOGIN_LOADING_TEXT = "Entrando...";
@@ -22,14 +20,8 @@ function verificarElementosDaPagina() {
     forgotPasswordButton,
   ];
 
-  const existeElementoAusente = elementosObrigatorios.some(
-    (elemento) => !elemento
-  );
-
-  if (existeElementoAusente) {
-    throw new Error(
-      "A página de login não possui todos os elementos obrigatórios."
-    );
+  if (elementosObrigatorios.some((elemento) => !elemento)) {
+    throw new Error("PAGE_STRUCTURE_INVALID");
   }
 }
 
@@ -48,10 +40,7 @@ function definirCarregamento(estaCarregando) {
   emailInput.readOnly = estaCarregando;
   passwordInput.readOnly = estaCarregando;
 
-  loginButton.setAttribute(
-    "aria-busy",
-    String(estaCarregando)
-  );
+  loginButton.setAttribute("aria-busy", String(estaCarregando));
 
   const textoBotao = loginButton.querySelector("span");
 
@@ -67,19 +56,20 @@ function normalizarEmail(valor) {
 }
 
 async function validarContextoFuncional() {
+  // Consulta isolada e explícita no schema 'api'
   const { data, error } = await supabase
+    .schema("api")
     .from("v_meu_contexto")
     .select("*")
     .limit(1)
     .maybeSingle();
 
+  // Sem console.error para evitar vazamento de metadados no DevTools
   if (error) {
-    console.error("Erro na consulta de contexto:", error);
     throw new Error("CONTEXT_QUERY_FAILED");
   }
 
   if (!data) {
-    console.warn("Nenhum registro retornado para v_meu_contexto");
     throw new Error("FUNCTIONAL_ACCESS_DENIED");
   }
 
@@ -88,14 +78,9 @@ async function validarContextoFuncional() {
 
 async function encerrarSessaoComSeguranca() {
   try {
-    await supabase.auth.signOut({
-      scope: "local",
-    });
+    await supabase.auth.signOut({ scope: "local" });
   } catch {
-    /*
-     * Nenhum detalhe interno é exibido ao usuário.
-     * A sessão local será reavaliada no próximo acesso.
-     */
+    // Redirecionamento ocorre mesmo se a limpeza falhar
   }
 }
 
@@ -117,38 +102,25 @@ async function processarLogin(evento) {
   const senha = passwordInput.value;
 
   if (!email || !senha) {
-    mostrarMensagem(
-      "Preencha o e-mail e a senha."
-    );
-
+    mostrarMensagem("Preencha o e-mail e a senha.");
     return;
   }
 
   definirCarregamento(true);
 
   try {
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password: senha,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    });
 
-    if (
-      error ||
-      !data ||
-      !data.session ||
-      !data.user
-    ) {
+    // Limpeza imediata da senha na memória do elemento DOM
+    passwordInput.value = "";
+
+    if (error || !data || !data.session || !data.user) {
       await encerrarSessaoComSeguranca();
-
-      passwordInput.value = "";
-
-      mostrarMensagem(
-        "Não foi possível entrar. Verifique suas credenciais."
-      );
-
+      mostrarMensagem("Não foi possível entrar. Verifique suas credenciais.");
       passwordInput.focus();
-
       return;
     }
 
@@ -157,12 +129,7 @@ async function processarLogin(evento) {
     } catch (erroContexto) {
       await encerrarSessaoComSeguranca();
 
-      passwordInput.value = "";
-
-      if (
-        erroContexto.message ===
-        "FUNCTIONAL_ACCESS_DENIED"
-      ) {
+      if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
         mostrarMensagem(
           "Seu usuário não possui acesso funcional ativo ao sistema."
         );
@@ -175,17 +142,12 @@ async function processarLogin(evento) {
       return;
     }
 
-    passwordInput.value = "";
-
+    // Sucesso: Redireciona para a página interna protegida
     window.location.replace("./inicio.html");
   } catch {
     await encerrarSessaoComSeguranca();
-
     passwordInput.value = "";
-
-    mostrarMensagem(
-      "Não foi possível concluir o acesso. Tente novamente."
-    );
+    mostrarMensagem("Não foi possível concluir o acesso. Tente novamente.");
   } finally {
     definirCarregamento(false);
   }
@@ -204,10 +166,7 @@ async function redirecionarSessaoExistente() {
       return;
     }
 
-    /*
-     * getUser consulta o servidor de autenticação e confirma
-     * que a sessão armazenada corresponde a um usuário válido.
-     */
+    // Confirmação obrigatória com o servidor remoto de Autenticação
     const {
       data: { user },
       error: userError,
@@ -220,7 +179,6 @@ async function redirecionarSessaoExistente() {
 
     try {
       await validarContextoFuncional();
-
       window.location.replace("./inicio.html");
     } catch {
       await encerrarSessaoComSeguranca();
@@ -234,34 +192,19 @@ async function redirecionarSessaoExistente() {
 
 function informarRecuperacaoIndisponivel() {
   ocultarMensagem();
-
-  mostrarMensagem(
-    "A recuperação de senha ainda não está disponível."
-  );
+  mostrarMensagem("A recuperação de senha ainda não está disponível.");
 }
 
 function iniciarPaginaLogin() {
   try {
     verificarElementosDaPagina();
 
-    form.addEventListener(
-      "submit",
-      processarLogin
-    );
-
-    forgotPasswordButton.addEventListener(
-      "click",
-      informarRecuperacaoIndisponivel
-    );
+    form.addEventListener("submit", processarLogin);
+    forgotPasswordButton.addEventListener("click", informarRecuperacaoIndisponivel);
 
     redirecionarSessaoExistente();
   } catch {
-    /*
-     * Esta mensagem não revela nomes de arquivos,
-     * configurações, chaves ou detalhes internos.
-     */
-    document.body.textContent =
-      "Não foi possível carregar a página de acesso.";
+    document.body.textContent = "Não foi possível carregar a página de acesso.";
   }
 }
 
