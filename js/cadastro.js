@@ -149,7 +149,12 @@ try {
     window.location.href = "./index.html";
   }, 2500);
 } catch (err) {
-  mostrarBannerGlobal(err.message, "error");
+  console.error("Falha inesperada ao enviar solicitação de cadastro:", err);
+
+  mostrarBannerGlobal(
+    "Não foi possível enviar sua solicitação. Verifique sua conexão e tente novamente.",
+    "error"
+  );
 } finally {
   submitButton.disabled = false;
 }
