@@ -111,11 +111,34 @@ try {
   });
 
   if (error) {
-    if (error.message.includes("already registered") || error.status === 422) {
-      mostrarErroCampo(emailInput, "Este e-mail já possui uma solicitação ou conta cadastrada.");
+    const codigoErro = String(error.code || "").toLowerCase();
+    const mensagemErro = String(error.message || "").toLowerCase();
+  
+    const usuarioJaExiste =
+      codigoErro === "user_already_exists" ||
+      mensagemErro.includes("already registered") ||
+      mensagemErro.includes("user already exists");
+  
+    if (usuarioJaExiste) {
+      mostrarErroCampo(
+        emailInput,
+        "Este e-mail já possui uma solicitação ou conta cadastrada."
+      );
       return;
     }
-    mostrarBannerGlobal("Não foi possível enviar sua solicitação. Tente novamente.", "error");
+  
+    if (error.status === 422) {
+      mostrarBannerGlobal(
+        "Os dados informados não puderam ser processados. Revise o formulário e tente novamente.",
+        "error"
+      );
+      return;
+    }
+  
+    mostrarBannerGlobal(
+      "Não foi possível enviar sua solicitação. Tente novamente.",
+      "error"
+    );
     return;
   }
 
