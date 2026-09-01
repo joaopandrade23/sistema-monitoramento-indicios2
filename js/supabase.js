@@ -10,10 +10,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/+esm";
 
 const SUPABASE_URL = "https://sdktnkaxmewxajkpshni.supabase.co";
-
-/*
- * Insira aqui a sua chave anon / publishable do Supabase.
- */
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2AWq-iYn9IoFpDDCMwvmdQ_ba3_Mhum";
 
 function validarConfiguracao() {
