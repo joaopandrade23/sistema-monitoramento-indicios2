@@ -8,6 +8,12 @@ const confirmPasswordInput = document.querySelector("#confirmar-password");
 const submitButton = document.querySelector("#signup-button");
 const feedbackBanner = document.querySelector("#feedback-banner");
 
+const SIGNUP_DEFAULT_TEXT = "Enviar Solicitação";
+const SIGNUP_LOADING_TEXT = "Enviando...";
+
+/**
+ * Verifica se todos os elementos necessários existem no cadastro.html.
+ */
 function verificarElementosDaPagina() {
   const elementosObrigatorios = [
     form,
@@ -24,18 +30,47 @@ function verificarElementosDaPagina() {
   }
 }
 
-verificarElementosDaPagina();
+/**
+ * Ativa ou desativa o estado de carregamento do formulário.
+ */
+function definirCarregamento(estaCarregando) {
+  submitButton.disabled = estaCarregando;
 
-// Remove todos os erros visuais da tela
+  nomeInput.readOnly = estaCarregando;
+  emailInput.readOnly = estaCarregando;
+  passwordInput.readOnly = estaCarregando;
+  confirmPasswordInput.readOnly = estaCarregando;
+
+  submitButton.setAttribute("aria-busy", String(estaCarregando));
+
+  const textoBotao = submitButton.querySelector("span");
+
+  if (textoBotao) {
+    textoBotao.textContent = estaCarregando
+      ? SIGNUP_LOADING_TEXT
+      : SIGNUP_DEFAULT_TEXT;
+  }
+}
+
+/**
+ * Remove todos os erros visuais da tela.
+ */
 function limparErros() {
-  document.querySelectorAll(".custom-tooltip").forEach((el) => el.remove());
-  document.querySelectorAll("input").forEach((input) => input.classList.remove("input-error"));
-  feedbackBanner.classList.add("hidden");
+  document
+    .querySelectorAll(".custom-tooltip")
+    .forEach((elemento) => elemento.remove());
+
+  document
+    .querySelectorAll("input")
+    .forEach((input) => input.classList.remove("input-error"));
+
   feedbackBanner.className = "feedback-banner hidden";
   feedbackBanner.textContent = "";
 }
 
-// Renderiza o balão customizado acoplado ao campo correspondente
+/**
+ * Exibe uma mensagem de erro vinculada a um campo específico.
+ */
 function mostrarErroCampo(input, mensagem) {
   limparErros();
 
@@ -44,8 +79,17 @@ function mostrarErroCampo(input, mensagem) {
 
   const fieldContainer = input.closest(".field");
 
+  if (!fieldContainer) {
+    mostrarBannerGlobal(
+      "Não foi possível apresentar a validação do formulário.",
+      "error"
+    );
+    return;
+  }
+
   const tooltip = document.createElement("div");
   tooltip.className = "custom-tooltip";
+  tooltip.setAttribute("role", "alert");
 
   const tooltipIcon = document.createElement("span");
   tooltipIcon.className = "tooltip-icon";
@@ -61,25 +105,52 @@ function mostrarErroCampo(input, mensagem) {
   fieldContainer.appendChild(tooltip);
 }
 
-// Exibe alertas gerais de sucesso ou falha no topo do formulário
+/**
+ * Exibe alertas gerais de sucesso ou falha.
+ */
 function mostrarBannerGlobal(mensagem, tipo = "error") {
   limparErros();
+
   feedbackBanner.textContent = mensagem;
   feedbackBanner.classList.remove("hidden");
   feedbackBanner.classList.add(tipo);
 }
 
-// Remove o erro do campo no momento em que o usuário digita
-[nomeInput, emailInput, passwordInput, confirmPasswordInput].forEach((input) => {
-  input.addEventListener("input", () => {
-    input.classList.remove("input-error");
-    const tooltip = input.closest(".field").querySelector(".custom-tooltip");
-    if (tooltip) tooltip.remove();
-  });
-});
+/**
+ * Remove o erro visual do campo quando o usuário volta a digitar.
+ */
+function configurarLimpezaDosCampos() {
+  const campos = [
+    nomeInput,
+    emailInput,
+    passwordInput,
+    confirmPasswordInput,
+  ];
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  campos.forEach((input) => {
+    input.addEventListener("input", () => {
+      input.classList.remove("input-error");
+
+      const fieldContainer = input.closest(".field");
+      const tooltip = fieldContainer?.querySelector(".custom-tooltip");
+
+      if (tooltip) {
+        tooltip.remove();
+      }
+    });
+  });
+}
+
+/**
+ * Processa o envio da solicitação de cadastro.
+ */
+async function processarCadastro(evento) {
+  evento.preventDefault();
+
+  if (submitButton.disabled) {
+    return;
+  }
+
   limparErros();
 
   const nomeCompleto = nomeInput.value.trim();
@@ -127,7 +198,10 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (!confirmPassword) {
-    mostrarErroCampo(confirmPasswordInput, "Confirme sua senha.");
+    mostrarErroCampo(
+      confirmPasswordInput,
+      "Confirme sua senha."
+    );
     return;
   }
 
@@ -139,64 +213,91 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  submitButton.disabled = true;
-  
-  // Substitua o bloco try do submit em cadastro.js
-try {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { nome_completo: nomeCompleto }
-    }
-  });
+  definirCarregamento(true);
 
-  if (error) {
-    const codigoErro = String(error.code || "").toLowerCase();
-    const mensagemErro = String(error.message || "").toLowerCase();
-  
-    const usuarioJaExiste =
-      codigoErro === "user_already_exists" ||
-      mensagemErro.includes("already registered") ||
-      mensagemErro.includes("user already exists");
-  
-    if (usuarioJaExiste) {
-      mostrarErroCampo(
-        emailInput,
-        "Este e-mail já possui uma solicitação ou conta cadastrada."
-      );
-      return;
-    }
-  
-    if (error.status === 422) {
+  try {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nome_completo: nomeCompleto,
+        },
+      },
+    });
+
+    if (error) {
+      const codigoErro = String(error.code || "").toLowerCase();
+      const mensagemErro = String(error.message || "").toLowerCase();
+
+      const usuarioJaExiste =
+        codigoErro === "user_already_exists" ||
+        mensagemErro.includes("already registered") ||
+        mensagemErro.includes("user already exists");
+
+      if (usuarioJaExiste) {
+        mostrarErroCampo(
+          emailInput,
+          "Este e-mail já possui uma solicitação ou conta cadastrada."
+        );
+        return;
+      }
+
+      if (error.status === 422) {
+        mostrarBannerGlobal(
+          "Os dados informados não puderam ser processados. Revise o formulário e tente novamente.",
+          "error"
+        );
+        return;
+      }
+
       mostrarBannerGlobal(
-        "Os dados informados não puderam ser processados. Revise o formulário e tente novamente.",
+        "Não foi possível enviar sua solicitação. Tente novamente.",
         "error"
       );
       return;
     }
-  
+
     mostrarBannerGlobal(
-      "Não foi possível enviar sua solicitação. Tente novamente.",
+      "Solicitação enviada com sucesso! Aguarde a liberação do seu perfil pela gestão.",
+      "success"
+    );
+
+    form.reset();
+
+    window.setTimeout(() => {
+      window.location.href = "./index.html";
+    }, 2500);
+  } catch (erro) {
+    console.error(
+      "Falha inesperada ao enviar solicitação de cadastro:",
+      erro
+    );
+
+    mostrarBannerGlobal(
+      "Não foi possível enviar sua solicitação. Verifique sua conexão e tente novamente.",
       "error"
     );
-    return;
+  } finally {
+    definirCarregamento(false);
   }
-
-  mostrarBannerGlobal("Solicitação enviada com sucesso! Aguarde a liberação do seu perfil pela gestão.", "success");
-  form.reset();
-
-  setTimeout(() => {
-    window.location.href = "./index.html";
-  }, 2500);
-} catch (err) {
-  console.error("Falha inesperada ao enviar solicitação de cadastro:", err);
-
-  mostrarBannerGlobal(
-    "Não foi possível enviar sua solicitação. Verifique sua conexão e tente novamente.",
-    "error"
-  );
-} finally {
-  submitButton.disabled = false;
 }
-});
+
+/**
+ * Inicializa os eventos da página de cadastro.
+ */
+function iniciarPaginaCadastro() {
+  try {
+    verificarElementosDaPagina();
+    configurarLimpezaDosCampos();
+
+    form.addEventListener("submit", processarCadastro);
+  } catch (erro) {
+    console.error("Falha ao inicializar a página de cadastro:", erro);
+
+    document.body.textContent =
+      "Não foi possível carregar a página de solicitação de cadastro.";
+  }
+}
+
+iniciarPaginaCadastro();
