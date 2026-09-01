@@ -18,6 +18,9 @@
         <p class="signup-description">Preencha os dados para enviar sua solicitação para a gestão.</p>
       </header>
 
+      <!-- Banner de Alerta Global (Mensagens do Supabase/Sucesso) -->
+      <div id="feedback-banner" class="feedback-banner hidden" role="alert"></div>
+
       <form id="form-cadastro" class="signup-form" novalidate>
         <div class="field">
           <label for="nome-completo">Nome Completo</label>
@@ -25,7 +28,6 @@
             type="text"
             id="nome-completo"
             name="nome-completo"
-            required
             placeholder="Digite seu nome completo"
           >
         </div>
@@ -36,7 +38,6 @@
             type="email"
             id="cadastro-email"
             name="cadastro-email"
-            required
             placeholder="login@saude.gov.br"
           >
         </div>
@@ -47,8 +48,6 @@
             type="password"
             id="cadastro-password"
             name="cadastro-password"
-            required
-            minlength="8"
             placeholder="Mínimo 8 caracteres"
           >
         </div>
@@ -59,8 +58,6 @@
             type="password"
             id="confirmar-password"
             name="confirmar-password"
-            required
-            minlength="8"
             placeholder="Repita sua senha"
           >
         </div>
