@@ -95,35 +95,33 @@ form.addEventListener("submit", async (e) => {
 
   submitButton.disabled = true;
 
-  try {
-    const { error } = await supabase
-      .from("solicitacao_cadastro")
-      .insert([
-        {
-          nome_completo: nomeCompleto,
-          email_institucional: email,
-          senha: password,
-        },
-      ]);
+  // Substitua o bloco try do submit em cadastro.js
+try {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { nome_completo: nomeCompleto }
+    }
+  });
 
-    if (error) {
-      if (error.code === "23505") {
-        mostrarErroCampo(emailInput, "Este e-mail já possui uma solicitação enviada.");
-        return;
-      }
-      mostrarBannerGlobal("Não foi possível enviar sua solicitação. Tente novamente.", "error");
+  if (error) {
+    if (error.message.includes("already registered") || error.status === 422) {
+      mostrarErroCampo(emailInput, "Este e-mail já possui uma solicitação ou conta cadastrada.");
       return;
     }
-
-    mostrarBannerGlobal("Solicitação enviada com sucesso! Aguarde a análise da gestão.", "success");
-    form.reset();
-
-    setTimeout(() => {
-      window.location.href = "./index.html";
-    }, 2500);
-  } catch (err) {
-    mostrarBannerGlobal(err.message, "error");
-  } finally {
-    submitButton.disabled = false;
+    mostrarBannerGlobal("Não foi possível enviar sua solicitação. Tente novamente.", "error");
+    return;
   }
-});
+
+  mostrarBannerGlobal("Solicitação enviada com sucesso! Aguarde a liberação do seu perfil pela gestão.", "success");
+  form.reset();
+
+  setTimeout(() => {
+    window.location.href = "./index.html";
+  }, 2500);
+} catch (err) {
+  mostrarBannerGlobal(err.message, "error");
+} finally {
+  submitButton.disabled = false;
+}
