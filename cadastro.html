@@ -1,43 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <title>Solicitar Cadastro - Sistema de Monitoramento</title>
+  <title>Solicitar Cadastro | Monitoramento de Indícios</title>
   <link rel="stylesheet" href="./cadastro.css">
 </head>
-<body class="bg-layout">
-  <div class="card-container">
-    <div class="card-header">
-      <h2>Solicitar Cadastro</h2>
-      <p>Preencha os dados abaixo para enviar sua solicitação para a gestão</p>
-    </div>
+<body>
+  <main class="signup-page">
+    <section class="signup-card" aria-labelledby="signup-title">
+      <header class="signup-header">
+        <div class="brand-mark" aria-hidden="true">MI</div>
+        <p class="eyebrow">SMSA/CE</p>
+        <h1 id="signup-title">Solicitar Cadastro</h1>
+        <p class="signup-description">Preencha os dados para enviar sua solicitação para a gestão.</p>
+      </header>
 
-    <form id="form-cadastro" class="form">
-      <div class="input-group">
-        <label for="nome-completo">Nome Completo</label>
-        <input type="text" id="nome-completo" required placeholder="Digite seu nome completo">
-      </div>
+      <form id="form-cadastro" class="signup-form" novalidate>
+        <div class="field">
+          <label for="nome-completo">Nome Completo</label>
+          <input
+            type="text"
+            id="nome-completo"
+            name="nome-completo"
+            required
+            placeholder="Digite seu nome completo"
+          >
+        </div>
 
-      <div class="input-group">
-        <label for="codigo-usuario">Código / Matrícula</label>
-        <input type="text" id="codigo-usuario" required placeholder="Ex: MAT-12345 ou CPF">
-      </div>
+        <div class="field">
+          <label for="cadastro-email">E-mail Institucional</label>
+          <input
+            type="email"
+            id="cadastro-email"
+            name="cadastro-email"
+            required
+            placeholder="seu.email@orgao.gov.br"
+          >
+        </div>
 
-      <div class="input-group">
-        <label for="cadastro-email">E-mail Institucional</label>
-        <input type="email" id="cadastro-email" required placeholder="seu.email@orgao.gov.br">
-      </div>
+        <div class="field">
+          <label for="cadastro-password">Senha</label>
+          <input
+            type="password"
+            id="cadastro-password"
+            name="cadastro-password"
+            required
+            minlength="8"
+            placeholder="Mínimo 8 caracteres"
+          >
+        </div>
 
-      <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
-    </form>
+        <div class="field">
+          <label for="confirmar-password">Confirmar Senha</label>
+          <input
+            type="password"
+            id="confirmar-password"
+            name="confirmar-password"
+            required
+            minlength="8"
+            placeholder="Repita sua senha"
+          >
+        </div>
 
-    <div class="card-footer">
-      <p>Já possui uma conta? <a href="index.html">Voltar para o Login</a></p>
-    </div>
-  </div>
+        <button id="signup-button" class="signup-button" type="submit">
+          <span>Enviar Solicitação</span>
+        </button>
+      </form>
+
+      <footer class="signup-footer">
+        <p>Já possui uma conta? <a href="./index.html" class="footer-link">Voltar para o Login</a></p>
+      </footer>
+    </section>
+  </main>
 
   <script type="module" src="./js/cadastro.js"></script>
 </body>
