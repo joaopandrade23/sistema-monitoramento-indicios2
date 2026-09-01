@@ -2,17 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <meta
-    name="referrer"
-    content="no-referrer"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  
   <meta
     http-equiv="Content-Security-Policy"
     content="
@@ -30,14 +22,10 @@
     "
   >
 
-  <meta
-    name="robots"
-    content="noindex, nofollow, noarchive"
-  >
-
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <title>Início | Monitoramento de Indícios</title>
 
-  ./inicio.css
+  <link rel="stylesheet" href="./inicio.css">
 </head>
 
 <body>
@@ -47,11 +35,7 @@
     role="status"
     aria-live="polite"
   >
-    <div
-      class="loading-spinner"
-      aria-hidden="true"
-    ></div>
-
+    <div class="loading-spinner" aria-hidden="true"></div>
     <p>Validando seu acesso...</p>
   </div>
 
@@ -62,14 +46,8 @@
   >
     <header class="app-header">
       <div class="header-container">
-        ./inicio.html
-          <span
-            class="brand-mark"
-            aria-hidden="true"
-          >
-            MI
-          </span>
-
+        <a href="./inicio.html" class="brand">
+          <span class="brand-mark" aria-hidden="true">MI</span>
           <span class="brand-text">
             <strong>Monitoramento de Indícios</strong>
             <small>SMSA/CE</small>
@@ -78,26 +56,11 @@
 
         <div class="user-area">
           <div class="user-summary">
-            <span
-              id="user-name"
-              class="user-name"
-            >
-              Usuário
-            </span>
-
-            <span
-              id="user-profile"
-              class="user-profile"
-            >
-              Perfil
-            </span>
+            <span id="user-name" class="user-name">Usuário</span>
+            <span id="user-profile" class="user-profile">Perfil</span>
           </div>
 
-          <button
-            id="logout-button"
-            class="logout-button"
-            type="button"
-          >
+          <button id="logout-button" class="logout-button" type="button">
             Sair
           </button>
         </div>
@@ -105,34 +68,21 @@
     </header>
 
     <div class="app-layout">
-      <aside
-        class="sidebar"
-        aria-label="Navegação principal"
-      >
+      <aside class="sidebar" aria-label="Navegação principal">
         <nav>
           <ul class="navigation-list">
             <li>
-              ./inicio.html
+              <a href="./inicio.html" class="navigation-link active" aria-current="page">
                 Início
               </a>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-              >
+              <button class="navigation-link" type="button" disabled>
                 Tratamentos
               </button>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-              >
+              <button class="navigation-link" type="button" disabled>
                 Histórico
               </button>
             </li>
@@ -144,23 +94,10 @@
         </p>
       </aside>
 
-      <main
-        id="main-content"
-        class="main-content"
-        tabindex="-1"
-      >
-        <section
-          class="welcome-section"
-          aria-labelledby="welcome-title"
-        >
-          <p class="eyebrow">
-            Ambiente interno
-          </p>
-
-          <h1 id="welcome-title">
-            Bem-vindo ao sistema
-          </h1>
-
+      <main id="main-content" class="main-content" tabindex="-1">
+        <section class="welcome-section" aria-labelledby="welcome-title">
+          <p class="eyebrow">Ambiente interno</p>
+          <h1 id="welcome-title">Bem-vindo ao sistema</h1>
           <p class="welcome-description">
             Seu acesso foi autenticado e validado com sucesso.
           </p>
@@ -174,85 +111,46 @@
           hidden
         ></div>
 
-        <section
-          class="context-card"
-          aria-labelledby="context-title"
-        >
+        <section class="context-card" aria-labelledby="context-title">
           <div class="card-heading">
             <div>
-              <p class="card-eyebrow">
-                Sessão atual
-              </p>
-
-              <h2 id="context-title">
-                Contexto funcional
-              </h2>
+              <p class="card-eyebrow">Sessão atual</p>
+              <h2 id="context-title">Contexto funcional</h2>
             </div>
-
-            <span class="session-status">
-              Sessão ativa
-            </span>
+            <span class="session-status">Sessão ativa</span>
           </div>
 
           <dl class="context-grid">
             <div class="context-item">
               <dt>Nome</dt>
-
-              <dd id="context-name">
-                Não informado
-              </dd>
+              <dd id="context-name">Não informado</dd>
             </div>
-
             <div class="context-item">
               <dt>E-mail</dt>
-
-              <dd id="context-email">
-                Não informado
-              </dd>
+              <dd id="context-email">Não informado</dd>
             </div>
-
             <div class="context-item">
               <dt>Perfil</dt>
-
-              <dd id="context-profile-name">
-                Não informado
-              </dd>
+              <dd id="context-profile-name">Não informado</dd>
             </div>
-
             <div class="context-item">
               <dt>Código do perfil</dt>
-
-              <dd id="context-profile-code">
-                Não informado
-              </dd>
+              <dd id="context-profile-code">Não informado</dd>
             </div>
           </dl>
         </section>
 
-        <section
-          class="next-step-card"
-          aria-labelledby="next-step-title"
-        >
+        <section class="next-step-card" aria-labelledby="next-step-title">
           <div>
-            <p class="card-eyebrow">
-              Próxima funcionalidade
-            </p>
-
-            <h2 id="next-step-title">
-              Tratamentos visíveis
-            </h2>
-
+            <p class="card-eyebrow">Próxima funcionalidade</p>
+            <h2 id="next-step-title">Tratamentos visíveis</h2>
             <p>
               A próxima etapa exibirá os tratamentos autorizados para o seu
               perfil por meio da camada segura do sistema.
             </p>
           </div>
 
-          <button
-            class="secondary-button"
-            type="button"
-            disabled
-          >
+          <button class="secondary-button" type="button" disabled>
             Em desenvolvimento
           </button>
         </section>
@@ -260,23 +158,17 @@
     </div>
 
     <footer class="app-footer">
-      <p>
-        Sistema de Monitoramento de Indícios
-      </p>
-
-      <p>
-        Acesso restrito a usuários autorizados.
-      </p>
+      <p>Sistema de Monitoramento de Indícios</p>
+      <p>Acesso restrito a usuários autorizados.</p>
     </footer>
   </div>
 
   <noscript>
     <div class="noscript-message">
-      O JavaScript precisa estar habilitado para validar sua sessão e acessar
-      este sistema.
+      O JavaScript precisa estar habilitado para validar sua sessão e acessar este sistema.
     </div>
   </noscript>
 
-  ./js/inicio.jsscript>
+  <script type="module" src="./js/inicio.js"></script>
 </body>
 </html>
