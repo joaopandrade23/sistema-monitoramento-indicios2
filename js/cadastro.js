@@ -117,7 +117,7 @@ function mostrarBannerGlobal(mensagem, tipo = "error") {
 }
 
 /**
- * Remove o erro visual do campo quando o usuário volta a digitar.
+ * Remove o erro visual de um campo quando o usuário volta a digitar.
  */
 function configurarLimpezaDosCampos() {
   const campos = [
@@ -139,6 +139,29 @@ function configurarLimpezaDosCampos() {
       }
     });
   });
+}
+
+/**
+ * Encerra localmente uma eventual sessão criada pelo cadastro.
+ */
+async function encerrarSessaoCriadaNoCadastro() {
+  try {
+    const { error } = await supabase.auth.signOut({
+      scope: "local",
+    });
+
+    if (error) {
+      console.warn(
+        "A solicitação foi criada, mas a sessão local não pôde ser encerrada:",
+        error
+      );
+    }
+  } catch (erro) {
+    console.warn(
+      "Falha inesperada ao encerrar a sessão criada pelo cadastro:",
+      erro
+    );
+  }
 }
 
 /**
@@ -216,7 +239,7 @@ async function processarCadastro(evento) {
   definirCarregamento(true);
 
   try {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -258,6 +281,22 @@ async function processarCadastro(evento) {
       return;
     }
 
+    /*
+     * Limpa os campos de senha assim que o cadastro for aceito.
+     */
+    passwordInput.value = "";
+    confirmPasswordInput.value = "";
+
+    /*
+     * Dependendo da configuração do Supabase Auth, o signUp pode criar
+     * imediatamente uma sessão autenticada. Essa sessão é encerrada antes
+     * do redirecionamento porque o usuário ainda precisa receber um perfil
+     * funcional autorizado pela gestão.
+     */
+    if (data?.session) {
+      await encerrarSessaoCriadaNoCadastro();
+    }
+
     mostrarBannerGlobal(
       "Solicitação enviada com sucesso! Aguarde a liberação do seu perfil pela gestão.",
       "success"
@@ -266,7 +305,7 @@ async function processarCadastro(evento) {
     form.reset();
 
     window.setTimeout(() => {
-      window.location.href = "./index.html";
+      window.location.replace("./index.html");
     }, 2500);
   } catch (erro) {
     console.error(
@@ -293,7 +332,10 @@ function iniciarPaginaCadastro() {
 
     form.addEventListener("submit", processarCadastro);
   } catch (erro) {
-    console.error("Falha ao inicializar a página de cadastro:", erro);
+    console.error(
+      "Falha ao inicializar a página de cadastro:",
+      erro
+    );
 
     document.body.textContent =
       "Não foi possível carregar a página de solicitação de cadastro.";
