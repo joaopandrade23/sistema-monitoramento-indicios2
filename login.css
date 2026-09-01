@@ -227,3 +227,26 @@ input:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.login-notice {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: #1e3a8a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.notice-link {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notice-link:hover {
+  text-decoration: underline;
+}
