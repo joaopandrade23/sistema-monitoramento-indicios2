@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar Cadastro - Sistema de Monitoramento</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-layout">
+  <div class="card-container">
+    <div class="card-header">
+      <h2>Solicitar Cadastro</h2>
+      <p>Preencha os dados abaixo para enviar sua solicitação para a gestão</p>
+    </div>
+
+    <form id="form-cadastro" class="form">
+      <div class="input-group">
+        <label for="nome-completo">Nome Completo</label>
+        <input type="text" id="nome-completo" required placeholder="Digite seu nome completo">
+      </div>
+
+      <div class="input-group">
+        <label for="codigo-usuario">Código / Matrícula</label>
+        <input type="text" id="codigo-usuario" required placeholder="Ex: MAT-12345 ou CPF">
+      </div>
+
+      <div class="input-group">
+        <label for="cadastro-email">E-mail Institucional</label>
+        <input type="email" id="cadastro-email" required placeholder="seu.email@orgao.gov.br">
+      </div>
+
+      <div class="input-group">
+        <label for="cadastro-password">Senha</label>
+        <input type="password" id="cadastro-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+    </form>
+
+    <div class="card-footer">
+      <p>Já possui uma conta? <a href="index.html">Voltar para o Login</a></p>
+    </div>
+  </div>
+</body>
+</html>
