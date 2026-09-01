@@ -55,8 +55,10 @@ function normalizarEmail(valor) {
   return valor.trim().toLowerCase();
 }
 
+/**
+  Valida se o usuário autenticado possui perfil ativo na view `v_meu_contexto`
+ */
 async function validarContextoFuncional() {
-  // Consulta isolada e explícita no schema 'api'
   const { data, error } = await supabase
     .schema("api")
     .from("v_meu_contexto")
@@ -64,7 +66,6 @@ async function validarContextoFuncional() {
     .limit(1)
     .maybeSingle();
 
-  // Sem console.error para evitar vazamento de metadados no DevTools
   if (error) {
     throw new Error("CONTEXT_QUERY_FAILED");
   }
@@ -80,7 +81,7 @@ async function encerrarSessaoComSeguranca() {
   try {
     await supabase.auth.signOut({ scope: "local" });
   } catch {
-    // Redirecionamento ocorre mesmo se a limpeza falhar
+    // Redirecionamento/limpeza ocorre mesmo se a chamada remota falhar
   }
 }
 
@@ -114,9 +115,10 @@ async function processarLogin(evento) {
       password: senha,
     });
 
-    // Limpeza imediata da senha na memória do elemento DOM
+    // Limpeza da senha da memória do elemento DOM
     passwordInput.value = "";
 
+    // CAMINHO 1: Falha na autenticação (E-mail não existe ou senha incorreta)
     if (error || !data || !data.session || !data.user) {
       await encerrarSessaoComSeguranca();
       mostrarMensagem("Não foi possível entrar. Verifique suas credenciais.");
@@ -124,25 +126,23 @@ async function processarLogin(evento) {
       return;
     }
 
+    // Validação de Perfil Ativo
     try {
       await validarContextoFuncional();
     } catch (erroContexto) {
       await encerrarSessaoComSeguranca();
 
+      // CAMINHO 2: Usuário existe no Auth, mas seu perfil está pendente (inativo)
       if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
-        mostrarMensagem(
-          "Seu usuário não possui acesso funcional ativo ao sistema."
-        );
-      } else {
-        mostrarMensagem(
-          "Não foi possível validar seu acesso. Tente novamente."
-        );
+        window.location.replace("./cadastro.html");
+        return;
       }
 
+      mostrarMensagem("Não foi possível validar seu acesso. Tente novamente.");
       return;
     }
 
-    // Sucesso: Redireciona para a página interna protegida
+    // CAMINHO 3: Sucesso -> Redireciona para o sistema principal
     window.location.replace("./inicio.html");
   } catch {
     await encerrarSessaoComSeguranca();
@@ -166,7 +166,6 @@ async function redirecionarSessaoExistente() {
       return;
     }
 
-    // Confirmação obrigatória com o servidor remoto de Autenticação
     const {
       data: { user },
       error: userError,
@@ -180,8 +179,13 @@ async function redirecionarSessaoExistente() {
     try {
       await validarContextoFuncional();
       window.location.replace("./inicio.html");
-    } catch {
+    } catch (erroContexto) {
       await encerrarSessaoComSeguranca();
+
+      // Se tentar abrir o index.html já logado mas pendente, vai para cadastro.html
+      if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
+        window.location.replace("./cadastro.html");
+      }
     }
   } catch {
     await encerrarSessaoComSeguranca();
