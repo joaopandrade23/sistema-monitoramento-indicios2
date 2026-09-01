@@ -13,7 +13,7 @@ const SUPABASE_URL = "https://sdktnkaxmewxajkpshni.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2AWq-iYn9IoFpDDCMwvmdQ_ba3_Mhum";
 
 function validarConfiguracao() {
-  const urlNaoConfigurada = !SUPABASE_URL || SUPABASE_URL.includes("SEU-PROJETO");
+  const urlNaoConfigurada = !SUPABASE_URL || SUPABASE_URL.includes("Base_Sistem_Indicios");
   const chaveNaoConfigurada = !SUPABASE_PUBLISHABLE_KEY;
 
   if (urlNaoConfigurada || chaveNaoConfigurada) {
