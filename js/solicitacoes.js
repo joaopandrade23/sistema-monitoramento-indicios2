@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js';
+import { supabase } from "./supabase.js";
 
 const AUTHORIZED_PROFILE = "GESTOR_DADOS_SISTEMA";
 const FIXED_PAGE_LIMIT = 10;
