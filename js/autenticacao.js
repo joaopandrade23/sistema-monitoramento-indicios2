@@ -89,11 +89,6 @@ function obterCodigoPerfil(contexto) {
 
 /**
  * Define a página inicial adequada ao perfil funcional.
- *
- * O Gestor de Dados e Sistema entra diretamente na página
- * administrativa de solicitações.
- *
- * Os demais perfis continuam entrando na página inicial padrão.
  */
 function obterPaginaInicialDoPerfil(contexto) {
   const codigoPerfil = obterCodigoPerfil(contexto);
@@ -121,11 +116,6 @@ function redirecionarUsuario(contexto) {
 
 /**
  * Consulta o perfil funcional do usuário autenticado.
- *
- * A view api.v_meu_contexto deve retornar:
- * - uma linha quando o usuário possui acesso funcional ativo;
- * - nenhuma linha quando o usuário não possui acesso funcional;
- * - erro quando houver falha de consulta, permissão ou comunicação.
  */
 async function validarContextoFuncional() {
   const { data, error } = await supabase
@@ -275,21 +265,13 @@ async function processarLogin(evento) {
   definirCarregamento(true);
 
   try {
-    /*
-     * Primeira validação:
-     * autenticação da conta no Supabase Auth.
-     */
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
     });
 
-    /*
-     * Limpa a senha do elemento do formulário após a resposta.
-     */
-    passwordInput.value = "";
-
     if (error) {
+      passwordInput.value = "";
       console.error("Falha de autenticação no Supabase Auth:", {
         code: error.code,
         status: error.status,
@@ -305,6 +287,7 @@ async function processarLogin(evento) {
     }
 
     if (!data?.session || !data?.user) {
+      passwordInput.value = "";
       console.error(
         "O Supabase Auth não retornou sessão ou usuário após a autenticação."
       );
@@ -323,19 +306,12 @@ async function processarLogin(evento) {
       email: data.user.email,
     });
 
-    /*
-     * Segunda validação:
-     * confirmação de que o usuário possui cadastro funcional ativo.
-     */
     let contextoFuncional;
 
     try {
       contextoFuncional = await validarContextoFuncional();
     } catch (erroContexto) {
-      /*
-       * A conta existe no Auth, mas a sessão não deve permanecer ativa
-       * se o usuário não possuir contexto funcional autorizado.
-       */
+      passwordInput.value = "";
       await encerrarSessaoComSeguranca();
 
       if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
@@ -361,17 +337,13 @@ async function processarLogin(evento) {
       return;
     }
 
-    /*
-     * A conta foi autenticada e o perfil funcional foi validado.
-     * O destino é definido de acordo com o código do perfil.
-     */
+    passwordInput.value = "";
     redirecionarUsuario(contextoFuncional);
   } catch (erro) {
     console.error("Falha inesperada durante o login:", erro);
 
-    await encerrarSessaoComSeguranca();
-
     passwordInput.value = "";
+    await encerrarSessaoComSeguranca();
 
     mostrarMensagem(
       "Não foi possível concluir o acesso. Verifique sua conexão e tente novamente."
@@ -405,17 +377,10 @@ async function redirecionarSessaoExistente() {
       return;
     }
 
-    /*
-     * Nenhuma sessão existente.
-     * O usuário permanece normalmente na tela de login.
-     */
     if (!session) {
       return;
     }
 
-    /*
-     * Valida remotamente o usuário associado à sessão existente.
-     */
     const {
       data: { user },
       error: userError,
@@ -442,24 +407,12 @@ async function redirecionarSessaoExistente() {
       email: user.email,
     });
 
-    /*
-     * Verifica se a sessão existente também possui acesso funcional.
-     */
     try {
       const contextoFuncional = await validarContextoFuncional();
-
-      /*
-       * Sessão e contexto funcional válidos.
-       * O destino é definido pelo perfil.
-       */
       redirecionarUsuario(contextoFuncional);
     } catch (erroContexto) {
       await encerrarSessaoComSeguranca();
 
-      /*
-       * O usuário permanece no index.html.
-       * Não é enviado novamente para cadastro.html.
-       */
       if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
         mostrarMensagem(
           "Sua conta existe, mas ainda não possui acesso funcional ativo."
@@ -521,9 +474,6 @@ function iniciarPaginaLogin() {
       informarRecuperacaoIndisponivel
     );
 
-    /*
-     * Verifica uma eventual sessão já armazenada no navegador.
-     */
     redirecionarSessaoExistente();
   } catch (erro) {
     console.error(
