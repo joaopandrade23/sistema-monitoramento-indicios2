@@ -10,6 +10,11 @@ const forgotPasswordButton = document.querySelector(".forgot-password");
 const LOGIN_DEFAULT_TEXT = "Entrar";
 const LOGIN_LOADING_TEXT = "Entrando...";
 
+const PERFIL_GESTOR_DADOS_SISTEMA = "GESTOR_DADOS_SISTEMA";
+
+const PAGINA_INICIAL_PADRAO = "./inicio.html";
+const PAGINA_SOLICITACOES = "./solicitacoes.html";
+
 /**
  * Verifica se todos os elementos necessários existem no index.html.
  */
@@ -71,6 +76,50 @@ function normalizarEmail(valor) {
 }
 
 /**
+ * Obtém o código do perfil a partir do contexto funcional.
+ */
+function obterCodigoPerfil(contexto) {
+  return (
+    contexto?.codigo_perfil ??
+    contexto?.perfil_codigo ??
+    contexto?.cod_perfil ??
+    null
+  );
+}
+
+/**
+ * Define a página inicial adequada ao perfil funcional.
+ *
+ * O Gestor de Dados e Sistema entra diretamente na página
+ * administrativa de solicitações.
+ *
+ * Os demais perfis continuam entrando na página inicial padrão.
+ */
+function obterPaginaInicialDoPerfil(contexto) {
+  const codigoPerfil = obterCodigoPerfil(contexto);
+
+  if (codigoPerfil === PERFIL_GESTOR_DADOS_SISTEMA) {
+    return PAGINA_SOLICITACOES;
+  }
+
+  return PAGINA_INICIAL_PADRAO;
+}
+
+/**
+ * Redireciona o usuário para a página correspondente ao perfil.
+ */
+function redirecionarUsuario(contexto) {
+  const paginaDestino = obterPaginaInicialDoPerfil(contexto);
+
+  console.info("Redirecionando usuário autenticado:", {
+    codigoPerfil: obterCodigoPerfil(contexto),
+    paginaDestino,
+  });
+
+  window.location.replace(paginaDestino);
+}
+
+/**
  * Consulta o perfil funcional do usuário autenticado.
  *
  * A view api.v_meu_contexto deve retornar:
@@ -82,7 +131,18 @@ async function validarContextoFuncional() {
   const { data, error } = await supabase
     .schema("api")
     .from("v_meu_contexto")
-    .select("*")
+    .select(
+      [
+        "id_usuario",
+        "auth_user_id",
+        "codigo_usuario",
+        "nome_exibicao",
+        "email_institucional",
+        "id_perfil_acesso",
+        "nome_perfil",
+        "codigo_perfil",
+      ].join(",")
+    )
     .limit(1)
     .maybeSingle();
 
@@ -105,18 +165,21 @@ async function validarContextoFuncional() {
     throw new Error("FUNCTIONAL_ACCESS_DENIED");
   }
 
-  console.info("Contexto funcional localizado:", {
-    codigoPerfil:
-      data.codigo_perfil ??
-      data.perfil_codigo ??
-      data.cod_perfil ??
-      "não identificado",
+  const codigoPerfil = obterCodigoPerfil(data);
 
-    nomePerfil:
-      data.nome_perfil ??
-      data.perfil_nome ??
-      data.perfil ??
-      "não identificado",
+  if (!codigoPerfil) {
+    console.error(
+      "O contexto funcional foi localizado, mas não possui código de perfil."
+    );
+
+    throw new Error("FUNCTIONAL_PROFILE_INVALID");
+  }
+
+  console.info("Contexto funcional localizado:", {
+    idUsuario: data.id_usuario,
+    codigoUsuario: data.codigo_usuario,
+    codigoPerfil,
+    nomePerfil: data.nome_perfil ?? "não identificado",
   });
 
   return data;
@@ -132,11 +195,14 @@ async function encerrarSessaoComSeguranca() {
     });
 
     if (error) {
-      console.warn("Não foi possível encerrar completamente a sessão local:", {
-        code: error.code,
-        status: error.status,
-        message: error.message,
-      });
+      console.warn(
+        "Não foi possível encerrar completamente a sessão local:",
+        {
+          code: error.code,
+          status: error.status,
+          message: error.message,
+        }
+      );
     }
   } catch (erro) {
     console.warn(
@@ -261,8 +327,10 @@ async function processarLogin(evento) {
      * Segunda validação:
      * confirmação de que o usuário possui cadastro funcional ativo.
      */
+    let contextoFuncional;
+
     try {
-      await validarContextoFuncional();
+      contextoFuncional = await validarContextoFuncional();
     } catch (erroContexto) {
       /*
        * A conta existe no Auth, mas a sessão não deve permanecer ativa
@@ -278,6 +346,14 @@ async function processarLogin(evento) {
         return;
       }
 
+      if (erroContexto.message === "FUNCTIONAL_PROFILE_INVALID") {
+        mostrarMensagem(
+          "Seu cadastro funcional não possui um perfil válido. Entre em contato com a gestão do sistema."
+        );
+
+        return;
+      }
+
       mostrarMensagem(
         "Não foi possível validar seu acesso ao sistema. Tente novamente."
       );
@@ -287,8 +363,9 @@ async function processarLogin(evento) {
 
     /*
      * A conta foi autenticada e o perfil funcional foi validado.
+     * O destino é definido de acordo com o código do perfil.
      */
-    window.location.replace("./inicio.html");
+    redirecionarUsuario(contextoFuncional);
   } catch (erro) {
     console.error("Falha inesperada durante o login:", erro);
 
@@ -346,11 +423,14 @@ async function redirecionarSessaoExistente() {
 
     if (userError || !user) {
       if (userError) {
-        console.error("Falha ao validar o usuário da sessão existente:", {
-          code: userError.code,
-          status: userError.status,
-          message: userError.message,
-        });
+        console.error(
+          "Falha ao validar o usuário da sessão existente:",
+          {
+            code: userError.code,
+            status: userError.status,
+            message: userError.message,
+          }
+        );
       }
 
       await encerrarSessaoComSeguranca();
@@ -366,12 +446,13 @@ async function redirecionarSessaoExistente() {
      * Verifica se a sessão existente também possui acesso funcional.
      */
     try {
-      await validarContextoFuncional();
+      const contextoFuncional = await validarContextoFuncional();
 
       /*
        * Sessão e contexto funcional válidos.
+       * O destino é definido pelo perfil.
        */
-      window.location.replace("./inicio.html");
+      redirecionarUsuario(contextoFuncional);
     } catch (erroContexto) {
       await encerrarSessaoComSeguranca();
 
@@ -382,6 +463,14 @@ async function redirecionarSessaoExistente() {
       if (erroContexto.message === "FUNCTIONAL_ACCESS_DENIED") {
         mostrarMensagem(
           "Sua conta existe, mas ainda não possui acesso funcional ativo."
+        );
+
+        return;
+      }
+
+      if (erroContexto.message === "FUNCTIONAL_PROFILE_INVALID") {
+        mostrarMensagem(
+          "Seu cadastro funcional não possui um perfil válido. Entre em contato com a gestão do sistema."
         );
 
         return;
