@@ -314,22 +314,20 @@ async function loadRequests() {
       throw error;
     }
 
-    state.requests = Array.isArray(data) ? data : [];
+    const requestsData = Array.isArray(data) ? data : [];
+    state.requests = requestsData;
 
-    state.totalRecords = Number(
-      state.requests[0]?.total_registros ?? 0
-    );
+    if (requestsData.length > 0) {
+      state.totalRecords = Number(requestsData[0].total_registros ?? 0);
+    } else if (state.offset === 0) {
+      state.totalRecords = 0;
+    }
 
-    /*
-     * Se a exclusão ou alteração de registros deixar a página atual
-     * acima do total disponível, retorna para a primeira página.
-     */
-    if (
-      state.requests.length === 0 &&
-      state.offset > 0 &&
-      state.totalRecords === 0
-    ) {
+    if (requestsData.length === 0 && state.offset > 0) {
       state.offset = 0;
+      setListLoading(false);
+      await loadRequests();
+      return;
     }
 
     renderRequests();
@@ -679,8 +677,22 @@ async function initializePage() {
       return;
     }
 
-    await supabase.auth.signOut();
-    await redirectToLogin();
+    if (
+      error?.code === '28000' ||
+      error?.status === 401 ||
+      (typeof error?.message === 'string' &&
+        error.message.toLowerCase().includes('jwt'))
+    ) {
+      await supabase.auth.signOut();
+      await redirectToLogin();
+      return;
+    }
+
+    elements.pageLoading.hidden = true;
+    elements.protectedContent.hidden = false;
+    showPageMessage(
+      'Não foi possível estabelecer conexão com o servidor. Verifique sua rede e tente novamente.'
+    );
   }
 }
 
