@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
+  >
+
+  <title>Solicitações de Acesso | Monitoramento de Indícios</title>
+
+  ./solicitacoes.css
+</head>
+
+<body>
+  <div
+    id="page-loading"
+    class="page-loading"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p id="loading-message">Validando seu acesso...</p>
+  </div>
+
+  <div
+    id="protected-content"
+    class="app-shell"
+    hidden
+  >
+    <header class="app-header">
+      <div class="header-container">
+        ./inicio.html
+          <span class="brand-mark" aria-hidden="true">MI</span>
+
+          <span class="brand-text">
+            <strong>Monitoramento de Indícios</strong>
+            <small>SMSA/CE</small>
+          </span>
+        </a>
+
+        <div class="user-area">
+          <div class="user-summary">
+            <span id="user-name" class="user-name">Usuário</span>
+            <span id="user-profile" class="user-profile">Perfil</span>
+          </div>
+
+          <button
+            id="logout-button"
+            class="logout-button"
+            type="button"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <nav>
+          <ul class="navigation-list">
+            <li>
+              ./inicio.html
+                Início
+              </a>
+            </li>
+
+            <li>
+              ./solicitacoes.html
+                Solicitações de acesso
+              </a>
+            </li>
+
+            <li>
+              <button
+                class="navigation-link"
+                type="button"
+                disabled
+              >
+                Usuários
+              </button>
+            </li>
+
+            <li>
+              <button
+                class="navigation-link"
+                type="button"
+                disabled
+              >
+                Tratamentos
+              </button>
+            </li>
+
+            <li>
+              <button
+                class="navigation-link"
+                type="button"
+                disabled
+              >
+                Histórico
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <p class="sidebar-note">
+          Esta área é exclusiva do perfil Gestor de Dados e Sistema.
+        </p>
+      </aside>
+
+      <main
+        id="main-content"
+        class="main-content"
+        tabindex="-1"
+      >
+        <section
+          class="page-heading"
+          aria-labelledby="page-title"
+        >
+          <div>
+            <p class="eyebrow">Administração de acesso</p>
+            <h1 id="page-title">Solicitações de acesso</h1>
+
+            <p class="page-description">
+              Consulte e acompanhe as solicitações enviadas pelos usuários.
+            </p>
+          </div>
+
+          <button
+            id="refresh-button"
+            class="secondary-button"
+            type="button"
+          >
+            Atualizar lista
+          </button>
+        </section>
+
+        <div
+          id="page-message"
+          class="page-message"
+          role="alert"
+          aria-live="assertive"
+          hidden
+        ></div>
+
+        <section
+          class="summary-grid"
+          aria-label="Resumo das solicitações"
+        >
+          <article class="summary-card">
+            <span class="summary-label">Status selecionado</span>
+            <strong id="selected-status-summary">Pendentes</strong>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">Total encontrado</span>
+            <strong id="total-records-summary">0</strong>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">Página atual</span>
+            <strong id="current-page-summary">1</strong>
+          </article>
+        </section>
+
+        <section
+          class="requests-card"
+          aria-labelledby="requests-title"
+        >
+          <div class="card-heading">
+            <div>
+              <p class="card-eyebrow">Fila administrativa</p>
+              <h2 id="requests-title">Solicitações registradas</h2>
+            </div>
+
+            <span
+              id="records-counter"
+              class="records-counter"
+            >
+              0 registros
+            </span>
+          </div>
+
+          <form
+            id="filter-form"
+            class="filters"
+            novalidate
+          >
+            <div class="filter-field">
+              <label for="status-filter">Status</label>
+
+              <select id="status-filter" name="status">
+                <option value="PENDENTE">Pendentes</option>
+                <option value="">Todos os status</option>
+                <option value="APROVADA">Aprovadas</option>
+                <option value="REJEITADA">Rejeitadas</option>
+                <option value="CANCELADA">Canceladas</option>
+                <option value="EXPIRADA">Expiradas</option>
+              </select>
+            </div>
+
+            <div class="filter-field">
+              <label for="records-per-page">
+                Registros por página
+              </label>
+
+              <select
+                id="records-per-page"
+                name="limite"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <button
+              id="apply-filter-button"
+              class="primary-button"
+              type="submit"
+            >
+              Aplicar
+            </button>
+          </form>
+
+          <div
+            id="list-loading"
+            class="list-loading"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            <div
+              class="loading-spinner loading-spinner-small"
+              aria-hidden="true"
+            ></div>
+
+            <span>Carregando solicitações...</span>
+          </div>
+
+          <div
+            id="empty-state"
+            class="empty-state"
+            hidden
+          >
+            <strong>Nenhuma solicitação encontrada</strong>
+
+            <p>
+              Não existem solicitações correspondentes ao filtro selecionado.
+            </p>
+          </div>
+
+          <div
+            id="table-region"
+            class="table-region"
+            aria-live="polite"
+            hidden
+          >
+            <div class="table-scroll">
+              <table class="requests-table">
+                <caption class="sr-only">
+                  Lista de solicitações de acesso
+                </caption>
+
+                <thead>
+                  <tr>
+                    <th scope="col">Solicitação</th>
+                    <th scope="col">Solicitante</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Data da solicitação</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">
+                      <span class="sr-only">Ações</span>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody id="requests-table-body"></tbody>
+              </table>
+            </div>
+
+            <div class="pagination">
+              <p id="pagination-description">
+                Nenhum registro exibido.
+              </p>
+
+              <div class="pagination-actions">
+                <button
+                  id="previous-page-button"
+                  class="pagination-button"
+                  type="button"
+                  disabled
+                >
+                  Anterior
+                </button>
+
+                <span
+                  id="pagination-indicator"
+                  class="pagination-indicator"
+                >
+                  Página 1
+                </span>
+
+                <button
+                  id="next-page-button"
+                  class="pagination-button"
+                  type="button"
+                  disabled
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="app-footer">
+      <p>Sistema de Monitoramento de Indícios</p>
+      <p>Acesso restrito a usuários autorizados.</p>
+    </footer>
+  </div>
+
+  <div
+    id="details-modal"
+    class="modal-backdrop"
+    hidden
+  >
+    <section
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="details-modal-title"
+      aria-describedby="details-modal-description"
+    >
+      <div class="modal-header">
+        <div>
+          <p class="card-eyebrow">Detalhamento</p>
+          <h2 id="details-modal-title">
+            Solicitação de acesso
+          </h2>
+
+          <p
+            id="details-modal-description"
+            class="modal-description"
+          >
+            Consulte os dados registrados pelo solicitante.
+          </p>
+        </div>
+
+        <button
+          id="close-modal-button"
+          class="modal-close-button"
+          type="button"
+          aria-label="Fechar detalhes"
+        >
+          ×
+        </button>
+      </div>
+
+      <dl class="details-grid">
+        <div class="details-item">
+          <dt>Número da solicitação</dt>
+          <dd id="detail-id">Não informado</dd>
+        </div>
+
+        <div class="details-item">
+          <dt>Status</dt>
+          <dd id="detail-status">Não informado</dd>
+        </div>
+
+        <div class="details-item details-item-wide">
+          <dt>Nome completo</dt>
+          <dd id="detail-name">Não informado</dd>
+        </div>
+
+        <div class="details-item details-item-wide">
+          <dt>E-mail</dt>
+          <dd id="detail-email">Não informado</dd>
+        </div>
+
+        <div class="details-item">
+          <dt>Solicitado em</dt>
+          <dd id="detail-requested-at">Não informado</dd>
+        </div>
+
+        <div class="details-item">
+          <dt>Atualizado em</dt>
+          <dd id="detail-updated-at">Não informado</dd>
+        </div>
+
+        <div class="details-item">
+          <dt>Analisado em</dt>
+          <dd id="detail-analyzed-at">Não analisado</dd>
+        </div>
+
+        <div class="details-item">
+          <dt>Perfil aprovado</dt>
+          <dd id="detail-approved-profile">Não informado</dd>
+        </div>
+
+        <div class="details-item details-item-wide">
+          <dt>Justificativa da análise</dt>
+          <dd id="detail-justification">Não informada</dd>
+        </div>
+      </dl>
+
+      <div class="modal-notice">
+        As operações de aprovação e rejeição serão habilitadas depois da
+        homologação das respectivas funções seguras no backend.
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="danger-button"
+          type="button"
+          disabled
+          title="Operação ainda não implementada"
+        >
+          Rejeitar
+        </button>
+
+        <button
+          class="primary-button"
+          type="button"
+          disabled
+          title="Operação ainda não implementada"
+        >
+          Aprovar
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <noscript>
+    <div class="noscript-message">
+      O JavaScript precisa estar habilitado para validar sua sessão e acessar
+      este sistema.
+    </div>
+  </noscript>
+
+  ./js/solicitacoes.jsscript>
+</body>
+</html>
