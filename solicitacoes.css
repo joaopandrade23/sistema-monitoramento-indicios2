@@ -98,7 +98,7 @@ button, select { border-radius: 9px; }
 .user-name { overflow: hidden; max-width: 260px; font-size: 0.9rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .user-profile { overflow: hidden; max-width: 260px; color: var(--muted); font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
 
-.logout-button, .theme-toggle-button, .secondary-button, .primary-button, .danger-button, .pagination-button, .details-button, .modal-close-button, .outline-danger-button {
+.logout-button, .theme-toggle-button, .secondary-button, .primary-button, .danger-button, .pagination-button, .details-button, .modal-close-button, .outline-danger-button, .decision-confirm-button {
   min-height: 40px; cursor: pointer; font-weight: 700; transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 100ms ease, opacity 150ms ease;
 }
 .logout-button, .theme-toggle-button, .secondary-button { padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); }
@@ -251,8 +251,45 @@ button:disabled { cursor: not-allowed; opacity: 0.58; }
 .outline-danger-button { padding: 0 18px; border: 1px solid var(--error); border-radius: 9px; background: transparent; color: var(--error); }
 .outline-danger-button:hover:not(:disabled) { background: var(--error-soft); }
 
+/* Botão Único de Confirmação de Decisão */
+.decision-confirm-button {
+  min-width: 190px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--neutral-soft);
+  color: var(--neutral-text);
+}
+
+.decision-confirm-button[data-decision="APROVAR"] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.decision-confirm-button[data-decision="APROVAR"]:hover:not(:disabled) {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.decision-confirm-button[data-decision="REJEITAR"] {
+  border-color: var(--error);
+  background: var(--error);
+  color: #ffffff;
+}
+
+.decision-confirm-button[data-decision="REJEITAR"]:hover:not(:disabled) {
+  border-color: var(--error-hover);
+  background: var(--error-hover);
+}
+
+.decision-confirm-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
 .noscript-message { margin: 24px; padding: 16px; border: 1px solid var(--error); border-radius: 10px; background: var(--error-soft); color: var(--error); text-align: center; }
-.brand-link:focus-visible, .navigation-link:focus-visible, .logout-button:focus-visible, .theme-toggle-button:focus-visible, .secondary-button:focus-visible, .primary-button:focus-visible, .danger-button:focus-visible, .outline-danger-button:focus-visible, .analysis-close-button:focus-visible, .pagination-button:focus-visible, .details-button:focus-visible, .modal-close-button:focus-visible, .filter-field select:focus-visible { outline: 3px solid rgba(47, 115, 184, 0.3); outline-offset: 3px; }
+.brand-link:focus-visible, .navigation-link:focus-visible, .logout-button:focus-visible, .theme-toggle-button:focus-visible, .secondary-button:focus-visible, .primary-button:focus-visible, .danger-button:focus-visible, .outline-danger-button:focus-visible, .decision-confirm-button:focus-visible, .analysis-close-button:focus-visible, .pagination-button:focus-visible, .details-button:focus-visible, .modal-close-button:focus-visible, .filter-field select:focus-visible { outline: 3px solid rgba(47, 115, 184, 0.3); outline-offset: 3px; }
 
 @media (max-width: 1080px) { .theme-toggle-button { width: 42px; min-width: 42px; padding: 0; border-radius: 50%; } #theme-toggle-text { display: none; } }
 @media (max-width: 980px) {
