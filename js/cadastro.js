@@ -5,30 +5,40 @@ const nomeInput = document.querySelector("#nome-completo");
 const emailInput = document.querySelector("#cadastro-email");
 const submitButton = document.querySelector("#signup-button");
 const feedbackBanner = document.querySelector("#feedback-banner");
-const turnstileWidget = document.querySelector("#turnstile-widget");
-const securityHelp = document.querySelector(".security-help");
+const turnstileContainer = document.querySelector("#turnstile-widget");
+const securityHelp = document.querySelector("#security-help");
 
 const SIGNUP_DEFAULT_TEXT = "Enviar Solicitação";
 const SIGNUP_LOADING_TEXT = "Enviando...";
 
 let turnstileToken = "";
+let turnstileWidgetId = null;
 let envioEmAndamento = false;
 
 /**
- * Verifica se todos os elementos obrigatórios existem no cadastro.html.
+ * Verifica a correspondência entre o HTML e o JavaScript.
  */
 function verificarElementosDaPagina() {
   const elementosObrigatorios = [
-    form,
-    nomeInput,
-    emailInput,
-    submitButton,
-    feedbackBanner,
-    turnstileWidget,
-    securityHelp,
+    { nome: "form-cadastro", elemento: form },
+    { nome: "nome-completo", elemento: nomeInput },
+    { nome: "cadastro-email", elemento: emailInput },
+    { nome: "signup-button", elemento: submitButton },
+    { nome: "feedback-banner", elemento: feedbackBanner },
+    { nome: "turnstile-widget", elemento: turnstileContainer },
+    { nome: "security-help", elemento: securityHelp },
   ];
 
-  if (elementosObrigatorios.some((elemento) => !elemento)) {
+  const elementosAusentes = elementosObrigatorios
+    .filter((item) => !item.elemento)
+    .map((item) => item.nome);
+
+  if (elementosAusentes.length > 0) {
+    console.error(
+      "Elementos ausentes no cadastro.html:",
+      elementosAusentes
+    );
+
     throw new Error("PAGE_STRUCTURE_INVALID");
   }
 }
@@ -37,37 +47,38 @@ function verificarElementosDaPagina() {
  * Normaliza o nome informado.
  */
 function normalizarNome(valor) {
-  return valor.trim().replace(/\s+/g, " ");
+  return String(valor || "")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 /**
  * Normaliza o e-mail informado.
  */
 function normalizarEmail(valor) {
-  return valor.trim().toLowerCase();
+  return String(valor || "")
+    .trim()
+    .toLowerCase();
 }
 
 /**
- * Controla o estado de carregamento do formulário.
+ * Altera o estado visual durante o processamento.
  */
 function definirCarregamento(estaCarregando) {
   envioEmAndamento = estaCarregando;
 
-  submitButton.disabled = estaCarregando;
-  nomeInput.readOnly = estaCarregando;
-  emailInput.readOnly = estaCarregando;
+  if (submitButton) submitButton.disabled = estaCarregando;
+  if (nomeInput) nomeInput.readOnly = estaCarregando;
+  if (emailInput) emailInput.readOnly = estaCarregando;
 
-  submitButton.setAttribute(
-    "aria-busy",
-    String(estaCarregando)
-  );
-
-  const textoBotao = submitButton.querySelector("span");
-
-  if (textoBotao) {
-    textoBotao.textContent = estaCarregando
-      ? SIGNUP_LOADING_TEXT
-      : SIGNUP_DEFAULT_TEXT;
+  if (submitButton) {
+    submitButton.setAttribute("aria-busy", String(estaCarregando));
+    const textoBotao = submitButton.querySelector("span");
+    if (textoBotao) {
+      textoBotao.textContent = estaCarregando
+        ? SIGNUP_LOADING_TEXT
+        : SIGNUP_DEFAULT_TEXT;
+    }
   }
 }
 
@@ -79,35 +90,54 @@ function limparErros() {
     .querySelectorAll(".custom-tooltip")
     .forEach((elemento) => elemento.remove());
 
-  document
-    .querySelectorAll("input")
-    .forEach((input) => {
+  [nomeInput, emailInput].forEach((input) => {
+    if (input) {
       input.classList.remove("input-error");
       input.removeAttribute("aria-invalid");
-    });
+    }
+  });
 
-  feedbackBanner.className = "feedback-banner hidden";
-  feedbackBanner.textContent = "";
+  if (feedbackBanner) {
+    feedbackBanner.className = "feedback-banner hidden";
+    feedbackBanner.textContent = "";
+  }
 }
 
 /**
- * Exibe um erro associado a um campo específico.
+ * Exibe uma mensagem geral.
+ */
+function mostrarBannerGlobal(mensagem, tipo = "error") {
+  limparErros();
+
+  if (!feedbackBanner) return;
+
+  feedbackBanner.textContent = mensagem;
+  feedbackBanner.className = `feedback-banner ${tipo}`;
+
+  feedbackBanner.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+  });
+}
+
+/**
+ * Exibe uma mensagem vinculada a um campo.
  */
 function mostrarErroCampo(input, mensagem) {
   limparErros();
 
+  if (!input) return;
+
   input.classList.add("input-error");
   input.setAttribute("aria-invalid", "true");
-  input.focus();
 
   const fieldContainer = input.closest(".field");
 
   if (!fieldContainer) {
     mostrarBannerGlobal(
-      "Não foi possível apresentar a validação do formulário.",
+      "Não foi possível validar o formulário.",
       "error"
     );
-
     return;
   }
 
@@ -127,113 +157,180 @@ function mostrarErroCampo(input, mensagem) {
   tooltip.appendChild(tooltipText);
 
   fieldContainer.appendChild(tooltip);
+
+  input.focus();
 }
 
 /**
- * Exibe uma mensagem geral de sucesso ou erro.
- */
-function mostrarBannerGlobal(mensagem, tipo = "error") {
-  limparErros();
-
-  feedbackBanner.textContent = mensagem;
-  feedbackBanner.classList.remove("hidden");
-  feedbackBanner.classList.add(tipo);
-
-  feedbackBanner.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest",
-  });
-}
-
-/**
- * Atualiza a descrição da verificação de segurança.
+ * Atualiza a mensagem abaixo do Turnstile.
  */
 function atualizarMensagemSeguranca(mensagem) {
-  securityHelp.textContent = mensagem;
-}
-
-/**
- * Reinicia o widget do Turnstile.
- */
-function reiniciarTurnstile() {
-  turnstileToken = "";
-
-  atualizarMensagemSeguranca(
-    "Conclua a verificação antes de enviar a solicitação."
-  );
-
-  try {
-    if (
-      window.turnstile &&
-      typeof window.turnstile.reset === "function"
-    ) {
-      window.turnstile.reset("#turnstile-widget");
-    }
-  } catch (erro) {
-    console.warn(
-      "Não foi possível reiniciar o Turnstile:",
-      erro
-    );
+  if (securityHelp) {
+    securityHelp.textContent = mensagem;
   }
 }
 
 /**
- * Callback executado quando o Turnstile conclui a verificação.
- *
- * O nome precisa coincidir com:
- * data-callback="onTurnstileSuccess"
+ * Recebe o token gerado pelo Turnstile.
  */
-window.onTurnstileSuccess = function onTurnstileSuccess(token) {
+function aoValidarTurnstile(token) {
   turnstileToken = String(token || "").trim();
 
   if (turnstileToken) {
-    atualizarMensagemSeguranca(
-      "Verificação de segurança concluída."
-    );
+    atualizarMensagemSeguranca("Verificação de segurança concluída.");
   }
-};
+}
 
 /**
- * Callback executado quando o token expira.
- *
- * O nome precisa coincidir com:
- * data-expired-callback="onTurnstileExpired"
+ * Remove o token quando expirar.
  */
-window.onTurnstileExpired = function onTurnstileExpired() {
+function aoExpirarTurnstile() {
+  turnstileToken = "";
+  atualizarMensagemSeguranca("A verificação expirou. Aguarde uma nova validação.");
+}
+
+/**
+ * Trata erros informados pelo widget.
+ */
+function aoFalharTurnstile(codigoErro) {
   turnstileToken = "";
 
-  atualizarMensagemSeguranca(
-    "A verificação expirou. Aguarde uma nova validação antes de enviar."
+  console.warn(
+    "Falha informada pelo Turnstile:",
+    codigoErro || "código não informado"
   );
-};
-
-/**
- * Callback executado quando o Turnstile encontra uma falha.
- *
- * O nome precisa coincidir com:
- * data-error-callback="onTurnstileError"
- */
-window.onTurnstileError = function onTurnstileError() {
-  turnstileToken = "";
 
   atualizarMensagemSeguranca(
     "Não foi possível concluir a verificação. Atualize a página e tente novamente."
   );
-};
+}
 
 /**
- * Remove o erro do campo quando a pessoa volta a digitar.
+ * Carrega a biblioteca oficial do Turnstile evitando duplicidade.
+ */
+function carregarBibliotecaTurnstile() {
+  return new Promise((resolve, reject) => {
+    if (window.turnstile && typeof window.turnstile.render === "function") {
+      resolve(window.turnstile);
+      return;
+    }
+
+    const scriptExistente = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+
+    if (scriptExistente) {
+      scriptExistente.addEventListener(
+        "load",
+        () => {
+          if (window.turnstile && typeof window.turnstile.render === "function") {
+            resolve(window.turnstile);
+          } else {
+            reject(new Error("TURNSTILE_API_UNAVAILABLE"));
+          }
+        },
+        { once: true }
+      );
+
+      scriptExistente.addEventListener(
+        "error",
+        () => reject(new Error("TURNSTILE_SCRIPT_LOAD_FAILED")),
+        { once: true }
+      );
+
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.dataset.turnstileScript = "true";
+
+    script.addEventListener(
+      "load",
+      () => {
+        if (window.turnstile && typeof window.turnstile.render === "function") {
+          resolve(window.turnstile);
+        } else {
+          reject(new Error("TURNSTILE_API_UNAVAILABLE"));
+        }
+      },
+      { once: true }
+    );
+
+    script.addEventListener(
+      "error",
+      () => reject(new Error("TURNSTILE_SCRIPT_LOAD_FAILED")),
+      { once: true }
+    );
+
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Renderiza explicitamente o widget.
+ */
+async function inicializarTurnstile() {
+  const siteKey = String(turnstileContainer?.dataset?.sitekey || "").trim();
+
+  if (!siteKey || siteKey === "COLE_SUA_SITE_KEY_AQUI") {
+    throw new Error("TURNSTILE_SITE_KEY_INVALID");
+  }
+
+  atualizarMensagemSeguranca("Carregando verificação de segurança...");
+
+  const turnstile = await carregarBibliotecaTurnstile();
+
+  turnstileWidgetId = turnstile.render(turnstileContainer, {
+    sitekey: siteKey,
+    action: "solicitar_acesso",
+    theme: "light",
+    size: "flexible",
+    language: "pt-br",
+    callback: aoValidarTurnstile,
+    "expired-callback": aoExpirarTurnstile,
+    "error-callback": aoFalharTurnstile,
+  });
+
+  if (turnstileWidgetId === undefined || turnstileWidgetId === null) {
+    throw new Error("TURNSTILE_RENDER_FAILED");
+  }
+
+  atualizarMensagemSeguranca("Aguarde a conclusão da verificação de segurança.");
+}
+
+/**
+ * Reinicia o Turnstile depois de cada tentativa de envio.
+ */
+function reiniciarTurnstile() {
+  turnstileToken = "";
+  atualizarMensagemSeguranca("Aguarde uma nova verificação de segurança.");
+
+  if (
+    window.turnstile &&
+    typeof window.turnstile.reset === "function" &&
+    turnstileWidgetId !== null
+  ) {
+    try {
+      window.turnstile.reset(turnstileWidgetId);
+    } catch (erro) {
+      console.warn("Não foi possível reiniciar o Turnstile:", erro);
+    }
+  }
+}
+
+/**
+ * Remove o aviso de um campo quando a pessoa volta a digitar.
  */
 function configurarLimpezaDosCampos() {
   [nomeInput, emailInput].forEach((input) => {
+    if (!input) return;
     input.addEventListener("input", () => {
       input.classList.remove("input-error");
       input.removeAttribute("aria-invalid");
 
       const fieldContainer = input.closest(".field");
-      const tooltip = fieldContainer?.querySelector(
-        ".custom-tooltip"
-      );
+      const tooltip = fieldContainer?.querySelector(".custom-tooltip");
 
       if (tooltip) {
         tooltip.remove();
@@ -243,86 +340,62 @@ function configurarLimpezaDosCampos() {
 }
 
 /**
- * Interpreta erros retornados pela Edge Function.
+ * Tenta extrair a mensagem devolvida pela Edge Function.
  */
 async function obterMensagemDeErro(error) {
-  /*
-   * Quando supabase.functions.invoke recebe uma resposta HTTP
-   * de erro, o corpo pode estar disponível em error.context.
-   */
   try {
     if (error?.context instanceof Response) {
-      const corpo = await error.context.clone().json();
+      const resposta = error.context.clone();
+      const corpo = await resposta.json();
 
-      if (
-        corpo &&
-        typeof corpo.mensagem === "string" &&
-        corpo.mensagem.trim()
-      ) {
+      if (corpo && typeof corpo.mensagem === "string" && corpo.mensagem.trim()) {
         return corpo.mensagem.trim();
       }
     }
   } catch (erroLeitura) {
-    console.warn(
-      "Não foi possível interpretar a resposta da Edge Function:",
-      erroLeitura
-    );
+    console.warn("Não foi possível interpretar a resposta da função:", erroLeitura);
   }
+
   return "Não foi possível enviar a solicitação. Tente novamente mais tarde.";
 }
 
 /**
- * Envia a solicitação para a Edge Function protegida.
+ * Chama a Edge Function solicitar-acesso.
  */
-async function enviarSolicitacao(
-  nomeCompleto,
-  email,
-  token
-) {
-  const { data, error } = await supabase.functions.invoke(
-    "solicitar-acesso",
-    {
-      body: {
-        nome_completo: nomeCompleto,
-        email,
-        turnstile_token: token,
-      },
-    }
-  );
+async function enviarSolicitacao(nomeCompleto, email, token) {
+  const { data, error } = await supabase.functions.invoke("solicitar-acesso", {
+    body: {
+      nome_completo: nomeCompleto,
+      email,
+      turnstile_token: token,
+    },
+  });
 
   if (error) {
     const mensagem = await obterMensagemDeErro(error);
 
-    console.error(
-      "A Edge Function recusou a solicitação:",
-      {
-        nome: error.name,
-        mensagem: error.message,
-      }
-    );
+    console.error("A Edge Function recusou a solicitação:", {
+      name: error.name,
+      message: error.message,
+    });
 
     throw new Error(mensagem);
   }
 
   if (!data || data.sucesso !== true) {
-    throw new Error(
-      data?.mensagem ||
-        "Não foi possível enviar a solicitação."
-    );
+    throw new Error(data?.mensagem || "Não foi possível enviar a solicitação.");
   }
 
   return data;
 }
 
 /**
- * Processa o envio do formulário.
+ * Valida os campos e processa o formulário.
  */
 async function processarCadastro(evento) {
   evento.preventDefault();
 
-  if (envioEmAndamento || submitButton.disabled) {
-    return;
-  }
+  if (envioEmAndamento) return;
 
   limparErros();
 
@@ -330,11 +403,7 @@ async function processarCadastro(evento) {
   const email = normalizarEmail(emailInput.value);
 
   if (!nomeCompleto) {
-    mostrarErroCampo(
-      nomeInput,
-      "Preencha este campo."
-    );
-
+    mostrarErroCampo(nomeInput, "Preencha este campo.");
     return;
   }
 
@@ -343,7 +412,6 @@ async function processarCadastro(evento) {
       nomeInput,
       "O nome completo deve conter pelo menos 3 caracteres."
     );
-
     return;
   }
 
@@ -352,25 +420,16 @@ async function processarCadastro(evento) {
       nomeInput,
       "O nome completo deve conter no máximo 150 caracteres."
     );
-
     return;
   }
 
   if (!email) {
-    mostrarErroCampo(
-      emailInput,
-      "Preencha este campo."
-    );
-
+    mostrarErroCampo(emailInput, "Preencha este campo.");
     return;
   }
 
   if (!emailInput.checkValidity()) {
-    mostrarErroCampo(
-      emailInput,
-      "Digite um endereço de e-mail válido."
-    );
-
+    mostrarErroCampo(emailInput, "Digite um endereço de e-mail válido.");
     return;
   }
 
@@ -379,21 +438,15 @@ async function processarCadastro(evento) {
       "Aguarde a conclusão da verificação de segurança antes de enviar.",
       "error"
     );
-
     return;
   }
 
   definirCarregamento(true);
 
   try {
-    const resultado = await enviarSolicitacao(
-      nomeCompleto,
-      email,
-      turnstileToken
-    );
+    const resultado = await enviarSolicitacao(nomeCompleto, email, turnstileToken);
 
     form.reset();
-    turnstileToken = "";
 
     mostrarBannerGlobal(
       resultado.mensagem ||
@@ -403,22 +456,15 @@ async function processarCadastro(evento) {
 
     reiniciarTurnstile();
   } catch (erro) {
-    console.error(
-      "Falha ao processar a solicitação de acesso:",
-      erro
-    );
+    console.error("Falha ao processar a solicitação:", erro);
 
     mostrarBannerGlobal(
       erro instanceof Error
         ? erro.message
-        : "Não foi possível enviar a solicitação. Tente novamente mais tarde.",
+        : "Não foi possível enviar a solicitação.",
       "error"
     );
 
-    /*
-     * O token pode ter sido consumido mesmo quando a operação
-     * posterior falha. Por isso, o widget é reiniciado.
-     */
     reiniciarTurnstile();
   } finally {
     definirCarregamento(false);
@@ -426,25 +472,29 @@ async function processarCadastro(evento) {
 }
 
 /**
- * Inicializa a página.
+ * Inicializa a página de solicitação.
  */
-function iniciarPaginaCadastro() {
+async function iniciarPaginaCadastro() {
   try {
     verificarElementosDaPagina();
     configurarLimpezaDosCampos();
 
-    form.addEventListener(
-      "submit",
-      processarCadastro
-    );
-  } catch (erro) {
-    console.error(
-      "Falha ao inicializar a página de solicitação:",
-      erro
-    );
+    form.addEventListener("submit", processarCadastro);
 
-    document.body.textContent =
-      "Não foi possível carregar a página de solicitação de acesso.";
+    await inicializarTurnstile();
+  } catch (erro) {
+    console.error("Falha ao inicializar a página de solicitação:", erro);
+
+    if (feedbackBanner) {
+      mostrarBannerGlobal(
+        "Não foi possível carregar a verificação de segurança. Atualize a página e tente novamente.",
+        "error"
+      );
+    }
+
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
   }
 }
 
