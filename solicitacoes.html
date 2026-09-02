@@ -12,31 +12,20 @@
   >
 
   <title>Solicitações de Acesso | Monitoramento de Indícios</title>
-
   <link rel="stylesheet" href="./solicitacoes.css">
 </head>
 
 <body>
-  <div
-    id="page-loading"
-    class="page-loading"
-    role="status"
-    aria-live="polite"
-  >
+  <div id="page-loading" class="page-loading" role="status" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
     <p id="loading-message">Validando seu acesso...</p>
   </div>
 
-  <div
-    id="protected-content"
-    class="app-shell"
-    hidden
-  >
+  <div id="protected-content" class="app-shell" hidden>
     <header class="app-header">
       <div class="header-container">
         <a href="./solicitacoes.html" class="brand-link">
           <span class="brand-mark" aria-hidden="true">MI</span>
-
           <span class="brand-text">
             <strong>Monitoramento de Indícios</strong>
             <small>SMSA/CE</small>
@@ -61,11 +50,7 @@
             <span id="theme-toggle-text">Modo escuro</span>
           </button>
 
-          <button
-            id="logout-button"
-            class="logout-button"
-            type="button"
-          >
+          <button id="logout-button" class="logout-button" type="button">
             Sair
           </button>
         </div>
@@ -77,51 +62,31 @@
         <nav aria-label="Funcionalidades do Gestor de Dados e Sistema">
           <ul class="navigation-list">
             <li>
-              <a href="./solicitacoes.html" class="navigation-link">
+              <a
+                href="./solicitacoes.html"
+                class="navigation-link active"
+                aria-current="page"
+              >
                 Solicitações de acesso
               </a>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
+              <button class="navigation-link" type="button" disabled title="Funcionalidade em desenvolvimento">
                 Usuários
               </button>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
+              <button class="navigation-link" type="button" disabled title="Funcionalidade em desenvolvimento">
                 Perfis e permissões
               </button>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
+              <button class="navigation-link" type="button" disabled title="Funcionalidade em desenvolvimento">
                 Atualização da base
               </button>
             </li>
-
             <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
+              <button class="navigation-link" type="button" disabled title="Funcionalidade em desenvolvimento">
                 Auditoria
               </button>
             </li>
@@ -133,110 +98,56 @@
         </p>
       </aside>
 
-      <main
-        id="main-content"
-        class="main-content"
-        tabindex="-1"
-      >
-        <section
-          class="page-heading"
-          aria-labelledby="page-title"
-        >
+      <main id="main-content" class="main-content" tabindex="-1">
+        <section class="page-heading" aria-labelledby="page-title">
           <div>
             <p class="eyebrow">Administração de acesso</p>
-
             <h1 id="page-title">Solicitações de acesso</h1>
-
             <p class="page-description">
               Consulte as solicitações enviadas e acompanhe os pedidos que
               ainda precisam de análise administrativa.
             </p>
           </div>
 
-          <button
-            id="refresh-button"
-            class="secondary-button"
-            type="button"
-          >
+          <button id="refresh-button" class="secondary-button" type="button">
             Atualizar lista
           </button>
         </section>
 
-        <div
-          id="page-message"
-          class="page-message"
-          role="alert"
-          aria-live="assertive"
-          hidden
-        ></div>
+        <div id="page-message" class="page-message" role="alert" aria-live="assertive" hidden></div>
 
-        <section
-          class="summary-grid"
-          aria-label="Resumo administrativo das solicitações"
-        >
+        <section class="summary-grid" aria-label="Resumo administrativo das solicitações">
           <article class="summary-card summary-card-attention">
-            <span class="summary-label">
-              Pendentes para análise
-            </span>
-
+            <span class="summary-label">Pendentes para análise</span>
             <strong id="pending-requests-summary">0</strong>
-
-            <small>
-              Solicitações que ainda exigem uma decisão
-            </small>
+            <small>Solicitações que ainda exigem uma decisão</small>
           </article>
 
           <article class="summary-card">
-            <span class="summary-label">
-              Solicitação pendente mais antiga
-            </span>
-
+            <span class="summary-label">Solicitação pendente mais antiga</span>
             <strong id="oldest-request-summary">Nenhuma</strong>
-
-            <small id="oldest-request-description">
-              Não existem solicitações pendentes
-            </small>
+            <small id="oldest-request-description">Não existem solicitações pendentes</small>
           </article>
 
           <article class="summary-card">
-            <span class="summary-label">
-              Exibidas nesta página
-            </span>
-
+            <span class="summary-label">Exibidas nesta página</span>
             <strong id="visible-records-summary">0 de 10</strong>
-
-            <small id="current-filter-summary">
-              Filtro: Pendentes
-            </small>
+            <small id="current-filter-summary">Filtro: Pendentes</small>
           </article>
         </section>
 
-        <section
-          class="requests-card"
-          aria-labelledby="requests-title"
-        >
+        <section class="requests-card" aria-labelledby="requests-title">
           <div class="card-heading">
             <div>
               <p class="card-eyebrow">Fila administrativa</p>
               <h2 id="requests-title">Solicitações registradas</h2>
             </div>
-
-            <span
-              id="records-counter"
-              class="records-counter"
-            >
-              0 registros
-            </span>
+            <span id="records-counter" class="records-counter">0 registros</span>
           </div>
 
-          <form
-            id="filter-form"
-            class="filters"
-            novalidate
-          >
+          <form id="filter-form" class="filters" novalidate>
             <div class="filter-field">
               <label for="status-filter">Status</label>
-
               <select id="status-filter" name="status">
                 <option value="PENDENTE">Pendentes</option>
                 <option value="">Todos os status</option>
@@ -247,62 +158,30 @@
               </select>
             </div>
 
-            <div
-              class="filter-information"
-              aria-label="Quantidade fixa de registros por página"
-            >
+            <div class="filter-information" aria-label="Quantidade fixa de registros por página">
               <span>Registros por página</span>
               <strong>10</strong>
             </div>
 
-            <button
-              id="apply-filter-button"
-              class="primary-button"
-              type="submit"
-            >
+            <button id="apply-filter-button" class="primary-button" type="submit">
               Aplicar
             </button>
           </form>
 
-          <div
-            id="list-loading"
-            class="list-loading"
-            role="status"
-            aria-live="polite"
-            hidden
-          >
-            <div
-              class="loading-spinner loading-spinner-small"
-              aria-hidden="true"
-            ></div>
-
+          <div id="list-loading" class="list-loading" role="status" aria-live="polite" hidden>
+            <div class="loading-spinner loading-spinner-small" aria-hidden="true"></div>
             <span>Carregando solicitações...</span>
           </div>
 
-          <div
-            id="empty-state"
-            class="empty-state"
-            hidden
-          >
+          <div id="empty-state" class="empty-state" hidden>
             <strong>Nenhuma solicitação encontrada</strong>
-
-            <p>
-              Não existem solicitações correspondentes ao filtro selecionado.
-            </p>
+            <p>Não existem solicitações correspondentes ao filtro selecionado.</p>
           </div>
 
-          <div
-            id="table-region"
-            class="table-region"
-            aria-live="polite"
-            hidden
-          >
+          <div id="table-region" class="table-region" aria-live="polite" hidden>
             <div class="table-scroll">
               <table class="requests-table">
-                <caption class="sr-only">
-                  Lista de solicitações de acesso
-                </caption>
-
+                <caption class="sr-only">Lista de solicitações de acesso</caption>
                 <thead>
                   <tr>
                     <th scope="col">Solicitação</th>
@@ -310,44 +189,21 @@
                     <th scope="col">E-mail</th>
                     <th scope="col">Data da solicitação</th>
                     <th scope="col">Status</th>
-                    <th scope="col">
-                      <span class="sr-only">Ações</span>
-                    </th>
+                    <th scope="col"><span class="sr-only">Ações</span></th>
                   </tr>
                 </thead>
-
                 <tbody id="requests-table-body"></tbody>
               </table>
             </div>
 
             <div class="pagination">
-              <p id="pagination-description">
-                Nenhum registro exibido.
-              </p>
-
+              <p id="pagination-description">Nenhum registro exibido.</p>
               <div class="pagination-actions">
-                <button
-                  id="previous-page-button"
-                  class="pagination-button"
-                  type="button"
-                  disabled
-                >
+                <button id="previous-page-button" class="pagination-button" type="button" disabled>
                   Anterior
                 </button>
-
-                <span
-                  id="pagination-indicator"
-                  class="pagination-indicator"
-                >
-                  Página 1
-                </span>
-
-                <button
-                  id="next-page-button"
-                  class="pagination-button"
-                  type="button"
-                  disabled
-                >
+                <span id="pagination-indicator" class="pagination-indicator">Página 1</span>
+                <button id="next-page-button" class="pagination-button" type="button" disabled>
                   Próxima
                 </button>
               </div>
@@ -363,125 +219,201 @@
     </footer>
   </div>
 
-  <div
-    id="details-modal"
-    class="modal-backdrop"
-    hidden
-  >
+  <div id="details-modal" class="modal-backdrop" hidden>
     <section
-      class="modal-card"
+      class="analysis-modal"
       role="dialog"
       aria-modal="true"
       aria-labelledby="details-modal-title"
       aria-describedby="details-modal-description"
     >
-      <div class="modal-header">
-        <div>
-          <p class="card-eyebrow">Detalhamento</p>
-
+      <header class="analysis-modal-header">
+        <div class="analysis-modal-heading">
+          <p class="card-eyebrow">Análise de solicitação</p>
           <h2 id="details-modal-title">
             Solicitação de acesso
+            <span id="detail-id" class="analysis-request-number">#0</span>
           </h2>
-
-          <p
-            id="details-modal-description"
-            class="modal-description"
-          >
-            Consulte os dados registrados pelo solicitante.
+          <p id="details-modal-description" class="modal-description">
+            Avalie as informações do solicitante e registre sua decisão.
           </p>
         </div>
 
-        <button
-          id="close-modal-button"
-          class="modal-close-button"
-          type="button"
-          aria-label="Fechar detalhes"
-        >
-          ×
+        <button id="close-modal-button" class="modal-close-button" type="button" aria-label="Fechar análise da solicitação">
+          <span aria-hidden="true">×</span>
         </button>
+      </header>
+
+      <section class="analysis-status-bar" aria-label="Resumo da solicitação">
+        <div class="analysis-status-item">
+          <span class="analysis-status-icon" aria-hidden="true">ST</span>
+          <div>
+            <span class="analysis-status-label">Status atual</span>
+            <div id="detail-status">Não informado</div>
+          </div>
+        </div>
+
+        <div class="analysis-status-item">
+          <span class="analysis-status-icon" aria-hidden="true">SO</span>
+          <div>
+            <span class="analysis-status-label">Solicitado em</span>
+            <strong id="detail-requested-at">Não informado</strong>
+          </div>
+        </div>
+
+        <div class="analysis-status-item">
+          <span class="analysis-status-icon" aria-hidden="true">AT</span>
+          <div>
+            <span class="analysis-status-label">Atualizado em</span>
+            <strong id="detail-updated-at">Não informado</strong>
+          </div>
+        </div>
+
+        <div class="analysis-status-item">
+          <span class="analysis-status-icon" aria-hidden="true">AN</span>
+          <div>
+            <span class="analysis-status-label">Analisado em</span>
+            <strong id="detail-analyzed-at">Não analisado</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="analysis-modal-content">
+        <section class="analysis-panel applicant-panel" aria-labelledby="applicant-panel-title">
+          <div class="analysis-panel-heading">
+            <span class="analysis-panel-icon" aria-hidden="true">DS</span>
+            <div>
+              <h3 id="applicant-panel-title">Dados do solicitante</h3>
+              <p>Informações enviadas no pedido de acesso.</p>
+            </div>
+          </div>
+
+          <dl class="applicant-details">
+            <div class="applicant-detail-item">
+              <dt>Nome completo</dt>
+              <dd id="detail-name">Não informado</dd>
+            </div>
+            <div class="applicant-detail-item">
+              <dt>E-mail informado</dt>
+              <dd id="detail-email">Não informado</dd>
+            </div>
+            <div class="applicant-detail-item">
+              <dt>Número da solicitação</dt>
+              <dd id="detail-id-secondary">Consulte o cabeçalho</dd>
+            </div>
+            <div class="applicant-detail-item">
+              <dt>Perfil aprovado</dt>
+              <dd id="detail-approved-profile">Não informado</dd>
+            </div>
+            <div class="applicant-detail-item applicant-detail-wide">
+              <dt>Justificativa registrada</dt>
+              <dd id="detail-justification">Não informada</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="analysis-panel decision-panel" aria-labelledby="decision-panel-title">
+          <div class="analysis-panel-heading">
+            <span class="analysis-panel-icon" aria-hidden="true">DA</span>
+            <div>
+              <h3 id="decision-panel-title">Decisão administrativa</h3>
+              <p>Defina o resultado da análise desta solicitação.</p>
+            </div>
+          </div>
+
+          <form id="analysis-form" class="analysis-form" novalidate>
+            <fieldset id="decision-fieldset" class="decision-fieldset" disabled>
+              <legend>Decisão <span aria-hidden="true">*</span></legend>
+              <div class="decision-options">
+                <label class="decision-option decision-approve">
+                  <input id="decision-approve" type="radio" name="decision" value="APROVAR">
+                  <span class="decision-radio" aria-hidden="true"></span>
+                  <span class="decision-option-icon" aria-hidden="true">A</span>
+                  <span class="decision-option-content">
+                    <strong>Aprovar</strong>
+                    <small>Conceder acesso ao sistema</small>
+                  </span>
+                </label>
+
+                <label class="decision-option decision-reject">
+                  <input id="decision-reject" type="radio" name="decision" value="REJEITAR">
+                  <span class="decision-radio" aria-hidden="true"></span>
+                  <span class="decision-option-icon" aria-hidden="true">R</span>
+                  <span class="decision-option-content">
+                    <strong>Rejeitar</strong>
+                    <small>Negar acesso ao sistema</small>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="analysis-field">
+              <label for="approved-profile">Perfil de acesso <span aria-hidden="true">*</span></label>
+              <select id="approved-profile" name="approvedProfile" disabled>
+                <option value="">Selecione o perfil que será concedido</option>
+                <option value="GESTOR_DADOS_SISTEMA">Gestor de Dados e Sistema</option>
+                <option value="MONITORAMENTO_SMSA_CE">Monitoramento SMSA/CE</option>
+                <option value="GESTOR_SEGEP_CE">Gestor SEGEP/CE</option>
+                <option value="OPERADOR_SEGEP_CE">Operador SEGEP/CE</option>
+              </select>
+              <p class="field-help">Obrigatório somente quando a decisão for aprovar.</p>
+            </div>
+
+            <div class="analysis-field">
+              <div class="field-label-row">
+                <label for="analysis-justification">Justificativa da análise <span aria-hidden="true">*</span></label>
+                <span id="justification-counter" class="character-counter">0 / 2000</span>
+              </div>
+              <textarea
+                id="analysis-justification"
+                name="analysisJustification"
+                rows="5"
+                minlength="3"
+                maxlength="2000"
+                placeholder="Informe o motivo da aprovação ou da rejeição desta solicitação."
+                disabled
+              ></textarea>
+              <p class="field-help">A justificativa será obrigatória para qualquer decisão.</p>
+            </div>
+
+            <div id="analysis-form-message" class="analysis-form-message" role="alert" aria-live="assertive" hidden></div>
+
+            <div class="analysis-information">
+              <span class="analysis-information-icon" aria-hidden="true">i</span>
+              <div>
+                <strong>Operação protegida</strong>
+                <p>
+                  A decisão somente será registrada depois da implantação e
+                  homologação das operações seguras no backend.
+                </p>
+              </div>
+            </div>
+          </form>
+        </section>
       </div>
 
-      <dl class="details-grid">
-        <div class="details-item">
-          <dt>Número da solicitação</dt>
-          <dd id="detail-id">Não informado</dd>
-        </div>
-
-        <div class="details-item">
-          <dt>Status</dt>
-          <dd id="detail-status">Não informado</dd>
-        </div>
-
-        <div class="details-item details-item-wide">
-          <dt>Nome completo</dt>
-          <dd id="detail-name">Não informado</dd>
-        </div>
-
-        <div class="details-item details-item-wide">
-          <dt>E-mail</dt>
-          <dd id="detail-email">Não informado</dd>
-        </div>
-
-        <div class="details-item">
-          <dt>Solicitado em</dt>
-          <dd id="detail-requested-at">Não informado</dd>
-        </div>
-
-        <div class="details-item">
-          <dt>Atualizado em</dt>
-          <dd id="detail-updated-at">Não informado</dd>
-        </div>
-
-        <div class="details-item">
-          <dt>Analisado em</dt>
-          <dd id="detail-analyzed-at">Não analisado</dd>
-        </div>
-
-        <div class="details-item">
-          <dt>Perfil aprovado</dt>
-          <dd id="detail-approved-profile">Não informado</dd>
-        </div>
-
-        <div class="details-item details-item-wide">
-          <dt>Justificativa da análise</dt>
-          <dd id="detail-justification">Não informada</dd>
-        </div>
-      </dl>
-
-      <div class="modal-notice">
-        As operações de aprovação e rejeição serão habilitadas depois da
-        homologação das respectivas funções seguras no backend.
-      </div>
-
-      <div class="modal-actions">
-        <button
-          class="danger-button"
-          type="button"
-          disabled
-          title="Operação ainda não implementada"
-        >
-          Rejeitar
+      <footer class="analysis-modal-footer">
+        <button id="cancel-analysis-button" class="secondary-button analysis-close-button" type="button">
+          Fechar
         </button>
-
-        <button
-          class="primary-button"
-          type="button"
-          disabled
-          title="Operação ainda não implementada"
-        >
-          Aprovar
-        </button>
-      </div>
+        <div class="analysis-action-buttons">
+          <button id="reject-request-button" class="outline-danger-button" type="button" disabled title="Operação ainda não implementada">
+            Rejeitar solicitação
+          </button>
+          <button id="approve-request-button" class="primary-button" type="button" disabled title="Operação ainda não implementada">
+            Aprovar solicitação
+          </button>
+        </div>
+      </footer>
     </section>
   </div>
 
   <noscript>
     <div class="noscript-message">
-      O JavaScript precisa estar habilitado para validar sua sessão e acessar
-      este sistema.
+      O JavaScript precisa estar habilitado para validar sua sessão e acessar este sistema.
     </div>
   </noscript>
 
- <script type="module" src="./js/solicitacoes.js"></script>
+  <script type="module" src="./js/solicitacoes.js"></script>
 </body>
 </html>
