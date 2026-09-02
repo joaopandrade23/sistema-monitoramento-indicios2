@@ -17,8 +17,8 @@ let envioEmAndamento = false;
 /**
  * Verifica se todos os elementos obrigatórios existem no cadastro.html.
  */
-function verificarElementosDaPag*na() {
-  const elementosObrigatori*s = [
+function verificarElementosDaPagina() {
+  const elementosObrigatorios = [
     form,
     nomeInput,
     emailInput,
@@ -28,194 +28,203 @@ function verificarElementosDaPag*na() {
     securityHelp,
   ];
 
-  if (ele*entosObrigatorios.some((elemento) *> !elemento)) {
-    throw new Erro*("PAGE_STRUCTURE_INVALID");
+  if (elementosObrigatorios.some((elemento) => !elemento)) {
+    throw new Error("PAGE_STRUCTURE_INVALID");
   }
 }
-*/**
- * Normaliza o nome informado.* */
-function normalizarNome(valor)*{
-  return valor.trim().replace(/\*+/g, " ");
+
+/**
+ * Normaliza o nome informado.
+ */
+function normalizarNome(valor) {
+  return valor.trim().replace(/\s+/g, " ");
 }
 
 /**
- * Normaliza o e*mail informado.
+ * Normaliza o e-mail informado.
  */
-function norma*izarEmail(valor) {
-  return valor.*rim().toLowerCase();
+function normalizarEmail(valor) {
+  return valor.trim().toLowerCase();
 }
 
 /**
- * Con*rola o estado de carregamento do f*rmulário.
+ * Controla o estado de carregamento do formulário.
  */
-function definirCarr*gamento(estaCarregando) {
-  envioE*Andamento = estaCarregando;
+function definirCarregamento(estaCarregando) {
+  envioEmAndamento = estaCarregando;
 
-  sub*itButton.disabled = estaCarregando*
-  nomeInput.readOnly = estaCarreg*ndo;
-  emailInput.readOnly = estaC*rregando;
+  submitButton.disabled = estaCarregando;
+  nomeInput.readOnly = estaCarregando;
+  emailInput.readOnly = estaCarregando;
 
-  submitButton.setAttri*ute(
+  submitButton.setAttribute(
     "aria-busy",
-    String(e*taCarregando)
+    String(estaCarregando)
   );
 
-  const textoB*tao = submitButton.querySelector("*pan");
+  const textoBotao = submitButton.querySelector("span");
 
   if (textoBotao) {
-    te*toBotao.textContent = estaCarregan*o
+    textoBotao.textContent = estaCarregando
       ? SIGNUP_LOADING_TEXT
-    * : SIGNUP_DEFAULT_TEXT;
+      : SIGNUP_DEFAULT_TEXT;
   }
 }
 
-/*** * Remove mensagens e erros visuai* anteriores.
+/**
+ * Remove mensagens e erros visuais anteriores.
  */
-function limparEr*os() {
+function limparErros() {
   document
-    .querySelect*rAll(".custom-tooltip")
-    .forEa*h((elemento) => elemento.remove())*
+    .querySelectorAll(".custom-tooltip")
+    .forEach((elemento) => elemento.remove());
 
   document
-    .querySelectorAll*"input")
-    .forEach((input) => {*      input.classList.remove("inpu*-error");
-      input.removeAttrib*te("aria-invalid");
+    .querySelectorAll("input")
+    .forEach((input) => {
+      input.classList.remove("input-error");
+      input.removeAttribute("aria-invalid");
     });
 
-  fee*backBanner.className = "feedback-b*nner hidden";
-  feedbackBanner.tex*Content = "";
+  feedbackBanner.className = "feedback-banner hidden";
+  feedbackBanner.textContent = "";
 }
 
 /**
- * Exibe um e*ro associado a um campo específico*
+ * Exibe um erro associado a um campo específico.
  */
-function mostrarErroCampo(inp*t, mensagem) {
+function mostrarErroCampo(input, mensagem) {
   limparErros();
 
- *input.classList.add("input-error")*
-  input.setAttribute("aria-invali*", "true");
+  input.classList.add("input-error");
+  input.setAttribute("aria-invalid", "true");
   input.focus();
 
-  co*st fieldContainer = input.closest(*.field");
+  const fieldContainer = input.closest(".field");
 
-  if (!fieldContainer) *
+  if (!fieldContainer) {
     mostrarBannerGlobal(
-      "N*o foi possível apresentar a valida*ão do formulário.",
+      "Não foi possível apresentar a validação do formulário.",
       "error"
-*   );
+    );
 
     return;
   }
 
-  const to*ltip = document.createElement("div*);
-  tooltip.className = "custom-t*oltip";
-  tooltip.setAttribute("ro*e", "alert");
+  const tooltip = document.createElement("div");
+  tooltip.className = "custom-tooltip";
+  tooltip.setAttribute("role", "alert");
 
-  const tooltipIcon*= document.createElement("span");
-* tooltipIcon.className = "tooltip-*con";
-  tooltipIcon.setAttribute("*ria-hidden", "true");
-  tooltipIco*.textContent = "!";
+  const tooltipIcon = document.createElement("span");
+  tooltipIcon.className = "tooltip-icon";
+  tooltipIcon.setAttribute("aria-hidden", "true");
+  tooltipIcon.textContent = "!";
 
-  const toolt*pText = document.createElement("sp*n");
-  tooltipText.textContent = m*nsagem;
+  const tooltipText = document.createElement("span");
+  tooltipText.textContent = mensagem;
 
-  tooltip.appendChild(too*tipIcon);
-  tooltip.appendChild(to*ltipText);
+  tooltip.appendChild(tooltipIcon);
+  tooltip.appendChild(tooltipText);
 
-  fieldContainer.appen*Child(tooltip);
+  fieldContainer.appendChild(tooltip);
 }
 
 /**
- * Exibe um* mensagem geral de sucesso ou erro*
+ * Exibe uma mensagem geral de sucesso ou erro.
  */
-function mostrarBannerGlobal(*ensagem, tipo = "error") {
-  limpa*Erros();
+function mostrarBannerGlobal(mensagem, tipo = "error") {
+  limparErros();
 
-  feedbackBanner.textCon*ent = mensagem;
-  feedbackBanner.c*assList.remove("hidden");
-  feedba*kBanner.classList.add(tipo);
+  feedbackBanner.textContent = mensagem;
+  feedbackBanner.classList.remove("hidden");
+  feedbackBanner.classList.add(tipo);
 
-  fe*dbackBanner.scrollIntoView({
-    b*havior: "smooth",
-    block: "near*st",
+  feedbackBanner.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
   });
 }
 
 /**
- * Atualiza a de*crição da verificação de segurança*
+ * Atualiza a descrição da verificação de segurança.
  */
-function atualizarMensagemSeg*ranca(mensagem) {
-  securityHelp.t*xtContent = mensagem;
+function atualizarMensagemSeguranca(mensagem) {
+  securityHelp.textContent = mensagem;
 }
 
 /**
- * Re*nicia o widget do Turnstile.
+ * Reinicia o widget do Turnstile.
  */
-f*nction reiniciarTurnstile() {
-  tu*nstileToken = "";
+function reiniciarTurnstile() {
+  turnstileToken = "";
 
-  atualizarMens*gemSeguranca(
-    "Conclua a verif*cação antes de enviar a solicitaçã*."
+  atualizarMensagemSeguranca(
+    "Conclua a verificação antes de enviar a solicitação."
   );
 
   try {
     if (
-      wi*dow.turnstile &&
-      typeof wind*w.turnstile.reset === "function"
- *  ) {
-      window.turnstile.reset*"#turnstile-widget");
+      window.turnstile &&
+      typeof window.turnstile.reset === "function"
+    ) {
+      window.turnstile.reset("#turnstile-widget");
     }
-  } ca*ch (erro) {
+  } catch (erro) {
     console.warn(
-    * "Não foi possível reiniciar o Tur*stile:",
+      "Não foi possível reiniciar o Turnstile:",
       erro
     );
   }
 }
 
-***
- * Callback executado quando o *urnstile conclui a verificação.
- ** * O nome precisa coincidir com:
- * data-callback="onTurnstileSuccess*
+/**
+ * Callback executado quando o Turnstile conclui a verificação.
+ *
+ * O nome precisa coincidir com:
+ * data-callback="onTurnstileSuccess"
  */
-window.onTurnstileSuccess = f*nction onTurnstileSuccess(token) {*  turnstileToken = String(token ||*"").trim();
+window.onTurnstileSuccess = function onTurnstileSuccess(token) {
+  turnstileToken = String(token || "").trim();
 
-  if (turnstileToken)*{
+  if (turnstileToken) {
     atualizarMensagemSeguranca(
-*     "Verificação de segurança con*luída."
+      "Verificação de segurança concluída."
     );
   }
 };
 
 /**
- * Call*ack executado quando o token expir*.
+ * Callback executado quando o token expira.
  *
- * O nome precisa coincidir c*m:
- * data-expired-callback="onTur*stileExpired"
+ * O nome precisa coincidir com:
+ * data-expired-callback="onTurnstileExpired"
  */
-window.onTurnsti*eExpired = function onTurnstileExp*red() {
+window.onTurnstileExpired = function onTurnstileExpired() {
   turnstileToken = "";
 
-  *tualizarMensagemSeguranca(
-    "A *erificação expirou. Aguarde uma no*a validação antes de enviar."
-  );*};
+  atualizarMensagemSeguranca(
+    "A verificação expirou. Aguarde uma nova validação antes de enviar."
+  );
+};
 
 /**
- * Callback executado quan*o o Turnstile encontra uma falha.
-**
- * O nome precisa coincidir com:* * data-error-callback="onTurnstil*Error"
+ * Callback executado quando o Turnstile encontra uma falha.
+ *
+ * O nome precisa coincidir com:
+ * data-error-callback="onTurnstileError"
  */
-window.onTurnstileError*= function onTurnstileError() {
-  *urnstileToken = "";
+window.onTurnstileError = function onTurnstileError() {
+  turnstileToken = "";
 
-  atualizarMe*sagemSeguranca(
-    "Não foi possí*el concluir a verificação. Atualiz* a página e tente novamente."
-  );*};
+  atualizarMensagemSeguranca(
+    "Não foi possível concluir a verificação. Atualize a página e tente novamente."
+  );
+};
 
 /**
- * Remove o erro do campo *uando a pessoa volta a digitar.
- **
-function configurarLimpezaDosCamp*s() {
+ * Remove o erro do campo quando a pessoa volta a digitar.
+ */
+function configurarLimpezaDosCampos() {
   [nomeInput, emailInput].forEach((input) => {
     input.addEventListener("input", () => {
       input.classList.remove("input-error");
@@ -242,60 +251,60 @@ async function obterMensagemDeErro(error) {
    * de erro, o corpo pode estar disponível em error.context.
    */
   try {
-    if (error?.context i*stanceof Response) {
-      const c*rpo = await error.context.clone().*son();
+    if (error?.context instanceof Response) {
+      const corpo = await error.context.clone().json();
 
       if (
-        corpo &*
-        typeof corpo.mensagem ===*"string" &&
-        corpo.mensagem*trim()
+        corpo &&
+        typeof corpo.mensagem === "string" &&
+        corpo.mensagem.trim()
       ) {
-        return co*po.mensagem.trim();
+        return corpo.mensagem.trim();
       }
     }
-* } catch (erroLeitura) {
-    conso*e.warn(
-      "Não foi possível in*erpretar a resposta da Edge Functi*n:",
+  } catch (erroLeitura) {
+    console.warn(
+      "Não foi possível interpretar a resposta da Edge Function:",
       erroLeitura
     );
   }
-*  return "Não foi possível enviar * solicitação. Tente novamente mais*tarde.";
+  return "Não foi possível enviar a solicitação. Tente novamente mais tarde.";
 }
 
 /**
- * Envia a solicit*ção para a Edge Function protegida*
+ * Envia a solicitação para a Edge Function protegida.
  */
-async function enviarSolicita*ao(
+async function enviarSolicitacao(
   nomeCompleto,
   email,
-  tok*n
+  token
 ) {
-  const { data, error } = aw*it supabase.functions.invoke(
-    *solicitar-acesso",
+  const { data, error } = await supabase.functions.invoke(
+    "solicitar-acesso",
     {
-      bod*: {
-        nome_completo: nomeCom*leto,
+      body: {
+        nome_completo: nomeCompleto,
         email,
-        turns*ile_token: token,
+        turnstile_token: token,
       },
     }
- *);
+  );
 
   if (error) {
-    const mensa*em = await obterMensagemDeErro(err*r);
+    const mensagem = await obterMensagemDeErro(error);
 
     console.error(
-      "A E*ge Function recusou a solicitação:*,
+      "A Edge Function recusou a solicitação:",
       {
-        nome: error.name*
+        nome: error.name,
         mensagem: error.message,
-*     }
+      }
     );
 
-    throw new Error*mensagem);
+    throw new Error(mensagem);
   }
 
-  if (!data || dat*.sucesso !== true) {
+  if (!data || data.sucesso !== true) {
     throw new Error(
       data?.mensagem ||
         "Não foi possível enviar a solicitação."
