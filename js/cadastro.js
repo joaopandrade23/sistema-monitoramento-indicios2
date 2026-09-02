@@ -3,136 +3,228 @@ import { supabase } from "./supabase.js";
 const form = document.querySelector("#form-cadastro");
 const nomeInput = document.querySelector("#nome-completo");
 const emailInput = document.querySelector("#cadastro-email");
-const passwordInput = document.querySelector("#cadastro-password");
-const confirmPasswordInput = document.querySelector("#confirmar-password");
 const submitButton = document.querySelector("#signup-button");
 const feedbackBanner = document.querySelector("#feedback-banner");
+const turnstileWidget = document.querySelector("#turnstile-widget");
+const securityHelp = document.querySelector(".security-help");
 
 const SIGNUP_DEFAULT_TEXT = "Enviar Solicitação";
 const SIGNUP_LOADING_TEXT = "Enviando...";
 
+let turnstileToken = "";
+let envioEmAndamento = false;
+
 /**
- * Verifica se todos os elementos necessários existem no cadastro.html.
+ * Verifica se todos os elementos obrigatórios existem no cadastro.html.
  */
-function verificarElementosDaPagina() {
-  const elementosObrigatorios = [
+function verificarElementosDaPag*na() {
+  const elementosObrigatori*s = [
     form,
     nomeInput,
     emailInput,
-    passwordInput,
-    confirmPasswordInput,
     submitButton,
     feedbackBanner,
+    turnstileWidget,
+    securityHelp,
   ];
 
-  if (elementosObrigatorios.some((elemento) => !elemento)) {
-    throw new Error("PAGE_STRUCTURE_INVALID");
+  if (ele*entosObrigatorios.some((elemento) *> !elemento)) {
+    throw new Erro*("PAGE_STRUCTURE_INVALID");
   }
+}
+*/**
+ * Normaliza o nome informado.* */
+function normalizarNome(valor)*{
+  return valor.trim().replace(/\*+/g, " ");
 }
 
 /**
- * Ativa ou desativa o estado de carregamento do formulário.
+ * Normaliza o e*mail informado.
  */
-function definirCarregamento(estaCarregando) {
-  submitButton.disabled = estaCarregando;
+function norma*izarEmail(valor) {
+  return valor.*rim().toLowerCase();
+}
 
-  nomeInput.readOnly = estaCarregando;
-  emailInput.readOnly = estaCarregando;
-  passwordInput.readOnly = estaCarregando;
-  confirmPasswordInput.readOnly = estaCarregando;
+/**
+ * Con*rola o estado de carregamento do f*rmulário.
+ */
+function definirCarr*gamento(estaCarregando) {
+  envioE*Andamento = estaCarregando;
 
-  submitButton.setAttribute("aria-busy", String(estaCarregando));
+  sub*itButton.disabled = estaCarregando*
+  nomeInput.readOnly = estaCarreg*ndo;
+  emailInput.readOnly = estaC*rregando;
 
-  const textoBotao = submitButton.querySelector("span");
+  submitButton.setAttri*ute(
+    "aria-busy",
+    String(e*taCarregando)
+  );
+
+  const textoB*tao = submitButton.querySelector("*pan");
 
   if (textoBotao) {
-    textoBotao.textContent = estaCarregando
+    te*toBotao.textContent = estaCarregan*o
       ? SIGNUP_LOADING_TEXT
-      : SIGNUP_DEFAULT_TEXT;
+    * : SIGNUP_DEFAULT_TEXT;
   }
 }
 
-/**
- * Remove todos os erros visuais da tela.
+/*** * Remove mensagens e erros visuai* anteriores.
  */
-function limparErros() {
+function limparEr*os() {
   document
-    .querySelectorAll(".custom-tooltip")
-    .forEach((elemento) => elemento.remove());
+    .querySelect*rAll(".custom-tooltip")
+    .forEa*h((elemento) => elemento.remove())*
 
   document
-    .querySelectorAll("input")
-    .forEach((input) => input.classList.remove("input-error"));
+    .querySelectorAll*"input")
+    .forEach((input) => {*      input.classList.remove("inpu*-error");
+      input.removeAttrib*te("aria-invalid");
+    });
 
-  feedbackBanner.className = "feedback-banner hidden";
-  feedbackBanner.textContent = "";
+  fee*backBanner.className = "feedback-b*nner hidden";
+  feedbackBanner.tex*Content = "";
 }
 
 /**
- * Exibe uma mensagem de erro vinculada a um campo específico.
+ * Exibe um e*ro associado a um campo específico*
  */
-function mostrarErroCampo(input, mensagem) {
+function mostrarErroCampo(inp*t, mensagem) {
   limparErros();
 
-  input.classList.add("input-error");
+ *input.classList.add("input-error")*
+  input.setAttribute("aria-invali*", "true");
   input.focus();
 
-  const fieldContainer = input.closest(".field");
+  co*st fieldContainer = input.closest(*.field");
 
-  if (!fieldContainer) {
+  if (!fieldContainer) *
     mostrarBannerGlobal(
-      "Não foi possível apresentar a validação do formulário.",
+      "N*o foi possível apresentar a valida*ão do formulário.",
       "error"
-    );
+*   );
+
     return;
   }
 
-  const tooltip = document.createElement("div");
-  tooltip.className = "custom-tooltip";
-  tooltip.setAttribute("role", "alert");
+  const to*ltip = document.createElement("div*);
+  tooltip.className = "custom-t*oltip";
+  tooltip.setAttribute("ro*e", "alert");
 
-  const tooltipIcon = document.createElement("span");
-  tooltipIcon.className = "tooltip-icon";
-  tooltipIcon.setAttribute("aria-hidden", "true");
-  tooltipIcon.textContent = "!";
+  const tooltipIcon*= document.createElement("span");
+* tooltipIcon.className = "tooltip-*con";
+  tooltipIcon.setAttribute("*ria-hidden", "true");
+  tooltipIco*.textContent = "!";
 
-  const tooltipText = document.createElement("span");
-  tooltipText.textContent = mensagem;
+  const toolt*pText = document.createElement("sp*n");
+  tooltipText.textContent = m*nsagem;
 
-  tooltip.appendChild(tooltipIcon);
-  tooltip.appendChild(tooltipText);
+  tooltip.appendChild(too*tipIcon);
+  tooltip.appendChild(to*ltipText);
 
-  fieldContainer.appendChild(tooltip);
+  fieldContainer.appen*Child(tooltip);
 }
 
 /**
- * Exibe alertas gerais de sucesso ou falha.
+ * Exibe um* mensagem geral de sucesso ou erro*
  */
-function mostrarBannerGlobal(mensagem, tipo = "error") {
-  limparErros();
+function mostrarBannerGlobal(*ensagem, tipo = "error") {
+  limpa*Erros();
 
-  feedbackBanner.textContent = mensagem;
-  feedbackBanner.classList.remove("hidden");
-  feedbackBanner.classList.add(tipo);
+  feedbackBanner.textCon*ent = mensagem;
+  feedbackBanner.c*assList.remove("hidden");
+  feedba*kBanner.classList.add(tipo);
+
+  fe*dbackBanner.scrollIntoView({
+    b*havior: "smooth",
+    block: "near*st",
+  });
 }
 
 /**
- * Remove o erro visual de um campo quando o usuário volta a digitar.
+ * Atualiza a de*crição da verificação de segurança*
  */
-function configurarLimpezaDosCampos() {
-  const campos = [
-    nomeInput,
-    emailInput,
-    passwordInput,
-    confirmPasswordInput,
-  ];
+function atualizarMensagemSeg*ranca(mensagem) {
+  securityHelp.t*xtContent = mensagem;
+}
 
-  campos.forEach((input) => {
+/**
+ * Re*nicia o widget do Turnstile.
+ */
+f*nction reiniciarTurnstile() {
+  tu*nstileToken = "";
+
+  atualizarMens*gemSeguranca(
+    "Conclua a verif*cação antes de enviar a solicitaçã*."
+  );
+
+  try {
+    if (
+      wi*dow.turnstile &&
+      typeof wind*w.turnstile.reset === "function"
+ *  ) {
+      window.turnstile.reset*"#turnstile-widget");
+    }
+  } ca*ch (erro) {
+    console.warn(
+    * "Não foi possível reiniciar o Tur*stile:",
+      erro
+    );
+  }
+}
+
+***
+ * Callback executado quando o *urnstile conclui a verificação.
+ ** * O nome precisa coincidir com:
+ * data-callback="onTurnstileSuccess*
+ */
+window.onTurnstileSuccess = f*nction onTurnstileSuccess(token) {*  turnstileToken = String(token ||*"").trim();
+
+  if (turnstileToken)*{
+    atualizarMensagemSeguranca(
+*     "Verificação de segurança con*luída."
+    );
+  }
+};
+
+/**
+ * Call*ack executado quando o token expir*.
+ *
+ * O nome precisa coincidir c*m:
+ * data-expired-callback="onTur*stileExpired"
+ */
+window.onTurnsti*eExpired = function onTurnstileExp*red() {
+  turnstileToken = "";
+
+  *tualizarMensagemSeguranca(
+    "A *erificação expirou. Aguarde uma no*a validação antes de enviar."
+  );*};
+
+/**
+ * Callback executado quan*o o Turnstile encontra uma falha.
+**
+ * O nome precisa coincidir com:* * data-error-callback="onTurnstil*Error"
+ */
+window.onTurnstileError*= function onTurnstileError() {
+  *urnstileToken = "";
+
+  atualizarMe*sagemSeguranca(
+    "Não foi possí*el concluir a verificação. Atualiz* a página e tente novamente."
+  );*};
+
+/**
+ * Remove o erro do campo *uando a pessoa volta a digitar.
+ **
+function configurarLimpezaDosCamp*s() {
+  [nomeInput, emailInput].forEach((input) => {
     input.addEventListener("input", () => {
       input.classList.remove("input-error");
+      input.removeAttribute("aria-invalid");
 
       const fieldContainer = input.closest(".field");
-      const tooltip = fieldContainer?.querySelector(".custom-tooltip");
+      const tooltip = fieldContainer?.querySelector(
+        ".custom-tooltip"
+      );
 
       if (tooltip) {
         tooltip.remove();
@@ -142,47 +234,98 @@ function configurarLimpezaDosCampos() {
 }
 
 /**
- * Encerra localmente uma eventual sessão criada pelo cadastro.
+ * Interpreta erros retornados pela Edge Function.
  */
-async function encerrarSessaoCriadaNoCadastro() {
+async function obterMensagemDeErro(error) {
+  /*
+   * Quando supabase.functions.invoke recebe uma resposta HTTP
+   * de erro, o corpo pode estar disponível em error.context.
+   */
   try {
-    const { error } = await supabase.auth.signOut({
-      scope: "local",
-    });
+    if (error?.context i*stanceof Response) {
+      const c*rpo = await error.context.clone().*son();
 
-    if (error) {
-      console.warn(
-        "A solicitação foi criada, mas a sessão local não pôde ser encerrada:",
-        error
-      );
+      if (
+        corpo &*
+        typeof corpo.mensagem ===*"string" &&
+        corpo.mensagem*trim()
+      ) {
+        return co*po.mensagem.trim();
+      }
     }
-  } catch (erro) {
-    console.warn(
-      "Falha inesperada ao encerrar a sessão criada pelo cadastro:",
-      erro
+* } catch (erroLeitura) {
+    conso*e.warn(
+      "Não foi possível in*erpretar a resposta da Edge Functi*n:",
+      erroLeitura
     );
   }
+*  return "Não foi possível enviar * solicitação. Tente novamente mais*tarde.";
 }
 
 /**
- * Processa o envio da solicitação de cadastro.
+ * Envia a solicit*ção para a Edge Function protegida*
+ */
+async function enviarSolicita*ao(
+  nomeCompleto,
+  email,
+  tok*n
+) {
+  const { data, error } = aw*it supabase.functions.invoke(
+    *solicitar-acesso",
+    {
+      bod*: {
+        nome_completo: nomeCom*leto,
+        email,
+        turns*ile_token: token,
+      },
+    }
+ *);
+
+  if (error) {
+    const mensa*em = await obterMensagemDeErro(err*r);
+
+    console.error(
+      "A E*ge Function recusou a solicitação:*,
+      {
+        nome: error.name*
+        mensagem: error.message,
+*     }
+    );
+
+    throw new Error*mensagem);
+  }
+
+  if (!data || dat*.sucesso !== true) {
+    throw new Error(
+      data?.mensagem ||
+        "Não foi possível enviar a solicitação."
+    );
+  }
+
+  return data;
+}
+
+/**
+ * Processa o envio do formulário.
  */
 async function processarCadastro(evento) {
   evento.preventDefault();
 
-  if (submitButton.disabled) {
+  if (envioEmAndamento || submitButton.disabled) {
     return;
   }
 
   limparErros();
 
-  const nomeCompleto = nomeInput.value.trim();
-  const email = emailInput.value.trim().toLowerCase();
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
+  const nomeCompleto = normalizarNome(nomeInput.value);
+  const email = normalizarEmail(emailInput.value);
 
   if (!nomeCompleto) {
-    mostrarErroCampo(nomeInput, "Preencha este campo.");
+    mostrarErroCampo(
+      nomeInput,
+      "Preencha este campo."
+    );
+
     return;
   }
 
@@ -191,11 +334,25 @@ async function processarCadastro(evento) {
       nomeInput,
       "O nome completo deve conter pelo menos 3 caracteres."
     );
+
+    return;
+  }
+
+  if (nomeCompleto.length > 150) {
+    mostrarErroCampo(
+      nomeInput,
+      "O nome completo deve conter no máximo 150 caracteres."
+    );
+
     return;
   }
 
   if (!email) {
-    mostrarErroCampo(emailInput, "Preencha este campo.");
+    mostrarErroCampo(
+      emailInput,
+      "Preencha este campo."
+    );
+
     return;
   }
 
@@ -204,141 +361,81 @@ async function processarCadastro(evento) {
       emailInput,
       "Digite um endereço de e-mail válido."
     );
+
     return;
   }
 
-  if (!password) {
-    mostrarErroCampo(passwordInput, "Preencha este campo.");
-    return;
-  }
-
-  if (password.length < 8) {
-    mostrarErroCampo(
-      passwordInput,
-      "A senha deve conter no mínimo 8 caracteres."
+  if (!turnstileToken) {
+    mostrarBannerGlobal(
+      "Aguarde a conclusão da verificação de segurança antes de enviar.",
+      "error"
     );
-    return;
-  }
 
-  if (!confirmPassword) {
-    mostrarErroCampo(
-      confirmPasswordInput,
-      "Confirme sua senha."
-    );
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    mostrarErroCampo(
-      confirmPasswordInput,
-      "As senhas não coincidem."
-    );
     return;
   }
 
   definirCarregamento(true);
 
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const resultado = await enviarSolicitacao(
+      nomeCompleto,
       email,
-      password,
-      options: {
-        data: {
-          nome_completo: nomeCompleto,
-        },
-      },
-    });
-
-    if (error) {
-      const codigoErro = String(error.code || "").toLowerCase();
-      const mensagemErro = String(error.message || "").toLowerCase();
-
-      const usuarioJaExiste =
-        codigoErro === "user_already_exists" ||
-        mensagemErro.includes("already registered") ||
-        mensagemErro.includes("user already exists");
-
-      if (usuarioJaExiste) {
-        mostrarErroCampo(
-          emailInput,
-          "Este e-mail já possui uma solicitação ou conta cadastrada."
-        );
-        return;
-      }
-
-      if (error.status === 422) {
-        mostrarBannerGlobal(
-          "Os dados informados não puderam ser processados. Revise o formulário e tente novamente.",
-          "error"
-        );
-        return;
-      }
-
-      mostrarBannerGlobal(
-        "Não foi possível enviar sua solicitação. Tente novamente.",
-        "error"
-      );
-      return;
-    }
-
-    /*
-     * Limpa os campos de senha assim que o cadastro for aceito.
-     */
-    passwordInput.value = "";
-    confirmPasswordInput.value = "";
-
-    /*
-     * Dependendo da configuração do Supabase Auth, o signUp pode criar
-     * imediatamente uma sessão autenticada. Essa sessão é encerrada antes
-     * do redirecionamento porque o usuário ainda precisa receber um perfil
-     * funcional autorizado pela gestão.
-     */
-    if (data?.session) {
-      await encerrarSessaoCriadaNoCadastro();
-    }
-
-    mostrarBannerGlobal(
-      "Solicitação enviada com sucesso! Aguarde a liberação do seu perfil pela gestão.",
-      "success"
+      turnstileToken
     );
 
     form.reset();
+    turnstileToken = "";
 
-    window.setTimeout(() => {
-      window.location.replace("./index.html");
-    }, 2500);
+    mostrarBannerGlobal(
+      resultado.mensagem ||
+        "Solicitação recebida. Aguarde a análise da gestão do sistema.",
+      "success"
+    );
+
+    reiniciarTurnstile();
   } catch (erro) {
     console.error(
-      "Falha inesperada ao enviar solicitação de cadastro:",
+      "Falha ao processar a solicitação de acesso:",
       erro
     );
 
     mostrarBannerGlobal(
-      "Não foi possível enviar sua solicitação. Verifique sua conexão e tente novamente.",
+      erro instanceof Error
+        ? erro.message
+        : "Não foi possível enviar a solicitação. Tente novamente mais tarde.",
       "error"
     );
+
+    /*
+     * O token pode ter sido consumido mesmo quando a operação
+     * posterior falha. Por isso, o widget é reiniciado.
+     */
+    reiniciarTurnstile();
   } finally {
     definirCarregamento(false);
   }
 }
 
 /**
- * Inicializa os eventos da página de cadastro.
+ * Inicializa a página.
  */
 function iniciarPaginaCadastro() {
   try {
     verificarElementosDaPagina();
     configurarLimpezaDosCampos();
 
-    form.addEventListener("submit", processarCadastro);
+    form.addEventListener(
+      "submit",
+      processarCadastro
+    );
   } catch (erro) {
     console.error(
-      "Falha ao inicializar a página de cadastro:",
+      "Falha ao inicializar a página de solicitação:",
       erro
     );
 
     document.body.textContent =
-      "Não foi possível carregar a página de solicitação de cadastro.";
+      "Não foi possível carregar a página de solicitação de acesso.";
   }
 }
 
