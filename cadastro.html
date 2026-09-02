@@ -7,9 +7,9 @@
   <meta name="robots" content="noindex, nofollow, noarchive">
 
   <meta
-  http-equiv="Content-Security-Policy"
-  content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
->
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data: https://challenges.cloudflare.com; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob: https://challenges.cloudflare.com; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
+  >
 
   <title>Solicitar Cadastro | Monitoramento de Indícios</title>
 
@@ -77,22 +77,21 @@
         </div>
 
         <div class="security-verification">
-            <p class="security-label">
-              Verificação de segurança
-            </p>
-          
-            <div
-              id="turnstile-widget"
-              data-sitekey="0x4AAAAAAEkNYPmGWBdFu7uf"
-            ></div>
-          
-            <p id="security-help" class="security-help" aria-live="polite">
-              Aguarde a conclusão da verificação de segurança.
-            </p>
-          </div>
+          <p class="security-label">
+            Verificação de segurança
+          </p>
 
-          <p class="security-help">
-            Conclua a verificação antes de enviar a solicitação.
+          <div
+            id="turnstile-widget"
+            data-sitekey="COLE_SUA_SITE_KEY_AQUI"
+          ></div>
+
+          <p
+            id="security-help"
+            class="security-help"
+            aria-live="polite"
+          >
+            Aguarde a conclusão da verificação de segurança.
           </p>
         </div>
 
@@ -113,7 +112,8 @@
       </footer>
     </section>
   </main>
-  
-  <script src="./js/cadastro.js" defer></script>
+
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script type="module" src="./js/cadastro.js"></script>
 </body>
 </html>
