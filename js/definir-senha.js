@@ -3,12 +3,31 @@ import { supabase } from "./supabase.js";
 const THEME_STORAGE_KEY = "mi-theme";
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 72;
-const SESSION_WAIT_TIMEOUT_MS = 10000;
+
+function detectInvitationMaterial() {
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const code = url.searchParams.get("code");
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+  const type = hash.get("type");
+  const hasPkceCode = Boolean(code);
+  const hasHashTokens = Boolean(accessToken && refreshToken);
+
+  return {
+    hasInvitationMaterial:
+      hasPkceCode || (hasHashTokens && (!type || type === "invite")),
+    invitationFlow: hasPkceCode ? "pkce" : hasHashTokens ? "implicit" : null
+  };
+}
+
+const invitationMaterial = detectInvitationMaterial();
 
 const state = {
   invitationValidated: false,
   submitting: false,
-  authSubscription: null
+  hasInvitationMaterial: invitationMaterial.hasInvitationMaterial,
+  invitationFlow: invitationMaterial.invitationFlow
 };
 
 const elements = {
@@ -43,7 +62,7 @@ function validatePageStructure() {
     .filter(([, element]) => !element)
     .map(([name]) => name);
 
-  if (missing.length > 0) {
+  if (missing.length) {
     console.error("Elementos ausentes em definir-senha.html:", missing);
     throw new Error("PAGE_STRUCTURE_INVALID");
   }
@@ -51,10 +70,8 @@ function validatePageStructure() {
 
 function getPreferredTheme() {
   try {
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme === "light" || storedTheme === "dark") {
-      return storedTheme;
-    }
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
   } catch (error) {
     console.warn("Não foi possível recuperar a preferência de tema:", error);
   }
@@ -65,36 +82,31 @@ function getPreferredTheme() {
 }
 
 function applyTheme(theme) {
-  const normalizedTheme = theme === "dark" ? "dark" : "light";
-  const darkModeActive = normalizedTheme === "dark";
-
-  document.documentElement.dataset.theme = normalizedTheme;
-  elements.themeToggleButton.setAttribute("aria-pressed", String(darkModeActive));
+  const normalized = theme === "dark" ? "dark" : "light";
+  const dark = normalized === "dark";
+  document.documentElement.dataset.theme = normalized;
+  elements.themeToggleButton.setAttribute("aria-pressed", String(dark));
   elements.themeToggleButton.setAttribute(
     "aria-label",
-    darkModeActive ? "Ativar modo claro" : "Ativar modo escuro"
+    dark ? "Ativar modo claro" : "Ativar modo escuro"
   );
-  elements.themeToggleButton.title = darkModeActive
+  elements.themeToggleButton.title = dark
     ? "Ativar modo claro"
     : "Ativar modo escuro";
-  elements.themeToggleIcon.textContent = darkModeActive ? "Sol" : "Lua";
-  elements.themeToggleText.textContent = darkModeActive
-    ? "Modo claro"
-    : "Modo escuro";
+  elements.themeToggleIcon.textContent = dark ? "Sol" : "Lua";
+  elements.themeToggleText.textContent = dark ? "Modo claro" : "Modo escuro";
 }
 
 function toggleTheme() {
-  const nextTheme = document.documentElement.dataset.theme === "dark"
+  const next = document.documentElement.dataset.theme === "dark"
     ? "light"
     : "dark";
-
   try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, next);
   } catch (error) {
     console.warn("Não foi possível salvar a preferência de tema:", error);
   }
-
-  applyTheme(nextTheme);
+  applyTheme(next);
 }
 
 function showPageMessage(message, type = "error") {
@@ -156,13 +168,11 @@ function updateRequirement(element, valid, hasInput) {
 function updatePasswordRequirements(password) {
   const checks = getPasswordChecks(password);
   const hasInput = password.length > 0;
-
   updateRequirement(elements.requirementLength, checks.length, hasInput);
   updateRequirement(elements.requirementUppercase, checks.uppercase, hasInput);
   updateRequirement(elements.requirementLowercase, checks.lowercase, hasInput);
   updateRequirement(elements.requirementNumber, checks.number, hasInput);
   updateRequirement(elements.requirementSpecial, checks.special, hasInput);
-
   return Object.values(checks).every(Boolean);
 }
 
@@ -195,13 +205,13 @@ function validatePasswordForm({ showErrors = false } = {}) {
     );
   }
 
-  if (showErrors && confirmation.length === 0) {
+  if (showErrors && !confirmation) {
     setFieldError(
       elements.confirmPassword,
       elements.confirmPasswordError,
       "Confirme a nova senha."
     );
-  } else if (confirmation.length > 0 && !passwordsMatch) {
+  } else if (confirmation && !passwordsMatch) {
     setFieldError(
       elements.confirmPassword,
       elements.confirmPasswordError,
@@ -209,48 +219,32 @@ function validatePasswordForm({ showErrors = false } = {}) {
     );
   }
 
-  const formIsValid =
+  const valid =
     state.invitationValidated &&
     !state.submitting &&
     passwordIsValid &&
     passwordsMatch;
 
-  elements.submitPasswordButton.disabled = !formIsValid;
-  elements.submitPasswordButton.setAttribute(
-    "aria-disabled",
-    String(!formIsValid)
-  );
-
-  return formIsValid;
+  elements.submitPasswordButton.disabled = !valid;
+  elements.submitPasswordButton.setAttribute("aria-disabled", String(!valid));
+  return valid;
 }
 
 function togglePasswordVisibility(button) {
-  const targetId = button.dataset.target;
-  const input = document.getElementById(targetId);
-
-  if (!(input instanceof HTMLInputElement)) {
-    return;
-  }
-
-  const showPassword = input.type === "password";
-  input.type = showPassword ? "text" : "password";
-  button.textContent = showPassword ? "Ocultar" : "Mostrar";
-  button.setAttribute("aria-pressed", String(showPassword));
-  button.setAttribute(
-    "aria-label",
-    showPassword ? "Ocultar senha" : "Mostrar senha"
-  );
+  const input = document.getElementById(button.dataset.target || "");
+  if (!(input instanceof HTMLInputElement)) return;
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  button.textContent = show ? "Ocultar" : "Mostrar";
+  button.setAttribute("aria-pressed", String(show));
+  button.setAttribute("aria-label", show ? "Ocultar senha" : "Mostrar senha");
 }
 
 function readHashSession() {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const accessToken = hash.get("access_token");
   const refreshToken = hash.get("refresh_token");
-
-  if (!accessToken || !refreshToken) {
-    return null;
-  }
-
+  if (!accessToken || !refreshToken) return null;
   return {
     accessToken,
     refreshToken,
@@ -258,20 +252,9 @@ function readHashSession() {
   };
 }
 
-function clearAuthParametersFromUrl() {
-  const cleanUrl = `${window.location.pathname}${window.location.search}`;
-  const url = new URL(cleanUrl, window.location.origin);
-  url.searchParams.delete("code");
-  url.searchParams.delete("error");
-  url.searchParams.delete("error_code");
-  url.searchParams.delete("error_description");
-  window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
-}
-
 function getUrlAuthError() {
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-
   return (
     query.get("error_description") ||
     hash.get("error_description") ||
@@ -280,196 +263,190 @@ function getUrlAuthError() {
   );
 }
 
+function clearAuthParametersFromUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("code");
+  url.searchParams.delete("error");
+  url.searchParams.delete("error_code");
+  url.searchParams.delete("error_description");
+  url.hash = "";
+  const query = url.searchParams.toString();
+  window.history.replaceState(
+    {},
+    document.title,
+    url.pathname + (query ? `?${query}` : "")
+  );
+}
+
 async function establishInvitationSession() {
-  const urlError = getUrlAuthError();
-  if (urlError) {
+  if (getUrlAuthError()) {
     throw new Error("INVITATION_LINK_REJECTED");
+  }
+  if (!state.hasInvitationMaterial) {
+    throw new Error("INVITATION_MATERIAL_MISSING");
   }
 
   const url = new URL(window.location.href);
   const authCode = url.searchParams.get("code");
 
-  if (authCode) {
-    const { error } = await supabase.auth.exchangeCodeForSession(authCode);
-    if (error) {
-      console.error("Falha ao trocar o código do convite por uma sessão:", error);
+  if (state.invitationFlow === "pkce" && authCode) {
+    const { data, error } =
+      await supabase.auth.exchangeCodeForSession(authCode);
+    if (error || !data?.session?.user) {
+      console.error("Falha no código PKCE do convite:", {
+        code: error?.code,
+        status: error?.status,
+        message: error?.message
+      });
       throw new Error("INVITATION_SESSION_EXCHANGE_FAILED");
     }
     clearAuthParametersFromUrl();
-  } else {
+    return data.session;
+  }
+
+  if (state.invitationFlow === "implicit") {
     const hashSession = readHashSession();
-    if (hashSession) {
-      const { error } = await supabase.auth.setSession({
-        access_token: hashSession.accessToken,
-        refresh_token: hashSession.refreshToken
-      });
-      if (error) {
-        console.error("Falha ao estabelecer a sessão do convite:", error);
-        throw new Error("INVITATION_SESSION_EXCHANGE_FAILED");
-      }
-      clearAuthParametersFromUrl();
+    if (!hashSession) throw new Error("INVITATION_TOKENS_MISSING");
+    if (hashSession.type && hashSession.type !== "invite") {
+      throw new Error("INVALID_AUTH_FLOW_TYPE");
     }
+
+    const { data, error } = await supabase.auth.setSession({
+      access_token: hashSession.accessToken,
+      refresh_token: hashSession.refreshToken
+    });
+    if (error || !data?.session?.user) {
+      console.error("Falha nos tokens do convite:", {
+        code: error?.code,
+        status: error?.status,
+        message: error?.message
+      });
+      throw new Error("INVITATION_SESSION_EXCHANGE_FAILED");
+    }
+    clearAuthParametersFromUrl();
+    return data.session;
   }
 
-  const {
-    data: { session },
-    error: sessionError
-  } = await supabase.auth.getSession();
-
-  if (sessionError) {
-    console.error("Falha ao consultar a sessão do convite:", sessionError);
-    throw new Error("INVITATION_SESSION_INVALID");
-  }
-
-  if (session?.user) {
-    return session;
-  }
-
-  return await waitForAuthSession();
+  throw new Error("INVITATION_FLOW_NOT_IDENTIFIED");
 }
 
-function waitForAuthSession() {
-  return new Promise((resolve) => {
-    let settled = false;
+function validateInvitationUserMetadata(user) {
+  const metadata = user?.user_metadata || {};
+  const requestId = Number(metadata.id_solicitacao);
+  return (
+    Boolean(user?.id) &&
+    metadata.origem === "SOLICITACAO_ACESSO" &&
+    Number.isSafeInteger(requestId) &&
+    requestId > 0
+  );
+}
 
-    const finish = (session) => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeoutId);
-      subscription.data.subscription.unsubscribe();
-      resolve(session);
-    };
-
-    const subscription = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        finish(session);
-      }
-    });
-
-    const timeoutId = window.setTimeout(
-      () => finish(null),
-      SESSION_WAIT_TIMEOUT_MS
-    );
-  });
+async function safelyClearLocalSession() {
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch (error) {
+    console.warn("Não foi possível limpar a sessão local:", error);
+  }
 }
 
 async function validateInvitation() {
   elements.loadingMessage.textContent =
     "Aguarde enquanto confirmamos os dados de ativação.";
 
+  if (!state.hasInvitationMaterial) {
+    showInvalidInvitation(
+      "Esta página somente pode ser acessada pelo link de convite enviado ao seu e-mail."
+    );
+    return;
+  }
+
   try {
     const session = await establishInvitationSession();
+    if (!session?.user?.id) throw new Error("INVITATION_SESSION_INVALID");
 
-    if (!session?.user?.id) {
-      showInvalidInvitation(
-        "O convite é inválido, expirou ou já foi utilizado. Solicite um novo convite à gestão do sistema."
-      );
-      return;
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user?.id || data.user.id !== session.user.id) {
+      console.error("Falha ao validar a identidade do convite:", {
+        code: error?.code,
+        status: error?.status,
+        message: error?.message
+      });
+      throw new Error("INVITATION_USER_INVALID");
+    }
+
+    if (!validateInvitationUserMetadata(data.user)) {
+      throw new Error("INVITATION_METADATA_INVALID");
     }
 
     showPasswordForm();
   } catch (error) {
-    console.error("Falha ao validar o convite:", error);
+    console.error("Falha ao validar o convite:", { reason: error?.message });
+    await safelyClearLocalSession();
     showInvalidInvitation(
-      "O convite é inválido, expirou ou não pôde ser confirmado. Solicite um novo convite à gestão do sistema."
+      error?.message === "INVITATION_METADATA_INVALID"
+        ? "Esta sessão não corresponde a um convite válido de acesso ao sistema."
+        : "O convite é inválido, expirou ou não pôde ser confirmado. Solicite um novo convite à gestão do sistema."
     );
   }
 }
 
-function setSubmitting(isSubmitting) {
-  state.submitting = isSubmitting;
-  elements.newPassword.disabled = isSubmitting;
-  elements.confirmPassword.disabled = isSubmitting;
-  elements.toggleNewPassword.disabled = isSubmitting;
-  elements.toggleConfirmPassword.disabled = isSubmitting;
-  elements.submitPasswordButton.setAttribute(
-    "aria-busy",
-    String(isSubmitting)
-  );
-  elements.submitPasswordButton.textContent = isSubmitting
+function setSubmitting(value) {
+  state.submitting = value;
+  elements.newPassword.disabled = value;
+  elements.confirmPassword.disabled = value;
+  elements.toggleNewPassword.disabled = value;
+  elements.toggleConfirmPassword.disabled = value;
+  elements.submitPasswordButton.setAttribute("aria-busy", String(value));
+  elements.submitPasswordButton.textContent = value
     ? "Salvando nova senha..."
     : "Definir senha e concluir acesso";
-
   validatePasswordForm();
 }
 
 function getPasswordUpdateMessage(error) {
   const message = String(error?.message || "").toLowerCase();
-
   if (message.includes("same password")) {
     return "A nova senha precisa ser diferente da senha usada anteriormente.";
   }
-
   if (message.includes("weak") || message.includes("password")) {
     return "A senha não foi aceita pelo serviço de autenticação. Escolha uma senha mais forte.";
   }
-
-  if (
-    message.includes("session") ||
-    message.includes("jwt") ||
-    error?.status === 401
-  ) {
+  if (message.includes("session") || message.includes("jwt") || error?.status === 401) {
     return "A sessão do convite expirou. Solicite um novo convite à gestão do sistema.";
   }
-
   return "Não foi possível definir a senha. Verifique sua conexão e tente novamente.";
 }
 
 async function handlePasswordSubmit(event) {
   event.preventDefault();
   hidePageMessage();
-
-  if (state.submitting || !validatePasswordForm({ showErrors: true })) {
-    return;
-  }
-
+  if (state.submitting || !validatePasswordForm({ showErrors: true })) return;
   setSubmitting(true);
 
   try {
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session?.user) {
-      throw sessionError || new Error("AUTH_SESSION_MISSING");
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user || !validateInvitationUserMetadata(userData.user)) {
+      throw userError || new Error("AUTH_SESSION_MISSING");
     }
 
     const { error } = await supabase.auth.updateUser({
       password: elements.newPassword.value
     });
-
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     elements.newPassword.value = "";
     elements.confirmPassword.value = "";
     updatePasswordRequirements("");
-
-    const { error: signOutError } = await supabase.auth.signOut({
-      scope: "local"
-    });
-
-    if (signOutError) {
-      console.warn(
-        "A senha foi definida, mas a sessão temporária não pôde ser encerrada automaticamente:",
-        signOutError
-      );
-    }
-
+    await safelyClearLocalSession();
     state.invitationValidated = false;
     showSuccessState();
   } catch (error) {
-    console.error("Falha ao definir a senha:", error);
+    console.error("Falha ao definir a senha:", {
+      code: error?.code,
+      status: error?.status,
+      message: error?.message
+    });
     showPageMessage(getPasswordUpdateMessage(error));
-
-    if (
-      error?.status === 401 ||
-      String(error?.message || "").toLowerCase().includes("session")
-    ) {
-      state.invitationValidated = false;
-    }
   } finally {
     setSubmitting(false);
   }
@@ -477,12 +454,12 @@ async function handlePasswordSubmit(event) {
 
 function registerEventListeners() {
   elements.themeToggleButton.addEventListener("click", toggleTheme);
-  elements.toggleNewPassword.addEventListener("click", () => {
-    togglePasswordVisibility(elements.toggleNewPassword);
-  });
-  elements.toggleConfirmPassword.addEventListener("click", () => {
-    togglePasswordVisibility(elements.toggleConfirmPassword);
-  });
+  elements.toggleNewPassword.addEventListener("click", () =>
+    togglePasswordVisibility(elements.toggleNewPassword)
+  );
+  elements.toggleConfirmPassword.addEventListener("click", () =>
+    togglePasswordVisibility(elements.toggleConfirmPassword)
+  );
   elements.newPassword.addEventListener("input", () => {
     hidePageMessage();
     validatePasswordForm();
@@ -503,13 +480,10 @@ async function initializePage() {
     await validateInvitation();
   } catch (error) {
     console.error("Falha ao inicializar a página de definição de senha:", error);
-
     if (error?.message === "PAGE_STRUCTURE_INVALID") {
-      document.body.textContent =
-        "Não foi possível carregar a estrutura da página.";
+      document.body.textContent = "Não foi possível carregar a estrutura da página.";
       return;
     }
-
     showInvalidInvitation(
       "Não foi possível iniciar a validação do convite. Atualize a página ou solicite um novo convite."
     );
