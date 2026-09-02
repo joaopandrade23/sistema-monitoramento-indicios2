@@ -75,8 +75,7 @@ const elements = {
   approvedProfile: document.getElementById("approved-profile"),
   analysisJustification: document.getElementById("analysis-justification"),
   justificationCounter: document.getElementById("justification-counter"),
-  rejectRequestButton: document.getElementById("reject-request-button"),
-  approveRequestButton: document.getElementById("approve-request-button"),
+  confirmDecisionButton: document.getElementById("confirm-decision-button"),
 
   detailId: document.getElementById("detail-id"),
   detailIdSecondary: document.getElementById("detail-id-secondary"),
@@ -634,10 +633,11 @@ function resetAnalysisForm() {
   elements.decisionFieldset.disabled = true;
   elements.approvedProfile.disabled = true;
   elements.analysisJustification.disabled = true;
-  elements.rejectRequestButton.disabled = true;
-  elements.approveRequestButton.disabled = true;
-  elements.rejectRequestButton.title = "Operação ainda não implementada";
-  elements.approveRequestButton.title = "Operação ainda não implementada";
+  elements.confirmDecisionButton.disabled = true;
+  elements.confirmDecisionButton.setAttribute("aria-disabled", "true");
+  elements.confirmDecisionButton.removeAttribute("data-decision");
+  elements.confirmDecisionButton.textContent = "Selecione uma decisão";
+  elements.confirmDecisionButton.title = "Selecione uma decisão";
   elements.justificationCounter.textContent = `0 / ${JUSTIFICATION_MAX_LENGTH}`;
   hideAnalysisMessage();
 }
@@ -722,18 +722,46 @@ function updateJustificationCounter() {
 }
 
 function handleDecisionChange() {
-  /*
-   * Preparado para a próxima etapa. Enquanto o backend não estiver
-   * homologado, o fieldset permanece desabilitado e esta função não produz
-   * alteração operacional.
-   */
   const approveSelected = elements.decisionApprove.checked;
+  const rejectSelected = elements.decisionReject.checked;
+
   elements.approvedProfile.disabled = !approveSelected;
+
+  if (!approveSelected) {
+    elements.approvedProfile.value = "";
+  }
+
+  elements.analysisJustification.disabled = !(approveSelected || rejectSelected);
+  elements.confirmDecisionButton.disabled = true;
+  elements.confirmDecisionButton.setAttribute("aria-disabled", "true");
+
+  if (approveSelected) {
+    elements.confirmDecisionButton.dataset.decision = "APROVAR";
+    elements.confirmDecisionButton.textContent = "Aprovar solicitação";
+    elements.confirmDecisionButton.title = "Operação ainda não implementada";
+  } else if (rejectSelected) {
+    elements.confirmDecisionButton.dataset.decision = "REJEITAR";
+    elements.confirmDecisionButton.textContent = "Rejeitar solicitação";
+    elements.confirmDecisionButton.title = "Operação ainda não implementada";
+  } else {
+    elements.confirmDecisionButton.removeAttribute("data-decision");
+    elements.confirmDecisionButton.textContent = "Selecione uma decisão";
+    elements.confirmDecisionButton.title = "Selecione uma decisão";
+  }
+
+  hideAnalysisMessage();
 }
 
 function handleUnavailableDecision() {
+  const selectedDecision = elements.confirmDecisionButton.dataset.decision;
+
+  if (!selectedDecision) {
+    showAnalysisMessage("Selecione uma decisão antes de continuar.");
+    return;
+  }
+
   showAnalysisMessage(
-    "A operação ainda não está disponível. Primeiro serão implantadas e homologadas as funções seguras do backend."
+    "A confirmação ainda não está disponível. Primeiro serão implantadas e homologadas as operações seguras do backend."
   );
 }
 
@@ -866,7 +894,7 @@ function registerEventListeners() {
   elements.refreshButton.addEventListener("click", handleRefresh);
   elements.previousPageButton.addEventListener("click", handlePreviousPage);
   elements.nextPageButton.addEventListener("click", handleNextPage);
-  elements.closeModalButton.addEventListener("click", closeDetailsModal);
+  elements.closeModalButton.addEventListener("click", closeModalButton);
   elements.cancelAnalysisButton.addEventListener("click", closeDetailsModal);
   elements.decisionApprove.addEventListener("change", handleDecisionChange);
   elements.decisionReject.addEventListener("change", handleDecisionChange);
@@ -874,11 +902,7 @@ function registerEventListeners() {
     "input",
     updateJustificationCounter
   );
-  elements.rejectRequestButton.addEventListener(
-    "click",
-    handleUnavailableDecision
-  );
-  elements.approveRequestButton.addEventListener(
+  elements.confirmDecisionButton.addEventListener(
     "click",
     handleUnavailableDecision
   );
