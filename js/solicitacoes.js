@@ -26,15 +26,12 @@ const state = {
   requests: [],
   selectedRequest: null,
   lastFocusedElement: null,
-
   status: "PENDENTE",
   limit: FIXED_PAGE_LIMIT,
   offset: 0,
-
   totalRecords: 0,
   pendingTotal: 0,
   oldestPendingAt: null,
-
   loading: false,
   submittingDecision: false
 };
@@ -45,69 +42,70 @@ let elements = {};
  * Armazena todas as referências necessárias do DOM.
  */
 function cacheDOMElements() {
+  const byId = (id) => document.getElementById(id);
   elements = {
-    pageLoading: document.getElementById("page-loading"),
-    loadingMessage: document.getElementById("loading-message"),
-    protectedContent: document.getElementById("protected-content"),
-    mainContent: document.getElementById("main-content"),
-    pageMessage: document.getElementById("page-message"),
-    userName: document.getElementById("user-name"),
-    userProfile: document.getElementById("user-profile"),
-    logoutButton: document.getElementById("logout-button"),
-    themeToggleButton: document.getElementById("theme-toggle-button"),
-    themeToggleIcon: document.getElementById("theme-toggle-icon"),
-    themeToggleText: document.getElementById("theme-toggle-text"),
-    refreshButton: document.getElementById("refresh-button"),
-    pendingSummary: document.getElementById("pending-requests-summary"),
-    oldestSummary: document.getElementById("oldest-request-summary"),
-    oldestDescription: document.getElementById("oldest-request-description"),
-    visibleSummary: document.getElementById("visible-records-summary"),
-    filterSummary: document.getElementById("current-filter-summary"),
-    recordsCounter: document.getElementById("records-counter"),
-    filterForm: document.getElementById("filter-form"),
-    statusFilter: document.getElementById("status-filter"),
-    applyFilterButton: document.getElementById("apply-filter-button"),
-    listLoading: document.getElementById("list-loading"),
-    emptyState: document.getElementById("empty-state"),
-    tableRegion: document.getElementById("table-region"),
-    tableBody: document.getElementById("requests-table-body"),
-    paginationDescription: document.getElementById("pagination-description"),
-    paginationIndicator: document.getElementById("pagination-indicator"),
-    previousPageButton: document.getElementById("previous-page-button"),
-    nextPageButton: document.getElementById("next-page-button"),
-    detailsModal: document.getElementById("details-modal"),
+    pageLoading: byId("page-loading"),
+    loadingMessage: byId("loading-message"),
+    protectedContent: byId("protected-content"),
+    mainContent: byId("main-content"),
+    pageMessage: byId("page-message"),
+    userName: byId("user-name"),
+    userProfile: byId("user-profile"),
+    logoutButton: byId("logout-button"),
+    themeToggleButton: byId("theme-toggle-button"),
+    themeToggleIcon: byId("theme-toggle-icon"),
+    themeToggleText: byId("theme-toggle-text"),
+    refreshButton: byId("refresh-button"),
+    pendingSummary: byId("pending-requests-summary"),
+    oldestSummary: byId("oldest-request-summary"),
+    oldestDescription: byId("oldest-request-description"),
+    visibleSummary: byId("visible-records-summary"),
+    filterSummary: byId("current-filter-summary"),
+    recordsCounter: byId("records-counter"),
+    filterForm: byId("filter-form"),
+    statusFilter: byId("status-filter"),
+    applyFilterButton: byId("apply-filter-button"),
+    listLoading: byId("list-loading"),
+    emptyState: byId("empty-state"),
+    tableRegion: byId("table-region"),
+    tableBody: byId("requests-table-body"),
+    paginationDescription: byId("pagination-description"),
+    paginationIndicator: byId("pagination-indicator"),
+    previousPageButton: byId("previous-page-button"),
+    nextPageButton: byId("next-page-button"),
+    detailsModal: byId("details-modal"),
     analysisModal: document.querySelector("#details-modal .analysis-modal"),
-    closeModalButton: document.getElementById("close-modal-button"),
-    cancelAnalysisButton: document.getElementById("cancel-analysis-button"),
-    detailId: document.getElementById("detail-id"),
-    detailIdSecondary: document.getElementById("detail-id-secondary"),
-    detailStatus: document.getElementById("detail-status"),
-    detailRequestedAt: document.getElementById("detail-requested-at"),
-    detailUpdatedAt: document.getElementById("detail-updated-at"),
-    detailAnalyzedAt: document.getElementById("detail-analyzed-at"),
-    detailName: document.getElementById("detail-name"),
-    detailEmail: document.getElementById("detail-email"),
-    detailApprovedProfile: document.getElementById("detail-approved-profile"),
-    detailJustification: document.getElementById("detail-justification"),
-    decisionPanelDescription: document.getElementById("decision-panel-description"),
-    analysisForm: document.getElementById("analysis-form"),
-    decisionFieldset: document.getElementById("decision-fieldset"),
-    decisionApprove: document.getElementById("decision-approve"),
-    decisionReject: document.getElementById("decision-reject"),
-    decisionApproveOption: document.getElementById("decision-approve-option"),
-    decisionRejectOption: document.getElementById("decision-reject-option"),
-    approvedProfileField: document.getElementById("approved-profile-field"),
-    approvedProfileSelect: document.getElementById("approved-profile"),
-    analysisJustificationField: document.getElementById("analysis-justification-field"),
-    analysisJustification: document.getElementById("analysis-justification"),
-    analysisJustificationHelp: document.getElementById("analysis-justification-help"),
-    justificationCounter: document.getElementById("justification-counter"),
-    analysisFormMessage: document.getElementById("analysis-form-message"),
-    analysisInformation: document.getElementById("analysis-information"),
-    analysisInformationTitle: document.getElementById("analysis-information-title"),
-    analysisInformationText: document.getElementById("analysis-information-text"),
-    decisionConfirmationArea: document.getElementById("decision-confirmation-area"),
-    confirmDecisionButton: document.getElementById("confirm-decision-button")
+    closeModalButton: byId("close-modal-button"),
+    cancelAnalysisButton: byId("cancel-analysis-button"),
+    detailId: byId("detail-id"),
+    detailIdSecondary: byId("detail-id-secondary"),
+    detailStatus: byId("detail-status"),
+    detailRequestedAt: byId("detail-requested-at"),
+    detailUpdatedAt: byId("detail-updated-at"),
+    detailAnalyzedAt: byId("detail-analyzed-at"),
+    detailName: byId("detail-name"),
+    detailEmail: byId("detail-email"),
+    detailApprovedProfile: byId("detail-approved-profile"),
+    detailJustification: byId("detail-justification"),
+    decisionPanelDescription: byId("decision-panel-description"),
+    analysisForm: byId("analysis-form"),
+    decisionFieldset: byId("decision-fieldset"),
+    decisionApprove: byId("decision-approve"),
+    decisionReject: byId("decision-reject"),
+    decisionApproveOption: byId("decision-approve-option"),
+    decisionRejectOption: byId("decision-reject-option"),
+    approvedProfileField: byId("approved-profile-field"),
+    approvedProfileSelect: byId("approved-profile"),
+    analysisJustificationField: byId("analysis-justification-field"),
+    analysisJustification: byId("analysis-justification"),
+    analysisJustificationHelp: byId("analysis-justification-help"),
+    justificationCounter: byId("justification-counter"),
+    analysisFormMessage: byId("analysis-form-message"),
+    analysisInformation: byId("analysis-information"),
+    analysisInformationTitle: byId("analysis-information-title"),
+    analysisInformationText: byId("analysis-information-text"),
+    decisionConfirmationArea: byId("decision-confirmation-area"),
+    confirmDecisionButton: byId("confirm-decision-button")
   };
 }
 
@@ -115,12 +113,12 @@ function cacheDOMElements() {
  * Verifica se todos os elementos necessários estão presentes no HTML.
  */
 function validatePageElements() {
-  const missingElements = Object.entries(elements)
+  const missing = Object.entries(elements)
     .filter(([, element]) => !element)
     .map(([name]) => name);
 
-  if (missingElements.length > 0) {
-    console.error("Elementos ausentes no HTML:", missingElements);
+  if (missing.length) {
+    console.error("Elementos ausentes no HTML:", missing);
     throw new Error("PAGE_STRUCTURE_INVALID");
   }
 }
@@ -130,39 +128,31 @@ function validatePageElements() {
  */
 function getPreferredTheme() {
   try {
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme === "light" || storedTheme === "dark") {
-      return storedTheme;
-    }
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
   } catch (error) {
     console.warn("Não foi possível recuperar a preferência de tema:", error);
   }
-
-  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-
-  return "light";
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 /**
  * Aplica o tema visual.
  */
 function applyTheme(theme) {
-  const normalizedTheme = theme === "dark" ? "dark" : "light";
-  const darkModeActive = normalizedTheme === "dark";
-
-  document.documentElement.dataset.theme = normalizedTheme;
-  elements.themeToggleButton.setAttribute("aria-pressed", String(darkModeActive));
+  const normalized = theme === "dark" ? "dark" : "light";
+  const dark = normalized === "dark";
+  document.documentElement.dataset.theme = normalized;
+  elements.themeToggleButton.setAttribute("aria-pressed", String(dark));
   elements.themeToggleButton.setAttribute(
     "aria-label",
-    darkModeActive ? "Ativar modo claro" : "Ativar modo escuro"
+    dark ? "Ativar modo claro" : "Ativar modo escuro"
   );
-  elements.themeToggleButton.title = darkModeActive
-    ? "Ativar modo claro"
-    : "Ativar modo escuro";
-  elements.themeToggleIcon.textContent = darkModeActive ? "Sol" : "Lua";
-  elements.themeToggleText.textContent = darkModeActive ? "Modo claro" : "Modo escuro";
+  elements.themeToggleButton.title = dark ? "Ativar modo claro" : "Ativar modo escuro";
+  elements.themeToggleIcon.textContent = dark ? "Sol" : "Lua";
+  elements.themeToggleText.textContent = dark ? "Modo claro" : "Modo escuro";
 }
 
 /**
@@ -176,16 +166,13 @@ function initializeTheme() {
  * Alterna entre os temas.
  */
 function toggleTheme() {
-  const currentTheme = document.documentElement.dataset.theme || "light";
-  const nextTheme = currentTheme === "dark" ? "light" : "dark";
-
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, next);
   } catch (error) {
     console.warn("Não foi possível salvar a preferência de tema:", error);
   }
-
-  applyTheme(nextTheme);
+  applyTheme(next);
 }
 
 /**
@@ -199,16 +186,10 @@ function getStatusLabel(status) {
  * Retorna a classe visual do status.
  */
 function getStatusClass(status) {
-  switch (status) {
-    case "PENDENTE":
-      return "status-pending";
-    case "APROVADA":
-      return "status-approved";
-    case "REJEITADA":
-      return "status-rejected";
-    default:
-      return "status-neutral";
-  }
+  if (status === "PENDENTE") return "status-pending";
+  if (status === "APROVADA") return "status-approved";
+  if (status === "REJEITADA") return "status-rejected";
+  return "status-neutral";
 }
 
 /**
@@ -225,15 +206,9 @@ function createStatusBadge(status) {
  * Formata uma data para o horário de Fortaleza.
  */
 function formatDateTime(value) {
-  if (!value) {
-    return "Não informado";
-  }
-
+  if (!value) return "Não informado";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Data inválida";
-  }
-
+  if (Number.isNaN(date.getTime())) return "Data inválida";
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
@@ -245,16 +220,10 @@ function formatDateTime(value) {
  * Calcula o tempo aproximado de espera.
  */
 function getWaitingDays(value) {
-  if (!value) {
-    return null;
-  }
-
-  const requestedDate = new Date(value);
-  if (Number.isNaN(requestedDate.getTime())) {
-    return null;
-  }
-
-  return Math.max(0, Math.floor((Date.now() - requestedDate.getTime()) / 86400000));
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
 }
 
 /**
@@ -310,21 +279,17 @@ function hideFormMessage() {
 /**
  * Controla o carregamento da lista.
  */
-function setListLoading(isLoading) {
-  state.loading = isLoading;
-
-  elements.listLoading.hidden = !isLoading;
-  elements.refreshButton.disabled = isLoading;
-  elements.applyFilterButton.disabled = isLoading;
-  elements.statusFilter.disabled = isLoading;
-
-  elements.refreshButton.setAttribute("aria-busy", String(isLoading));
-  elements.applyFilterButton.setAttribute("aria-busy", String(isLoading));
-
+function setListLoading(value) {
+  state.loading = value;
+  elements.listLoading.hidden = !value;
+  elements.refreshButton.disabled = value;
+  elements.applyFilterButton.disabled = value;
+  elements.statusFilter.disabled = value;
+  elements.refreshButton.setAttribute("aria-busy", String(value));
+  elements.applyFilterButton.setAttribute("aria-busy", String(value));
   elements.previousPageButton.disabled = true;
   elements.nextPageButton.disabled = true;
-
-  if (isLoading) {
+  if (value) {
     elements.emptyState.hidden = true;
     elements.tableRegion.hidden = true;
   }
@@ -349,22 +314,13 @@ function redirectUnauthorizedProfile() {
  */
 async function validateUserSession() {
   elements.loadingMessage.textContent = "Validando sua sessão...";
-
-  const {
-    data: { session },
-    error
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
-  if (!session?.user) {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  if (!data.session?.user) {
     redirectToLogin();
     return null;
   }
-
-  return session;
+  return data.session;
 }
 
 /**
@@ -372,7 +328,6 @@ async function validateUserSession() {
  */
 async function loadFunctionalContext() {
   elements.loadingMessage.textContent = "Validando seu perfil funcional...";
-
   const { data, error } = await supabase
     .schema("api")
     .from("v_meu_contexto")
@@ -391,17 +346,13 @@ async function loadFunctionalContext() {
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   if (!data) {
     const contextError = new Error("NO_FUNCTIONAL_CONTEXT");
     contextError.code = "42501";
     contextError.reason = "NO_FUNCTIONAL_CONTEXT";
     throw contextError;
   }
-
   if (data.codigo_perfil !== AUTHORIZED_PROFILE) {
     const profileError = new Error("UNAUTHORIZED_PROFILE");
     profileError.code = "42501";
@@ -410,11 +361,8 @@ async function loadFunctionalContext() {
   }
 
   state.context = data;
-
   elements.userName.textContent = data.nome_exibicao || "Usuário";
-  elements.userProfile.textContent =
-    data.nome_perfil || data.codigo_perfil || "Perfil";
-
+  elements.userProfile.textContent = data.nome_perfil || data.codigo_perfil || "Perfil";
   return data;
 }
 
@@ -422,35 +370,20 @@ async function loadFunctionalContext() {
  * Consulta a lista e o resumo das pendências.
  */
 async function fetchRequestsData() {
-  const requestsPromise = supabase
-    .schema("api")
-    .rpc("listar_solicitacoes_acesso", {
+  const [requestsResult, pendingResult] = await Promise.all([
+    supabase.schema("api").rpc("listar_solicitacoes_acesso", {
       p_status: state.status || null,
       p_limite: state.limit,
       p_deslocamento: state.offset
-    });
-
-  const pendingSummaryPromise = supabase
-    .schema("api")
-    .rpc("listar_solicitacoes_acesso", {
+    }),
+    supabase.schema("api").rpc("listar_solicitacoes_acesso", {
       p_status: "PENDENTE",
       p_limite: 1,
       p_deslocamento: 0
-    });
-
-  const [requestsResult, pendingResult] = await Promise.all([
-    requestsPromise,
-    pendingSummaryPromise
+    })
   ]);
-
-  if (requestsResult.error) {
-    throw requestsResult.error;
-  }
-
-  if (pendingResult.error) {
-    throw pendingResult.error;
-  }
-
+  if (requestsResult.error) throw requestsResult.error;
+  if (pendingResult.error) throw pendingResult.error;
   return {
     requests: Array.isArray(requestsResult.data) ? requestsResult.data : [],
     pending: Array.isArray(pendingResult.data) ? pendingResult.data : []
@@ -461,40 +394,28 @@ async function fetchRequestsData() {
  * Carrega a lista de solicitações.
  */
 async function fetchRequestsList() {
-  if (state.loading) {
-    return;
-  }
-
+  if (state.loading) return;
   hidePageMessage();
   setListLoading(true);
-
   let reloadFirstPage = false;
 
   try {
     const result = await fetchRequestsData();
-
     state.requests = result.requests;
     state.totalRecords = Number(result.requests[0]?.total_registros ?? 0);
     state.pendingTotal = Number(result.pending[0]?.total_registros ?? 0);
     state.oldestPendingAt = result.pending[0]?.solicitado_em ?? null;
 
-    if (state.requests.length === 0 && state.offset > 0) {
+    if (!state.requests.length && state.offset > 0) {
       state.offset = 0;
       reloadFirstPage = true;
     } else {
       renderTablePage();
     }
   } catch (error) {
-    console.error("Erro ao consultar solicitações:", {
-      code: error?.code,
-      message: error?.message,
-      details: error?.details,
-      hint: error?.hint
-    });
-
+    console.error("Erro ao consultar solicitações:", error);
     state.requests = [];
     state.totalRecords = 0;
-
     renderTablePage();
     showPageMessage("Não foi possível carregar as solicitações.");
   } finally {
@@ -502,9 +423,7 @@ async function fetchRequestsList() {
     updatePagination();
   }
 
-  if (reloadFirstPage) {
-    await fetchRequestsList();
-  }
+  if (reloadFirstPage) await fetchRequestsList();
 }
 
 /**
@@ -512,13 +431,8 @@ async function fetchRequestsList() {
  */
 function createTableCell(content) {
   const cell = document.createElement("td");
-
-  if (content instanceof Node) {
-    cell.append(content);
-  } else {
-    cell.textContent = String(content ?? "");
-  }
-
+  if (content instanceof Node) cell.append(content);
+  else cell.textContent = String(content ?? "");
   return cell;
 }
 
@@ -526,14 +440,8 @@ function createTableCell(content) {
  * Define o texto do botão de detalhes.
  */
 function getDetailsButtonLabel(status) {
-  if (status === "PENDENTE") {
-    return "Analisar";
-  }
-
-  if (status === "APROVADA" || status === "REJEITADA") {
-    return "Ver análise";
-  }
-
+  if (status === "PENDENTE") return "Analisar";
+  if (status === "APROVADA" || status === "REJEITADA") return "Ver análise";
   return "Ver detalhes";
 }
 
@@ -543,19 +451,11 @@ function getDetailsButtonLabel(status) {
 function createDetailsButton(request) {
   const button = document.createElement("button");
   const label = getDetailsButtonLabel(request.status_solicitacao);
-
   button.type = "button";
   button.className = "details-button";
   button.textContent = label;
-  button.setAttribute(
-    "aria-label",
-    `${label} da solicitação ${request.id_solicitacao}`
-  );
-
-  button.addEventListener("click", () => {
-    openDetailsModal(request, button);
-  });
-
+  button.setAttribute("aria-label", `${label} da solicitação ${request.id_solicitacao}`);
+  button.addEventListener("click", () => openDetailsModal(request, button));
   return button;
 }
 
@@ -564,8 +464,7 @@ function createDetailsButton(request) {
  */
 function renderTablePage() {
   elements.tableBody.replaceChildren();
-
-  if (state.requests.length === 0) {
+  if (!state.requests.length) {
     elements.emptyState.hidden = false;
     elements.tableRegion.hidden = true;
     updateSummaryCards();
@@ -573,44 +472,40 @@ function renderTablePage() {
   }
 
   const fragment = document.createDocumentFragment();
-
   state.requests.forEach((request) => {
     const row = document.createElement("tr");
 
-    const requestNumber = document.createElement("span");
-    requestNumber.className = "request-number";
-    requestNumber.textContent = `#${request.id_solicitacao}`;
+    const number = document.createElement("span");
+    number.className = "request-number";
+    number.textContent = `#${request.id_solicitacao}`;
 
-    const requestName = document.createElement("strong");
-    requestName.className = "request-name";
-    requestName.textContent = request.nome_completo || "Não informado";
-    requestName.title = request.nome_completo || "";
+    const name = document.createElement("strong");
+    name.className = "request-name";
+    name.textContent = request.nome_completo || "Não informado";
+    name.title = request.nome_completo || "";
 
-    const requestEmail = document.createElement("span");
-    requestEmail.className = "request-email";
-    requestEmail.textContent = request.email_normalizado || "Não informado";
-    requestEmail.title = request.email_normalizado || "";
+    const email = document.createElement("span");
+    email.className = "request-email";
+    email.textContent = request.email_normalizado || "Não informado";
+    email.title = request.email_normalizado || "";
 
-    const actionCell = createTableCell(createDetailsButton(request));
-    actionCell.style.textAlign = "right";
+    const action = createTableCell(createDetailsButton(request));
+    action.style.textAlign = "right";
 
     row.append(
-      createTableCell(requestNumber),
-      createTableCell(requestName),
-      createTableCell(requestEmail),
+      createTableCell(number),
+      createTableCell(name),
+      createTableCell(email),
       createTableCell(formatDateTime(request.solicitado_em)),
       createTableCell(createStatusBadge(request.status_solicitacao)),
-      actionCell
+      action
     );
-
     fragment.append(row);
   });
 
   elements.tableBody.append(fragment);
-
   elements.emptyState.hidden = true;
   elements.tableRegion.hidden = false;
-
   updateSummaryCards();
 }
 
@@ -619,32 +514,26 @@ function renderTablePage() {
  */
 function updateSummaryCards() {
   const waitingDays = getWaitingDays(state.oldestPendingAt);
-  const currentStatusLabel = state.status
-    ? getStatusLabel(state.status)
-    : "Todos os status";
-
+  const filterLabel = state.status ? getStatusLabel(state.status) : "Todos os status";
   elements.pendingSummary.textContent = state.pendingTotal.toLocaleString("pt-BR");
 
   if (state.oldestPendingAt) {
     elements.oldestSummary.textContent = formatDateTime(state.oldestPendingAt);
-
-    if (waitingDays === null) {
-      elements.oldestDescription.textContent =
-        "Não foi possível calcular o tempo de espera";
-    } else if (waitingDays === 0) {
-      elements.oldestDescription.textContent = "Recebida hoje";
-    } else if (waitingDays === 1) {
-      elements.oldestDescription.textContent = "Aguardando análise há 1 dia";
-    } else {
-      elements.oldestDescription.textContent = `Aguardando análise há ${waitingDays} dias`;
-    }
+    elements.oldestDescription.textContent =
+      waitingDays === null
+        ? "Não foi possível calcular o tempo de espera"
+        : waitingDays === 0
+        ? "Recebida hoje"
+        : waitingDays === 1
+        ? "Aguardando análise há 1 dia"
+        : `Aguardando análise há ${waitingDays} dias`;
   } else {
     elements.oldestSummary.textContent = "Nenhuma";
     elements.oldestDescription.textContent = "Não existem solicitações pendentes";
   }
 
   elements.visibleSummary.textContent = `${state.requests.length} de ${state.limit}`;
-  elements.filterSummary.textContent = `Filtro: ${currentStatusLabel}`;
+  elements.filterSummary.textContent = `Filtro: ${filterLabel}`;
   elements.recordsCounter.textContent =
     state.totalRecords === 1
       ? "1 registro"
@@ -655,23 +544,14 @@ function updateSummaryCards() {
  * Atualiza a paginação.
  */
 function updatePagination() {
-  const currentPage = getCurrentPage();
-  const totalPages = getTotalPages();
-  const firstRecord = state.totalRecords === 0 ? 0 : state.offset + 1;
-  const lastRecord = Math.min(
-    state.offset + state.requests.length,
-    state.totalRecords
-  );
+  const first = state.totalRecords ? state.offset + 1 : 0;
+  const last = Math.min(state.offset + state.requests.length, state.totalRecords);
 
-  elements.paginationDescription.textContent =
-    state.totalRecords === 0
-      ? "Nenhum registro exibido."
-      : `Exibindo ${firstRecord} a ${lastRecord} de ${state.totalRecords.toLocaleString(
-          "pt-BR"
-        )} solicitações.`;
+  elements.paginationDescription.textContent = state.totalRecords
+    ? `Exibindo ${first} a ${last} de ${state.totalRecords.toLocaleString("pt-BR")} solicitações.`
+    : "Nenhum registro exibido.";
 
-  elements.paginationIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
-
+  elements.paginationIndicator.textContent = `Página ${getCurrentPage()} de ${getTotalPages()}`;
   elements.previousPageButton.disabled = state.loading || state.offset === 0;
   elements.nextPageButton.disabled =
     state.loading || state.offset + state.limit >= state.totalRecords;
@@ -682,7 +562,6 @@ function updatePagination() {
  */
 function resetAnalysisForm() {
   state.submittingDecision = false;
-
   elements.analysisForm.reset();
   elements.analysisForm.removeAttribute("data-mode");
 
@@ -706,17 +585,13 @@ function resetAnalysisForm() {
   elements.justificationCounter.textContent = `0 / ${JUSTIFICATION_MAX_LENGTH}`;
 
   elements.decisionConfirmationArea.hidden = false;
-  elements.confirmDecisionButton.disabled = true;
-  elements.confirmDecisionButton.setAttribute("aria-disabled", "true");
-  elements.confirmDecisionButton.removeAttribute("data-decision");
-  elements.confirmDecisionButton.textContent = "Selecione uma decisão";
-  elements.confirmDecisionButton.title = "Selecione uma decisão";
+  updateConfirmButton(false, null, "Selecione uma decisão", "Selecione uma decisão");
 
   elements.decisionPanelDescription.textContent =
     "Defina o resultado da análise desta solicitação.";
   elements.analysisInformationTitle.textContent = "Operação protegida";
   elements.analysisInformationText.textContent =
-    "A decisão selecionada é registrada por uma operação segura no backend e atualizará o acesso do usuário conforme a regra de perfil.";
+    "A aprovação ou rejeição é registrada por uma operação segura no backend.";
 
   elements.analysisModal.classList.remove("is-processing");
   elements.closeModalButton.disabled = false;
@@ -730,25 +605,7 @@ function resetAnalysisForm() {
  */
 function configurePendingMode() {
   elements.analysisForm.dataset.mode = "analysis-pending";
-
   elements.decisionFieldset.disabled = false;
-  elements.approvedProfileField.hidden = false;
-  elements.approvedProfileSelect.disabled = true;
-
-  elements.analysisJustificationField.hidden = false;
-  elements.analysisJustification.disabled = true;
-  elements.analysisJustification.readOnly = false;
-  elements.analysisJustification.value = "";
-
-  elements.analysisJustificationHelp.hidden = false;
-  elements.justificationCounter.hidden = false;
-  elements.decisionConfirmationArea.hidden = false;
-
-  elements.decisionPanelDescription.textContent =
-    "Defina o resultado da análise desta solicitação.";
-  elements.analysisInformationTitle.textContent = "Operação protegida";
-  elements.analysisInformationText.textContent =
-    "A aprovação ou rejeição é registrada por uma operação segura no backend.";
 }
 
 /**
@@ -756,15 +613,11 @@ function configurePendingMode() {
  */
 function configureRejectedMode(request) {
   elements.analysisForm.dataset.mode = "read-only-rejected";
-
-  elements.decisionApprove.checked = false;
   elements.decisionReject.checked = true;
   elements.decisionFieldset.disabled = true;
 
   elements.approvedProfileField.hidden = true;
-  elements.approvedProfileSelect.disabled = true;
 
-  elements.analysisJustificationField.hidden = false;
   elements.analysisJustification.disabled = false;
   elements.analysisJustification.readOnly = true;
   elements.analysisJustification.value =
@@ -787,16 +640,12 @@ function configureRejectedMode(request) {
  */
 function configureApprovedMode(request) {
   elements.analysisForm.dataset.mode = "read-only-approved";
-
   elements.decisionApprove.checked = true;
-  elements.decisionReject.checked = false;
   elements.decisionFieldset.disabled = true;
 
-  elements.approvedProfileField.hidden = false;
   elements.approvedProfileSelect.disabled = true;
   elements.approvedProfileSelect.value = request.codigo_perfil_aprovado || "";
 
-  elements.analysisJustificationField.hidden = false;
   elements.analysisJustification.disabled = false;
   elements.analysisJustification.readOnly = true;
   elements.analysisJustification.value =
@@ -819,7 +668,6 @@ function configureApprovedMode(request) {
  */
 function configureNeutralReadOnlyMode(request) {
   elements.analysisForm.dataset.mode = "read-only-neutral";
-
   elements.decisionFieldset.disabled = true;
   elements.approvedProfileField.hidden = true;
   elements.analysisJustificationField.hidden = true;
@@ -827,11 +675,8 @@ function configureNeutralReadOnlyMode(request) {
 
   elements.decisionPanelDescription.textContent =
     "Esta solicitação não está disponível para análise.";
-  elements.analysisInformationTitle.textContent = getStatusLabel(
-    request.status_solicitacao
-  );
-  elements.analysisInformationText.textContent =
-    "A solicitação está em modo somente leitura.";
+  elements.analysisInformationTitle.textContent = getStatusLabel(request.status_solicitacao);
+  elements.analysisInformationText.textContent = "A solicitação está em modo somente leitura.";
 }
 
 /**
@@ -839,21 +684,10 @@ function configureNeutralReadOnlyMode(request) {
  */
 function configureAnalysisMode(request) {
   resetAnalysisForm();
-
-  switch (request.status_solicitacao) {
-    case "PENDENTE":
-      configurePendingMode();
-      break;
-    case "REJEITADA":
-      configureRejectedMode(request);
-      break;
-    case "APROVADA":
-      configureApprovedMode(request);
-      break;
-    default:
-      configureNeutralReadOnlyMode(request);
-      break;
-  }
+  if (request.status_solicitacao === "PENDENTE") configurePendingMode();
+  else if (request.status_solicitacao === "REJEITADA") configureRejectedMode(request);
+  else if (request.status_solicitacao === "APROVADA") configureApprovedMode(request);
+  else configureNeutralReadOnlyMode(request);
 }
 
 /**
@@ -864,14 +698,10 @@ function openDetailsModal(request, triggerElement = null) {
   state.lastFocusedElement = triggerElement || document.activeElement;
 
   const requestNumber = `#${request.id_solicitacao}`;
-
   elements.detailId.textContent = requestNumber;
   elements.detailIdSecondary.textContent = requestNumber;
 
-  elements.detailStatus.replaceChildren(
-    createStatusBadge(request.status_solicitacao)
-  );
-
+  elements.detailStatus.replaceChildren(createStatusBadge(request.status_solicitacao));
   elements.detailName.textContent = request.nome_completo || "Não informado";
   elements.detailEmail.textContent = request.email_normalizado || "Não informado";
 
@@ -882,8 +712,7 @@ function openDetailsModal(request, triggerElement = null) {
     : "Não analisado";
 
   elements.detailApprovedProfile.textContent = request.codigo_perfil_aprovado
-    ? PROFILE_LABELS[request.codigo_perfil_aprovado] ||
-      request.codigo_perfil_aprovado
+    ? PROFILE_LABELS[request.codigo_perfil_aprovado] || request.codigo_perfil_aprovado
     : "Nenhum perfil atribuído";
 
   elements.detailJustification.textContent =
@@ -893,25 +722,18 @@ function openDetailsModal(request, triggerElement = null) {
 
   elements.detailsModal.hidden = false;
   document.body.classList.add("modal-open");
-
-  window.requestAnimationFrame(() => {
-    elements.closeModalButton.focus();
-  });
+  window.requestAnimationFrame(() => elements.closeModalButton.focus());
 }
 
 /**
  * Fecha o modal.
  */
 function closeModal() {
-  if (elements.detailsModal.hidden || state.submittingDecision) {
-    return;
-  }
-
+  if (elements.detailsModal.hidden || state.submittingDecision) return;
   elements.detailsModal.hidden = true;
   document.body.classList.remove("modal-open");
 
   resetAnalysisForm();
-
   state.selectedRequest = null;
 
   if (
@@ -920,7 +742,6 @@ function closeModal() {
   ) {
     state.lastFocusedElement.focus();
   }
-
   state.lastFocusedElement = null;
 }
 
@@ -928,14 +749,8 @@ function closeModal() {
  * Retorna a decisão selecionada.
  */
 function getSelectedDecision() {
-  if (elements.decisionApprove.checked) {
-    return "APROVAR";
-  }
-
-  if (elements.decisionReject.checked) {
-    return "REJEITAR";
-  }
-
+  if (elements.decisionApprove.checked) return "APROVAR";
+  if (elements.decisionReject.checked) return "REJEITAR";
   return null;
 }
 
@@ -943,87 +758,19 @@ function getSelectedDecision() {
  * Trata a escolha da decisão.
  */
 function handleDecisionChange() {
-  if (
-    state.submittingDecision ||
-    state.selectedRequest?.status_solicitacao !== "PENDENTE"
-  ) {
+  if (state.submittingDecision || state.selectedRequest?.status_solicitacao !== "PENDENTE") {
     return;
   }
+  const decision = getSelectedDecision();
+  const approving = decision === "APROVAR";
 
-  const selectedDecision = getSelectedDecision();
-  const approveSelected = selectedDecision === "APROVAR";
+  elements.approvedProfileSelect.disabled = !approving;
+  if (!approving) elements.approvedProfileSelect.value = "";
 
-  elements.approvedProfileSelect.disabled = !approveSelected;
-
-  if (!approveSelected) {
-    elements.approvedProfileSelect.value = "";
-  }
-
-  elements.analysisJustification.disabled = !selectedDecision;
+  elements.analysisJustification.disabled = !decision;
 
   hideFormMessage();
   validateDecisionForm();
-}
-
-/**
- * Avalia os campos e atualiza o botão contextual.
- */
-function validateDecisionForm() {
-  const requestIsPending =
-    state.selectedRequest?.status_solicitacao === "PENDENTE";
-
-  if (!requestIsPending) {
-    elements.decisionConfirmationArea.hidden = true;
-    return;
-  }
-
-  const selectedDecision = getSelectedDecision();
-  const justification = elements.analysisJustification.value.trim();
-  const profile = elements.approvedProfileSelect.value;
-
-  if (!selectedDecision) {
-    updateConfirmButton(
-      false,
-      null,
-      "Selecione uma decisão",
-      "Selecione uma decisão."
-    );
-    return;
-  }
-
-  const validJustification =
-    justification.length >= JUSTIFICATION_MIN_LENGTH &&
-    justification.length <= JUSTIFICATION_MAX_LENGTH;
-
-  if (selectedDecision === "APROVAR") {
-    const enabled = Boolean(profile) && validJustification && !state.submittingDecision;
-    const buttonText = state.submittingDecision
-      ? "Registrando aprovação..."
-      : "Aprovar solicitação";
-
-    let title = "Confirmar aprovação da solicitação";
-    if (!profile) {
-      title = "Selecione o perfil de acesso.";
-    } else if (!validJustification) {
-      title = `Informe uma justificativa com pelo menos ${JUSTIFICATION_MIN_LENGTH} caracteres.`;
-    }
-
-    updateConfirmButton(enabled, "APROVAR", buttonText, title);
-    return;
-  }
-
-  if (selectedDecision === "REJEITAR") {
-    const enabled = validJustification && !state.submittingDecision;
-    const buttonText = state.submittingDecision
-      ? "Registrando rejeição..."
-      : "Rejeitar solicitação";
-
-    const title = validJustification
-      ? "Confirmar rejeição da solicitação"
-      : `Informe uma justificativa com pelo menos ${JUSTIFICATION_MIN_LENGTH} caracteres.`;
-
-    updateConfirmButton(enabled, "REJEITAR", buttonText, title);
-  }
 }
 
 /**
@@ -1031,55 +778,194 @@ function validateDecisionForm() {
  */
 function updateConfirmButton(enabled, decision, text, title = "") {
   const button = elements.confirmDecisionButton;
-
   button.disabled = !enabled;
   button.setAttribute("aria-disabled", String(!enabled));
   button.textContent = text;
   button.title = title || text;
 
-  if (decision) {
-    button.dataset.decision = decision;
-  } else {
-    button.removeAttribute("data-decision");
+  if (decision) button.dataset.decision = decision;
+  else button.removeAttribute("data-decision");
+}
+
+/**
+ * Avalia os campos e atualiza o botão contextual.
+ */
+function validateDecisionForm() {
+  if (state.selectedRequest?.status_solicitacao !== "PENDENTE") {
+    elements.decisionConfirmationArea.hidden = true;
+    return;
   }
+
+  const decision = getSelectedDecision();
+  const justification = elements.analysisJustification.value.trim();
+  const validJustification =
+    justification.length >= JUSTIFICATION_MIN_LENGTH &&
+    justification.length <= JUSTIFICATION_MAX_LENGTH;
+
+  if (!decision) {
+    updateConfirmButton(false, null, "Selecione uma decisão", "Selecione uma decisão.");
+    return;
+  }
+
+  if (decision === "APROVAR") {
+    const validProfile = Object.hasOwn(PROFILE_LABELS, elements.approvedProfileSelect.value);
+    const enabled = validProfile && validJustification && !state.submittingDecision;
+    const title = !validProfile
+      ? "Selecione o perfil de acesso."
+      : !validJustification
+      ? `Informe uma justificativa com pelo menos ${JUSTIFICATION_MIN_LENGTH} caracteres.`
+      : "Confirmar aprovação da solicitação";
+
+    updateConfirmButton(
+      enabled,
+      "APROVAR",
+      state.submittingDecision ? "Registrando aprovação..." : "Aprovar solicitação",
+      title
+    );
+    return;
+  }
+
+  const enabled = validJustification && !state.submittingDecision;
+  updateConfirmButton(
+    enabled,
+    "REJEITAR",
+    state.submittingDecision ? "Registrando rejeição..." : "Rejeitar solicitação",
+    validJustification
+      ? "Confirmar rejeição da solicitação"
+      : `Informe uma justificativa com pelo menos ${JUSTIFICATION_MIN_LENGTH} caracteres.`
+  );
 }
 
 /**
  * Atualiza o contador da justificativa.
  */
 function updateJustificationCounter() {
-  const currentLength = elements.analysisJustification.value.length;
+  elements.justificationCounter.textContent = `${elements.analysisJustification.value.length} / ${JUSTIFICATION_MAX_LENGTH}`;
+  validateDecisionForm();
+}
 
-  elements.justificationCounter.textContent = `${currentLength} / ${JUSTIFICATION_MAX_LENGTH}`;
+/**
+ * Bloqueia/desbloqueia controles durante o processamento de uma decisão.
+ */
+function setDecisionProcessing(decision, processing) {
+  state.submittingDecision = processing;
+  elements.analysisModal.classList.toggle("is-processing", processing);
+  elements.closeModalButton.disabled = processing;
+  elements.cancelAnalysisButton.disabled = processing;
+  elements.decisionFieldset.disabled = processing;
+  elements.approvedProfileSelect.disabled = processing || decision !== "APROVAR";
+  elements.analysisJustification.disabled = processing;
+
+  if (processing) {
+    updateConfirmButton(
+      false,
+      decision,
+      decision === "APROVAR" ? "Registrando aprovação..." : "Registrando rejeição...",
+      "Registrando decisão"
+    );
+  }
+}
+
+/**
+ * Restaura os controles em caso de falha.
+ */
+function restoreDecisionControls() {
+  state.submittingDecision = false;
+  elements.analysisModal.classList.remove("is-processing");
+  elements.closeModalButton.disabled = false;
+  elements.cancelAnalysisButton.disabled = false;
+
+  if (state.selectedRequest?.status_solicitacao === "PENDENTE") {
+    elements.decisionFieldset.disabled = false;
+    elements.analysisJustification.disabled = !getSelectedDecision();
+    elements.approvedProfileSelect.disabled = getSelectedDecision() !== "APROVAR";
+  }
 
   validateDecisionForm();
 }
 
 /**
- * Converte erros da RPC de aprovação em mensagens funcionais.
+ * Interpreta erros retornados pela Edge Function.
  */
-function getApprovalErrorMessage(error) {
-  switch (error?.code) {
-    case "22023":
-      return error.message || "Os dados informados para aprovação não são válidos.";
-    case "42501":
-      return "Seu perfil não possui autorização para aprovar esta solicitação.";
-    case "P0002":
-      return "A solicitação não foi encontrada. Atualize a lista e tente novamente.";
-    case "P0001":
-      return error.message || "A solicitação já foi analisada.";
-    case "40001":
-      return "A solicitação foi alterada por outra operação. Atualize a lista e tente novamente.";
-    default:
-      break;
+async function readEdgeFunctionError(functionError) {
+  const normalized = {
+    name: functionError?.name || "EdgeFunctionError",
+    code: null,
+    status: functionError?.context?.status || null,
+    message: functionError?.message || "A Edge Function retornou um erro.",
+    body: null
+  };
+
+  const response = functionError?.context;
+  if (response instanceof Response) {
+    normalized.status = response.status;
+    try {
+      const body = await response.clone().json();
+      normalized.body = body;
+      normalized.code = body?.error?.code || null;
+      normalized.message = body?.error?.message || normalized.message;
+    } catch {
+      try {
+        const text = await response.clone().text();
+        if (text) normalized.message = text;
+      } catch {
+        // Mantém a mensagem original
+      }
+    }
   }
 
+  if (functionError?.name === "FunctionsFetchError") {
+    normalized.code = "FUNCTION_NETWORK_ERROR";
+  } else if (functionError?.name === "FunctionsHttpError" && !normalized.code) {
+    normalized.code = "FUNCTION_HTTP_ERROR";
+  }
+
+  return normalized;
+}
+
+/**
+ * Converte erros de aprovação (Edge Function / RPC) em mensagens funcionais.
+ */
+function getApprovalErrorMessage(error) {
+  const code = error?.code || error?.body?.error?.code;
+  const message = error?.body?.error?.message || error?.message || "";
+
+  if (["INVALID_REQUEST_ID", "INVALID_PROFILE", "INVALID_JUSTIFICATION", "22023"].includes(code)) {
+    return message || "Os dados informados para aprovação não são válidos.";
+  }
+  if (["ORIGIN_NOT_ALLOWED", "42501"].includes(code)) {
+    return message || "Seu perfil não possui autorização para aprovar esta solicitação.";
+  }
   if (
-    error?.status === 401 ||
-    error?.code === "28000" ||
-    String(error?.message || "").toLowerCase().includes("jwt")
+    ["AUTHORIZATION_HEADER_MISSING", "AUTHORIZATION_HEADER_INVALID", "INVALID_SESSION", "28000"].includes(code)
   ) {
     return "Sua sessão expirou. Entre novamente no sistema.";
+  }
+  if (["REQUEST_NOT_FOUND", "P0002"].includes(code)) {
+    return "A solicitação não foi encontrada. Atualize a lista e tente novamente.";
+  }
+  if (["REQUEST_NOT_PENDING", "P0001"].includes(code)) {
+    return message || "A solicitação já foi analisada.";
+  }
+  if (code === "AUTH_USER_ALREADY_EXISTS") {
+    return "Já existe uma identidade no Supabase Auth associada ao e-mail desta solicitação. A aprovação não foi concluída.";
+  }
+  if (code === "REQUEST_EMAIL_INVALID") return "O e-mail registrado na solicitação não é válido.";
+  if (code === "INVITE_FAILED") return "Não foi possível enviar o convite de acesso. Tente novamente mais tarde.";
+  if (["INVITE_RESPONSE_INVALID", "INVITE_EMAIL_MISMATCH"].includes(code)) {
+    return "O serviço de autenticação retornou uma resposta inesperada. A aprovação foi interrompida.";
+  }
+  if (code === "SERVER_CONFIGURATION_ERROR") {
+    return "A configuração interna da aprovação está incompleta. Comunique o problema à administração do sistema.";
+  }
+  if (code === "23505") return message || "Já existe um cadastro associado a esta identidade.";
+  if (code === "40001") return "A solicitação foi alterada por outra operação. Atualize a lista e tente novamente.";
+  if (code === "FUNCTION_NETWORK_ERROR") {
+    return "Não foi possível alcançar o serviço de aprovação. Verifique sua conexão e tente novamente.";
+  }
+  if (code === "FUNCTION_HTTP_ERROR") return message || "O serviço de aprovação recusou a operação.";
+  if (error?.status === 401 || error?.status === 403 || /jwt|session/i.test(message)) {
+    return "Sua sessão expirou ou não possui autorização. Entre novamente no sistema.";
   }
 
   return "Não foi possível registrar a aprovação. Atualize a lista e tente novamente.";
@@ -1089,26 +975,12 @@ function getApprovalErrorMessage(error) {
  * Converte erros da RPC de rejeição em mensagens funcionais.
  */
 function getRejectionErrorMessage(error) {
-  switch (error?.code) {
-    case "22023":
-      return error.message || "A justificativa informada não é válida.";
-    case "42501":
-      return "Seu perfil não possui autorização para rejeitar esta solicitação.";
-    case "P0002":
-      return "A solicitação não foi encontrada. Atualize a lista e tente novamente.";
-    case "P0001":
-      return error.message || "A solicitação já foi analisada.";
-    case "40001":
-      return "A solicitação foi alterada por outra operação. Atualize a lista e tente novamente.";
-    default:
-      break;
-  }
-
-  if (
-    error?.status === 401 ||
-    error?.code === "28000" ||
-    String(error?.message || "").toLowerCase().includes("jwt")
-  ) {
+  if (error?.code === "22023") return error.message || "A justificativa informada não é válida.";
+  if (error?.code === "42501") return "Seu perfil não possui autorização para rejeitar esta solicitação.";
+  if (error?.code === "P0002") return "A solicitação não foi encontrada. Atualize a lista e tente novamente.";
+  if (error?.code === "P0001") return error.message || "A solicitação já foi analisada.";
+  if (error?.code === "40001") return "A solicitação foi alterada por outra operação. Atualize a lista e tente novamente.";
+  if (error?.status === 401 || error?.code === "28000" || /jwt/i.test(error?.message || "")) {
     return "Sua sessão expirou. Entre novamente no sistema.";
   }
 
@@ -1116,29 +988,22 @@ function getRejectionErrorMessage(error) {
 }
 
 /**
- * Registra a aprovação pela RPC segura.
+ * Registra a aprovação via Edge Function.
  */
 async function approveSelectedRequest() {
   const request = state.selectedRequest;
+  const profile = elements.approvedProfileSelect.value;
   const justification = elements.analysisJustification.value.trim();
-  const approvedProfile = elements.approvedProfileSelect.value;
 
-  if (!request) {
-    showFormMessage("Nenhuma solicitação foi selecionada.");
-    return;
-  }
-
+  if (!request) return showFormMessage("Nenhuma solicitação foi selecionada.");
   if (request.status_solicitacao !== "PENDENTE") {
-    showFormMessage("Esta solicitação não está mais pendente. Atualize a lista.");
-    return;
+    return showFormMessage("Esta solicitação não está mais pendente. Atualize a lista.");
   }
-
-  if (!approvedProfile) {
-    showFormMessage("Selecione um perfil de acesso.");
+  if (!Object.hasOwn(PROFILE_LABELS, profile)) {
+    showFormMessage("Selecione um perfil de acesso válido.");
     elements.approvedProfileSelect.focus();
     return;
   }
-
   if (
     justification.length < JUSTIFICATION_MIN_LENGTH ||
     justification.length > JUSTIFICATION_MAX_LENGTH
@@ -1151,87 +1016,56 @@ async function approveSelectedRequest() {
   }
 
   const requestId = request.id_solicitacao;
-  state.submittingDecision = true;
-
   hideFormMessage();
-
-  elements.analysisModal.classList.add("is-processing");
-  elements.closeModalButton.disabled = true;
-  elements.cancelAnalysisButton.disabled = true;
-  elements.decisionFieldset.disabled = true;
-  elements.approvedProfileSelect.disabled = true;
-  elements.analysisJustification.disabled = true;
-
-  updateConfirmButton(
-    false,
-    "APROVAR",
-    "Registrando aprovação...",
-    "Registrando aprovação"
-  );
+  setDecisionProcessing("APROVAR", true);
 
   try {
-    const { data, error } = await supabase
-      .schema("api")
-      .rpc("aprovar_solicitacao_acesso", {
-        p_id_solicitacao: requestId,
-        p_codigo_perfil: approvedProfile,
-        p_justificativa: justification
-      });
+    const { data, error } = await supabase.functions.invoke("aprovar-solicitacao-acesso", {
+      body: {
+        id_solicitacao: requestId,
+        codigo_perfil: profile,
+        justificativa: justification
+      }
+    });
 
-    if (error) {
-      throw error;
-    }
-
-    const approvedRequest = Array.isArray(data) ? data[0] ?? null : data;
-
-    if (!approvedRequest || approvedRequest.status_solicitacao !== "APROVADA") {
-      throw new Error("INVALID_APPROVAL_RESPONSE");
+    if (error) throw await readEdgeFunctionError(error);
+    if (
+      data?.success !== true ||
+      Number(data?.data?.id_solicitacao) !== Number(requestId) ||
+      data?.data?.status_solicitacao !== "APROVADA"
+    ) {
+      const invalid = new Error("O servidor retornou uma resposta de aprovação inválida.");
+      invalid.code = "APPROVAL_RESPONSE_INVALID";
+      throw invalid;
     }
 
     request.status_solicitacao = "APROVADA";
-    request.codigo_perfil_aprovado =
-      approvedRequest.codigo_perfil_aprovado ?? approvedProfile;
-    request.justificativa_analise =
-      approvedRequest.justificativa_analise ?? justification;
-    request.analisado_em = approvedRequest.analisado_em ?? new Date().toISOString();
-    request.atualizado_em = approvedRequest.analisado_em ?? new Date().toISOString();
+    request.codigo_perfil_aprovado = data.data.codigo_perfil_aprovado || profile;
+    request.justificativa_analise = justification;
+    request.analisado_em = data.data.analisado_em || new Date().toISOString();
+    request.atualizado_em = request.analisado_em;
 
     state.submittingDecision = false;
-
     elements.analysisModal.classList.remove("is-processing");
 
     closeModal();
-
     await fetchRequestsList();
 
     showPageMessage(
-      `A solicitação #${requestId} foi aprovada com sucesso.`,
+      `A solicitação #${requestId} foi aprovada e o convite de acesso foi enviado com sucesso.`,
       "success"
     );
   } catch (error) {
     console.error("Erro ao aprovar solicitação:", {
+      name: error?.name,
       code: error?.code,
       status: error?.status,
       message: error?.message,
-      details: error?.details,
-      hint: error?.hint
+      details: error?.body?.error?.details || error?.details || null
     });
 
-    state.submittingDecision = false;
-
-    elements.analysisModal.classList.remove("is-processing");
-    elements.closeModalButton.disabled = false;
-    elements.cancelAnalysisButton.disabled = false;
-
-    if (state.selectedRequest?.status_solicitacao === "PENDENTE") {
-      elements.decisionFieldset.disabled = false;
-      elements.analysisJustification.disabled = false;
-      elements.approvedProfileSelect.disabled =
-        getSelectedDecision() !== "APROVAR";
-    }
-
+    restoreDecisionControls();
     showFormMessage(getApprovalErrorMessage(error));
-    validateDecisionForm();
   }
 }
 
@@ -1242,16 +1076,10 @@ async function rejectSelectedRequest() {
   const request = state.selectedRequest;
   const justification = elements.analysisJustification.value.trim();
 
-  if (!request) {
-    showFormMessage("Nenhuma solicitação foi selecionada.");
-    return;
-  }
-
+  if (!request) return showFormMessage("Nenhuma solicitação foi selecionada.");
   if (request.status_solicitacao !== "PENDENTE") {
-    showFormMessage("Esta solicitação não está mais pendente. Atualize a lista.");
-    return;
+    return showFormMessage("Esta solicitação não está mais pendente. Atualize a lista.");
   }
-
   if (
     justification.length < JUSTIFICATION_MIN_LENGTH ||
     justification.length > JUSTIFICATION_MAX_LENGTH
@@ -1264,23 +1092,8 @@ async function rejectSelectedRequest() {
   }
 
   const requestId = request.id_solicitacao;
-  state.submittingDecision = true;
-
   hideFormMessage();
-
-  elements.analysisModal.classList.add("is-processing");
-  elements.closeModalButton.disabled = true;
-  elements.cancelAnalysisButton.disabled = true;
-  elements.decisionFieldset.disabled = true;
-  elements.approvedProfileSelect.disabled = true;
-  elements.analysisJustification.disabled = true;
-
-  updateConfirmButton(
-    false,
-    "REJEITAR",
-    "Registrando rejeição...",
-    "Registrando rejeição"
-  );
+  setDecisionProcessing("REJEITAR", true);
 
   try {
     const { data, error } = await supabase
@@ -1290,58 +1103,29 @@ async function rejectSelectedRequest() {
         p_justificativa: justification
       });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
+    const rejected = Array.isArray(data) ? data[0] : data;
 
-    const rejectedRequest = Array.isArray(data) ? data[0] ?? null : data;
-
-    if (!rejectedRequest || rejectedRequest.status_solicitacao !== "REJEITADA") {
+    if (!rejected || rejected.status_solicitacao !== "REJEITADA") {
       throw new Error("INVALID_REJECTION_RESPONSE");
     }
 
     request.status_solicitacao = "REJEITADA";
-    request.justificativa_analise =
-      rejectedRequest.justificativa_analise ?? justification;
-    request.analisado_em = rejectedRequest.analisado_em ?? new Date().toISOString();
-    request.atualizado_em = rejectedRequest.analisado_em ?? new Date().toISOString();
+    request.justificativa_analise = rejected.justificativa_analise ?? justification;
+    request.analisado_em = rejected.analisado_em ?? new Date().toISOString();
+    request.atualizado_em = request.analisado_em;
 
     state.submittingDecision = false;
-
     elements.analysisModal.classList.remove("is-processing");
 
     closeModal();
-
     await fetchRequestsList();
 
-    showPageMessage(
-      `A solicitação #${requestId} foi rejeitada com sucesso.`,
-      "success"
-    );
+    showPageMessage(`A solicitação #${requestId} foi rejeitada com sucesso.`, "success");
   } catch (error) {
-    console.error("Erro ao rejeitar solicitação:", {
-      code: error?.code,
-      status: error?.status,
-      message: error?.message,
-      details: error?.details,
-      hint: error?.hint
-    });
-
-    state.submittingDecision = false;
-
-    elements.analysisModal.classList.remove("is-processing");
-    elements.closeModalButton.disabled = false;
-    elements.cancelAnalysisButton.disabled = false;
-
-    if (state.selectedRequest?.status_solicitacao === "PENDENTE") {
-      elements.decisionFieldset.disabled = false;
-      elements.analysisJustification.disabled = false;
-      elements.approvedProfileSelect.disabled =
-        getSelectedDecision() !== "APROVAR";
-    }
-
+    console.error("Erro ao rejeitar solicitação:", error);
+    restoreDecisionControls();
     showFormMessage(getRejectionErrorMessage(error));
-    validateDecisionForm();
   }
 }
 
@@ -1349,21 +1133,11 @@ async function rejectSelectedRequest() {
  * Trata a confirmação final.
  */
 async function handleDecisionSubmit() {
-  if (state.submittingDecision || !state.selectedRequest) {
-    return;
-  }
+  if (state.submittingDecision || !state.selectedRequest) return;
+  const decision = getSelectedDecision();
 
-  const selectedDecision = getSelectedDecision();
-
-  if (selectedDecision === "APROVAR") {
-    await approveSelectedRequest();
-    return;
-  }
-
-  if (selectedDecision === "REJEITAR") {
-    await rejectSelectedRequest();
-    return;
-  }
+  if (decision === "APROVAR") return approveSelectedRequest();
+  if (decision === "REJEITAR") return rejectSelectedRequest();
 
   showFormMessage("Selecione a decisão de Aprovar ou Rejeitar para continuar.");
 }
@@ -1373,18 +1147,12 @@ async function handleDecisionSubmit() {
  */
 async function handleLogout() {
   elements.logoutButton.disabled = true;
-
   try {
     const { error } = await supabase.auth.signOut({ scope: "local" });
-
-    if (error) {
-      throw error;
-    }
-
+    if (error) throw error;
     redirectToLogin();
   } catch (error) {
     console.error("Erro ao encerrar a sessão:", error);
-
     elements.logoutButton.disabled = false;
     showPageMessage("Não foi possível encerrar a sessão. Tente novamente.");
   }
@@ -1395,10 +1163,8 @@ async function handleLogout() {
  */
 async function handleFilterSubmit(event) {
   event.preventDefault();
-
   state.status = elements.statusFilter.value;
   state.offset = 0;
-
   await fetchRequestsList();
 }
 
@@ -1407,22 +1173,14 @@ async function handleFilterSubmit(event) {
  */
 async function handleRefresh() {
   await fetchRequestsList();
-
-  if (!elements.pageMessage.hidden) {
-    return;
-  }
-
-  showPageMessage("A lista foi atualizada.", "success");
+  if (elements.pageMessage.hidden) showPageMessage("A lista foi atualizada.", "success");
 }
 
 /**
  * Abre a página anterior.
  */
 async function handlePreviousPage() {
-  if (state.loading || state.offset === 0) {
-    return;
-  }
-
+  if (state.loading || state.offset === 0) return;
   state.offset = Math.max(0, state.offset - state.limit);
   await fetchRequestsList();
 }
@@ -1431,10 +1189,7 @@ async function handlePreviousPage() {
  * Abre a próxima página.
  */
 async function handleNextPage() {
-  if (state.loading || state.offset + state.limit >= state.totalRecords) {
-    return;
-  }
-
+  if (state.loading || state.offset + state.limit >= state.totalRecords) return;
   state.offset += state.limit;
   await fetchRequestsList();
 }
@@ -1443,9 +1198,7 @@ async function handleNextPage() {
  * Mantém o foco dentro do modal.
  */
 function trapModalFocus(event) {
-  if (event.key !== "Tab" || elements.detailsModal.hidden) {
-    return;
-  }
+  if (event.key !== "Tab" || elements.detailsModal.hidden) return;
 
   const selector = [
     "button:not([disabled])",
@@ -1456,32 +1209,24 @@ function trapModalFocus(event) {
     "[tabindex]:not([tabindex='-1'])"
   ].join(",");
 
-  const focusableElements = [
-    ...elements.detailsModal.querySelectorAll(selector)
-  ].filter(
+  const focusable = [...elements.detailsModal.querySelectorAll(selector)].filter(
     (element) =>
       element instanceof HTMLElement &&
       !element.hidden &&
       element.getAttribute("aria-hidden") !== "true"
   );
 
-  if (focusableElements.length === 0) {
-    event.preventDefault();
-    return;
-  }
+  if (!focusable.length) return event.preventDefault();
 
-  const firstElement = focusableElements[0];
-  const lastElement = focusableElements[focusableElements.length - 1];
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
 
-  if (event.shiftKey && document.activeElement === firstElement) {
+  if (event.shiftKey && document.activeElement === first) {
     event.preventDefault();
-    lastElement.focus();
-    return;
-  }
-
-  if (!event.shiftKey && document.activeElement === lastElement) {
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
     event.preventDefault();
-    firstElement.focus();
+    first.focus();
   }
 }
 
@@ -1489,15 +1234,10 @@ function trapModalFocus(event) {
  * Trata as teclas usadas no modal.
  */
 function handleDocumentKeydown(event) {
-  if (
-    event.key === "Escape" &&
-    !elements.detailsModal.hidden &&
-    !state.submittingDecision
-  ) {
+  if (event.key === "Escape" && !elements.detailsModal.hidden && !state.submittingDecision) {
     closeModal();
     return;
   }
-
   trapModalFocus(event);
 }
 
@@ -1521,9 +1261,7 @@ function setupEventListeners() {
   elements.confirmDecisionButton.addEventListener("click", handleDecisionSubmit);
 
   elements.detailsModal.addEventListener("click", (event) => {
-    if (event.target === elements.detailsModal && !state.submittingDecision) {
-      closeModal();
-    }
+    if (event.target === elements.detailsModal && !state.submittingDecision) closeModal();
   });
 
   document.addEventListener("keydown", handleDocumentKeydown);
@@ -1540,9 +1278,7 @@ async function initializePage() {
     setupEventListeners();
 
     const session = await validateUserSession();
-    if (!session) {
-      return;
-    }
+    if (!session) return;
 
     await loadFunctionalContext();
 
@@ -1553,54 +1289,29 @@ async function initializePage() {
 
     elements.mainContent.focus();
   } catch (error) {
-    console.error("Falha ao inicializar a página:", {
-      code: error?.code,
-      reason: error?.reason,
-      message: error?.message,
-      details: error?.details,
-      hint: error?.hint,
-      stack: error?.stack
-    });
+    console.error("Falha ao inicializar a página:", error);
 
     if (error?.message === "PAGE_STRUCTURE_INVALID") {
-      if (elements.pageLoading) {
-        elements.pageLoading.hidden = true;
-      }
-      if (elements.protectedContent) {
-        elements.protectedContent.hidden = true;
-      }
+      if (elements.pageLoading) elements.pageLoading.hidden = true;
+      if (elements.protectedContent) elements.protectedContent.hidden = true;
       document.body.textContent = "Não foi possível carregar a estrutura da página.";
       return;
     }
 
-    if (error?.reason === "UNAUTHORIZED_PROFILE") {
-      redirectUnauthorizedProfile();
-      return;
-    }
-
-    if (error?.reason === "NO_FUNCTIONAL_CONTEXT") {
-      await supabase.auth.signOut({ scope: "local" });
-      redirectToLogin();
-      return;
-    }
+    if (error?.reason === "UNAUTHORIZED_PROFILE") return redirectUnauthorizedProfile();
 
     if (
+      error?.reason === "NO_FUNCTIONAL_CONTEXT" ||
       error?.status === 401 ||
       error?.code === "28000" ||
-      String(error?.message || "").toLowerCase().includes("jwt")
+      /jwt/i.test(error?.message || "")
     ) {
       await supabase.auth.signOut({ scope: "local" });
-      redirectToLogin();
-      return;
+      return redirectToLogin();
     }
 
-    if (elements.pageLoading) {
-      elements.pageLoading.hidden = true;
-    }
-
-    if (elements.protectedContent) {
-      elements.protectedContent.hidden = false;
-    }
+    if (elements.pageLoading) elements.pageLoading.hidden = true;
+    if (elements.protectedContent) elements.protectedContent.hidden = false;
 
     showPageMessage(
       "Não foi possível estabelecer conexão com o servidor. Verifique sua rede e tente novamente."
