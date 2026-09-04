@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
+  >
+
+  <title>Redefinir senha | Monitoramento de Indícios</title>
+  <link rel="stylesheet" href="./redefinir-senha.css">
+</head>
+
+<body>
+  <div class="password-page">
+    <header class="password-header">
+      <div class="password-header-container">
+        <a
+          href="./index.html"
+          class="brand-link"
+          aria-label="Ir para a página de entrada do Sistema de Monitoramento de Indícios"
+        >
+          <span class="brand-mark" aria-hidden="true">MI</span>
+
+          <span class="brand-text">
+            <strong>Monitoramento de Indícios</strong>
+            <small>SMSA/CE</small>
+          </span>
+        </a>
+
+        <button
+          id="theme-toggle-button"
+          class="theme-toggle-button"
+          type="button"
+          aria-label="Ativar modo escuro"
+          aria-pressed="false"
+          title="Alternar entre modo claro e escuro"
+        >
+          <span id="theme-toggle-icon" aria-hidden="true">Lua</span>
+          <span id="theme-toggle-text">Modo escuro</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main-content" class="password-main" tabindex="-1">
+      <section
+        class="password-card"
+        aria-labelledby="page-title"
+        aria-describedby="page-description"
+      >
+        <div class="password-card-accent" aria-hidden="true"></div>
+
+        <div class="password-card-content">
+          <div class="password-introduction">
+            <div class="access-icon" aria-hidden="true">
+              <span>AC</span>
+            </div>
+
+            <p class="eyebrow">Ativação de acesso</p>
+
+            <h1 id="page-title">Defina sua senha</h1>
+
+            <p id="page-description" class="page-description">
+              Crie uma senha para concluir a ativação do seu acesso ao Sistema
+              de Monitoramento de Indícios.
+            </p>
+          </div>
+
+          <div
+            id="page-message"
+            class="page-message"
+            role="alert"
+            aria-live="assertive"
+            hidden
+          ></div>
+
+          <section
+            id="recovery-loading"
+            class="state-panel invitation-loading recovery-loading"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="loading-spinner" aria-hidden="true"></div>
+
+            <div>
+              <strong>Validando seu link de recuperação</strong>
+              <p id="loading-message">
+                Aguarde enquanto confirmamos os dados de ativação.
+              </p>
+            </div>
+          </section>
+
+          <section
+            id="invalid-recovery-state"
+            class="state-panel state-panel-error"
+            aria-labelledby="invalid-recovery-title"
+            hidden
+          >
+            <span class="state-icon" aria-hidden="true">!</span>
+
+            <div>
+              <h2 id="invalid-recovery-title">
+                Não foi possível validar o link
+              </h2>
+
+              <p id="invalid-recovery-message">
+                O link de recuperação é inválido, expirou ou já foi utilizado.
+                Solicite um novo link na página de recuperação de senha.
+              </p>
+
+              <a class="secondary-link" href="./index.html">
+                Voltar para a página de entrada
+              </a>
+            </div>
+          </section>
+
+          <form
+            id="password-form"
+            class="password-form"
+            novalidate
+            hidden
+          >
+            <div class="invitation-confirmed recovery-confirmed" role="status">
+              <span class="confirmed-icon" aria-hidden="true">✓</span>
+
+              <div>
+                <strong>Link de recuperação validado</strong>
+                <p>
+                  Informe e confirme a nova senha para finalizar a ativação.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="new-password">Nova senha</label>
+
+              <div class="password-input-wrapper">
+                <input
+                  id="new-password"
+                  name="newPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                  aria-describedby="password-requirements new-password-error"
+                  placeholder="Digite sua nova senha"
+                >
+
+                <button
+                  id="toggle-new-password"
+                  class="password-visibility-button"
+                  type="button"
+                  aria-label="Mostrar nova senha"
+                  aria-pressed="false"
+                  data-target="new-password"
+                >
+                  Mostrar
+                </button>
+              </div>
+
+              <p
+                id="new-password-error"
+                class="field-error"
+                role="alert"
+                hidden
+              ></p>
+            </div>
+
+            <div class="form-field">
+              <label for="confirm-password">Confirmar nova senha</label>
+
+              <div class="password-input-wrapper">
+                <input
+                  id="confirm-password"
+                  name="confirmPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                  aria-describedby="confirm-password-error"
+                  placeholder="Digite novamente a nova senha"
+                >
+
+                <button
+                  id="toggle-confirm-password"
+                  class="password-visibility-button"
+                  type="button"
+                  aria-label="Mostrar confirmação da senha"
+                  aria-pressed="false"
+                  data-target="confirm-password"
+                >
+                  Mostrar
+                </button>
+              </div>
+
+              <p
+                id="confirm-password-error"
+                class="field-error"
+                role="alert"
+                hidden
+              ></p>
+            </div>
+
+            <section
+              id="password-requirements"
+              class="password-requirements"
+              aria-labelledby="password-requirements-title"
+            >
+              <div class="requirements-heading">
+                <span class="requirements-icon" aria-hidden="true">i</span>
+
+                <div>
+                  <h2 id="password-requirements-title">
+                    Requisitos da senha
+                  </h2>
+                  <p>Use uma senha difícil de adivinhar e exclusiva para este sistema.</p>
+                </div>
+              </div>
+
+              <ul class="requirements-list">
+                <li id="requirement-length" data-requirement="length">
+                  Pelo menos 8 caracteres
+                </li>
+                <li id="requirement-uppercase" data-requirement="uppercase">
+                  Pelo menos uma letra maiúscula
+                </li>
+                <li id="requirement-lowercase" data-requirement="lowercase">
+                  Pelo menos uma letra minúscula
+                </li>
+                <li id="requirement-number" data-requirement="number">
+                  Pelo menos um número
+                </li>
+                <li id="requirement-special" data-requirement="special">
+                  Pelo menos um caractere especial
+                </li>
+              </ul>
+            </section>
+
+            <button
+              id="submit-password-button"
+              class="primary-button"
+              type="submit"
+              disabled
+              aria-disabled="true"
+            >
+              Redefinir senha
+            </button>
+
+            <p class="security-note">
+              A senha será processada diretamente pelo serviço de autenticação
+              e não será armazenada nas tabelas operacionais do sistema.
+            </p>
+          </form>
+
+          <section
+            id="success-state"
+            class="state-panel state-panel-success"
+            aria-labelledby="success-title"
+            hidden
+          >
+            <span class="state-icon" aria-hidden="true">✓</span>
+
+            <div>
+              <h2 id="success-title">Senha redefinida com sucesso</h2>
+
+              <p>
+                Sua senha foi atualizada. Agora você pode entrar no sistema com
+                seu e-mail e a nova senha.
+              </p>
+
+              <a id="go-to-login-link" class="primary-link" href="./index.html">
+                Ir para a página de entrada
+              </a>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="support-card" aria-labelledby="support-title">
+        <span class="support-icon" aria-hidden="true">?</span>
+
+        <div>
+          <h2 id="support-title">Precisa de ajuda?</h2>
+          <p>
+            Se o link estiver inválido ou expirado, volte à página de recuperação
+            e solicite outro link para o seu e-mail.
+          </p>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="password-footer">
+      <p>Sistema de Monitoramento de Indícios</p>
+      <p>Acesso restrito a usuários autorizados.</p>
+    </footer>
+  </div>
+
+  <noscript>
+    <div class="noscript-message">
+      O JavaScript precisa estar habilitado para validar o link e redefinir a
+      senha de acesso.
+    </div>
+  </noscript>
+
+  <script type="module" src="./js/redefinir-senha.js"></script>
+</body>
+</html>
