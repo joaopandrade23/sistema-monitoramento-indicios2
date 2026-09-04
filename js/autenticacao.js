@@ -5,7 +5,6 @@ const emailInput = document.querySelector("#email");
 const passwordInput = document.querySelector("#password");
 const loginButton = document.querySelector("#login-button");
 const messageBox = document.querySelector("#login-message");
-const forgotPasswordButton = document.querySelector(".forgot-password");
 
 const LOGIN_DEFAULT_TEXT = "Entrar";
 const LOGIN_LOADING_TEXT = "Entrando...";
@@ -25,7 +24,6 @@ function verificarElementosDaPagina() {
     passwordInput,
     loginButton,
     messageBox,
-    forgotPasswordButton,
   ];
 
   if (elementosObrigatorios.some((elemento) => !elemento)) {
@@ -449,16 +447,6 @@ async function redirecionarSessaoExistente() {
   }
 }
 
-/**
- * Informa que a recuperação de senha ainda não está disponível.
- */
-function informarRecuperacaoIndisponivel() {
-  ocultarMensagem();
-
-  mostrarMensagem(
-    "A recuperação de senha ainda não está disponível."
-  );
-}
 
 /**
  * Inicializa a tela de login.
@@ -469,10 +457,6 @@ function iniciarPaginaLogin() {
 
     form.addEventListener("submit", processarLogin);
 
-    forgotPasswordButton.addEventListener(
-      "click",
-      informarRecuperacaoIndisponivel
-    );
 
     redirecionarSessaoExistente();
   } catch (erro) {
