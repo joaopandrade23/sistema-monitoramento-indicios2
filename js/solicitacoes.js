@@ -82,6 +82,9 @@ function cacheDOMElements() {
     detailStatus: byId("detail-status"),
     detailRequestedAt: byId("detail-requested-at"),
     detailUpdatedAt: byId("detail-updated-at"),
+    detailAnalyzedAtItem: byId("detail-analyzed-at-item"),
+    detailAnalyzedAtIcon: byId("detail-analyzed-at-icon"),
+    detailAnalyzedAtLabel: byId("detail-analyzed-at-label"),
     detailAnalyzedAt: byId("detail-analyzed-at"),
     detailName: byId("detail-name"),
     detailEmail: byId("detail-email"),
@@ -189,6 +192,7 @@ function getStatusClass(status) {
   if (status === "PENDENTE") return "status-pending";
   if (status === "APROVADA") return "status-approved";
   if (status === "REJEITADA") return "status-rejected";
+  if (status === "EXPIRADA") return "status-expired";
   return "status-neutral";
 }
 
@@ -565,6 +569,10 @@ function resetAnalysisForm() {
   elements.analysisForm.reset();
   elements.analysisForm.removeAttribute("data-mode");
 
+  elements.detailAnalyzedAtItem.removeAttribute("data-status");
+  elements.detailAnalyzedAtIcon.textContent = "AN";
+  elements.detailAnalyzedAtLabel.textContent = "Analisado em";
+
   elements.decisionFieldset.disabled = true;
   elements.decisionApprove.checked = false;
   elements.decisionReject.checked = false;
@@ -664,6 +672,23 @@ function configureApprovedMode(request) {
 }
 
 /**
+ * Configura uma solicitação expirada.
+ */
+function configureExpiredMode() {
+  elements.analysisForm.dataset.mode = "read-only-expired";
+  elements.decisionFieldset.disabled = true;
+  elements.approvedProfileField.hidden = true;
+  elements.analysisJustificationField.hidden = true;
+  elements.decisionConfirmationArea.hidden = true;
+
+  elements.decisionPanelDescription.textContent =
+    "Esta solicitação foi encerrada automaticamente após o término do prazo de análise.";
+  elements.analysisInformationTitle.textContent = "Solicitação expirada";
+  elements.analysisInformationText.textContent =
+    "A solicitação permaneceu pendente por 3 dias corridos e foi encerrada automaticamente pelo sistema. Para prosseguir, o solicitante deverá enviar um novo pedido de acesso.";
+}
+
+/**
  * Configura outros estados históricos.
  */
 function configureNeutralReadOnlyMode(request) {
@@ -687,6 +712,7 @@ function configureAnalysisMode(request) {
   if (request.status_solicitacao === "PENDENTE") configurePendingMode();
   else if (request.status_solicitacao === "REJEITADA") configureRejectedMode(request);
   else if (request.status_solicitacao === "APROVADA") configureApprovedMode(request);
+  else if (request.status_solicitacao === "EXPIRADA") configureExpiredMode();
   else configureNeutralReadOnlyMode(request);
 }
 
@@ -707,9 +733,23 @@ function openDetailsModal(request, triggerElement = null) {
 
   elements.detailRequestedAt.textContent = formatDateTime(request.solicitado_em);
   elements.detailUpdatedAt.textContent = formatDateTime(request.atualizado_em);
+
+  const isExpired = request.status_solicitacao === "EXPIRADA";
+  if (isExpired) {
+    elements.detailAnalyzedAtItem.dataset.status = "EXPIRADA";
+    elements.detailAnalyzedAtIcon.textContent = "EX";
+    elements.detailAnalyzedAtLabel.textContent = "Expirado em";
+  } else {
+    elements.detailAnalyzedAtItem.removeAttribute("data-status");
+    elements.detailAnalyzedAtIcon.textContent = "AN";
+    elements.detailAnalyzedAtLabel.textContent = "Analisado em";
+  }
+
   elements.detailAnalyzedAt.textContent = request.analisado_em
     ? formatDateTime(request.analisado_em)
-    : "Não analisado";
+    : isExpired
+      ? "Data de expiração não informada"
+      : "Não analisado";
 
   elements.detailApprovedProfile.textContent = request.codigo_perfil_aprovado
     ? PROFILE_LABELS[request.codigo_perfil_aprovado] || request.codigo_perfil_aprovado
@@ -882,6 +922,31 @@ function restoreDecisionControls() {
   }
 
   validateDecisionForm();
+}
+
+/**
+ * Verifica se a solicitação deixou de estar pendente no backend.
+ */
+function isRequestStateConflict(error) {
+  const code = error?.code || error?.body?.error?.code || null;
+  return ["REQUEST_NOT_PENDING", "P0001", "40001"].includes(code);
+}
+
+/**
+ * Fecha o modal e recarrega a lista após alteração concorrente ou expiração.
+ */
+async function handleRequestStateConflict(requestId) {
+  state.submittingDecision = false;
+  elements.analysisModal.classList.remove("is-processing");
+  elements.closeModalButton.disabled = false;
+  elements.cancelAnalysisButton.disabled = false;
+
+  closeModal();
+  await fetchRequestsList();
+
+  showPageMessage(
+    `A solicitação #${requestId} não está mais pendente. A lista foi atualizada para mostrar o status mais recente.`
+  );
 }
 
 /**
@@ -1064,6 +1129,11 @@ async function approveSelectedRequest() {
       details: error?.body?.error?.details || error?.details || null
     });
 
+    if (isRequestStateConflict(error)) {
+      await handleRequestStateConflict(requestId);
+      return;
+    }
+
     restoreDecisionControls();
     showFormMessage(getApprovalErrorMessage(error));
   }
@@ -1124,6 +1194,12 @@ async function rejectSelectedRequest() {
     showPageMessage(`A solicitação #${requestId} foi rejeitada com sucesso.`, "success");
   } catch (error) {
     console.error("Erro ao rejeitar solicitação:", error);
+
+    if (isRequestStateConflict(error)) {
+      await handleRequestStateConflict(requestId);
+      return;
+    }
+
     restoreDecisionControls();
     showFormMessage(getRejectionErrorMessage(error));
   }
