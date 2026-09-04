@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
+  >
+  <title>Recuperar senha | Monitoramento de Indícios</title>
+  <link rel="stylesheet" href="./recuperar-senha.css">
+</head>
+<body>
+  <main class="recovery-page">
+    <section class="recovery-card" aria-labelledby="recovery-title">
+      <header class="recovery-header">
+        <div class="brand-mark" aria-hidden="true">MI</div>
+        <p class="eyebrow">SMSA/CE</p>
+        <h1 id="recovery-title">Recuperar senha</h1>
+        <p class="recovery-description">
+          Informe o e-mail da sua conta para receber as instruções de redefinição.
+        </p>
+      </header>
+
+      <div class="information-box" role="note">
+        <span class="information-icon" aria-hidden="true">i</span>
+        <p>
+          Por segurança, a resposta será a mesma mesmo que o endereço informado não esteja cadastrado.
+        </p>
+      </div>
+
+      <form
+        id="recovery-form"
+        class="recovery-form"
+        autocomplete="on"
+        novalidate
+      >
+        <div class="field">
+          <label for="recovery-email">E-mail</label>
+          <input
+            id="recovery-email"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            minlength="5"
+            maxlength="254"
+            placeholder="login@saude.gov.br"
+            aria-describedby="email-help recovery-message"
+            required
+          >
+          <p id="email-help" class="field-help">
+            Use o mesmo e-mail associado ao seu acesso.
+          </p>
+        </div>
+
+        <button
+          id="recovery-button"
+          class="recovery-button"
+          type="submit"
+        >
+          <span id="recovery-button-text">Enviar link de recuperação</span>
+        </button>
+      </form>
+
+      <div
+        id="recovery-message"
+        class="recovery-message"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+
+      <footer class="recovery-footer">
+        <a class="back-link" href="./index.html">
+          Voltar para o login
+        </a>
+        <p>Acesso restrito a usuários autorizados.</p>
+      </footer>
+    </section>
+  </main>
+
+  <noscript>
+    <div class="noscript-message">
+      O JavaScript precisa estar habilitado para solicitar a recuperação de senha.
+    </div>
+  </noscript>
+
+  <script type="module" src="./js/recuperar-senha.js"></script>
+</body>
+</html>
