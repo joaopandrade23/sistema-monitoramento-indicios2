@@ -833,6 +833,11 @@ button:disabled {
   color: var(--error);
 }
 
+.status-badge.status-expired {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
 .status-badge.status-neutral {
   background: var(--neutral-soft);
   color: var(--neutral-text);
@@ -1050,6 +1055,22 @@ button:disabled {
   overflow-wrap: anywhere;
   font-size: 0.83rem;
   line-height: 1.35;
+}
+
+/* Data de encerramento automático */
+
+#detail-analyzed-at-item[data-status="EXPIRADA"] {
+  background: var(--warning-soft);
+}
+
+#detail-analyzed-at-item[data-status="EXPIRADA"] #detail-analyzed-at-icon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+#detail-analyzed-at-item[data-status="EXPIRADA"] #detail-analyzed-at-label,
+#detail-analyzed-at-item[data-status="EXPIRADA"] #detail-analyzed-at {
+  color: var(--warning);
 }
 
 /* Painéis do modal */
@@ -1582,6 +1603,20 @@ button:disabled {
   border-color: var(--success);
   background: var(--success-soft);
   color: var(--success);
+}
+
+/* Solicitação expirada em modo histórico */
+
+.analysis-form[data-mode="read-only-expired"] .decision-fieldset,
+.analysis-form[data-mode="read-only-expired"] #approved-profile-field,
+.analysis-form[data-mode="read-only-expired"] #analysis-justification-field {
+  display: none;
+}
+
+.analysis-form[data-mode="read-only-expired"] #analysis-information {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
 }
 
 /* Outros estados históricos */
