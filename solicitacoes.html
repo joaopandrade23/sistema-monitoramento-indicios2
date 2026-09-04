@@ -601,8 +601,12 @@
           </div>
         </div>
 
-        <div class="analysis-status-item">
+        <div
+          id="detail-analyzed-at-item"
+          class="analysis-status-item"
+        >
           <span
+            id="detail-analyzed-at-icon"
             class="analysis-status-icon"
             aria-hidden="true"
           >
@@ -610,7 +614,10 @@
           </span>
 
           <div>
-            <span class="analysis-status-label">
+            <span
+              id="detail-analyzed-at-label"
+              class="analysis-status-label"
+            >
               Analisado em
             </span>
 
@@ -922,10 +929,10 @@
                 </strong>
 
                 <p id="analysis-information-text">
-                  A rejeição é registrada por uma operação
-                  segura no backend. A aprovação permanecerá
-                  indisponível até a homologação do fluxo
-                  correspondente.
+                  A aprovação e a rejeição são registradas
+                  por operações seguras no backend. Somente
+                  solicitações pendentes podem receber uma
+                  decisão administrativa.
                 </p>
               </div>
             </div>
