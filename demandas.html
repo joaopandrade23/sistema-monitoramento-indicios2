@@ -7,7 +7,7 @@
   <title>Demandas | Sistema de Monitoramento de Indícios</title>
   <meta name="description" content="Consulta e atribuição de demandas aos operadores da SEGEP/CE.">
 
-  <!-- Vinculação do CSS externo -->
+  <!-- Integração do arquivo CSS externo -->
   <link rel="stylesheet" href="demandas.css">
 </head>
 <body>
@@ -115,10 +115,7 @@
 
     <section class="panel">
       <div class="table-toolbar">
-        <div class="selection-summary">
-          <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
-          <button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button>
-        </div>
+        <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px">
           <span style="font-size:.8rem;color:var(--muted)">Por página</span>
           <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
@@ -184,7 +181,7 @@
     </section>
   </div>
 
-  <!-- Importação do JavaScript externo -->
+  <!-- Vinculação externa do JavaScript -->
   <script type="module" src="./js/demandas.js"></script>
 </body>
 </html>
