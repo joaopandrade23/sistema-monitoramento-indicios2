@@ -158,3 +158,14 @@ td { font-size: .88rem; }
   .heading-actions { width: 100%; }
   .heading-actions .btn { flex: 1; }
 }
+
+
+/* Contraste dos cards, filtro ativo e seleção */
+.selection-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.btn-sm{min-height:32px;padding:5px 10px;font-size:.8rem}
+tbody tr.is-selected{background:var(--primary-soft);box-shadow:inset 4px 0 0 var(--primary)}
+.metric.clickable{isolation:isolate;opacity:.84}.metric.clickable>*{position:relative;z-index:1}.metric.clickable.is-filter-active{opacity:1;border-color:var(--metric-accent,var(--primary));box-shadow:0 0 0 3px color-mix(in srgb,var(--metric-accent,var(--primary)) 24%,transparent),var(--shadow);transform:translateY(-3px)}
+.metric.clickable.is-filter-active::before{content:"Filtro ativo";position:absolute;right:10px;bottom:8px;z-index:2;padding:3px 7px;border-radius:999px;color:var(--metric-accent,var(--primary));background:var(--surface);border:1px solid currentColor;font-size:.62rem;font-weight:800}
+[data-theme="dark"] .metric{background:#182131;border-color:#3d4b61;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+[data-theme="dark"] .metric span,[data-theme="dark"] .metric small{color:#c5d0e0}[data-theme="dark"] .metric strong{color:var(--metric-dark-value,#fff);text-shadow:none}[data-theme="dark"] .metric-icon-placeholder{background:#111827;color:var(--metric-dark-value,#fff)!important;border-color:var(--metric-dark-value,#fff)}
+[data-theme="dark"] .metric-total{--metric-dark-value:#e2e8f0}[data-theme="dark"] .metric-available{--metric-dark-value:#73a7ff}[data-theme="dark"] .metric-pending{--metric-dark-value:#ffb866}[data-theme="dark"] .metric-progress{--metric-dark-value:#b9a1ff}[data-theme="dark"] .metric-unassigned{--metric-dark-value:#ff8c85}[data-theme="dark"] .metric-links{--metric-dark-value:#5de0ea}
+[data-theme="dark"] .metric.clickable{opacity:.92}[data-theme="dark"] .metric.clickable.is-filter-active{opacity:1;background:#202c40;border-color:var(--metric-dark-value,var(--primary));box-shadow:0 0 0 3px color-mix(in srgb,var(--metric-dark-value,var(--primary)) 30%,transparent),0 12px 30px rgba(0,0,0,.4)}[data-theme="dark"] .metric.clickable.is-filter-active::before{color:#0c111d;background:var(--metric-dark-value,#fff);border-color:transparent}
