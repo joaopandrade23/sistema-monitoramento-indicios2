@@ -188,7 +188,7 @@ function renderizarDemandas() {
     const selecionada = estado.selecionada?.id_indicio === d.id_indicio;
     const habilitada = Boolean(d.pode_abrir_e_atribuir);
     const vinculos = d.quantidade_origens > 1 ? `${textoSeguro((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>` : textoSeguro(d.situacoes_funcionais_resumo);
-    return `<tr>
+    return `<tr class="${selecionada ? 'is-selected' : ''}">
       <td><input type="radio" name="demanda" data-selecionar="${d.id_indicio}" ${selecionada ? 'checked' : ''} ${habilitada ? '' : 'disabled'} aria-label="Selecionar demanda ${textoSeguro(d.identificador_do_indicio)}"></td>
       <td><strong>${textoSeguro(d.identificador_do_indicio)}</strong><br><small>${textoSeguro(d.base_de_dados)}</small></td>
       <td class="cell-person"><strong>${textoSeguro(d.nome_atual)}</strong><span>${textoSeguro(d.cpf_mascarado)}</span></td>
@@ -197,7 +197,7 @@ function renderizarDemandas() {
       <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${textoSeguro(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td>${textoSeguro(d.nome_prioridade, 'Ainda não definida')}</td>
       <td>${textoSeguro(d.nome_operador_principal, 'Sem responsável')}</td>
-      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Última alteração na origem: ${formatarData(d.data_ultima_modificacao)}</small></td>
+      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Última alteração: ${formatarData(d.data_ultima_modificacao)}</small></td>
       <td><div class="actions-cell">
         <button class="btn btn-primary" type="button" data-atribuir="${d.id_indicio}" ${habilitada ? '' : 'disabled'}>Atribuir</button>
       </div></td>
@@ -217,6 +217,7 @@ function selecionarDemanda(id) {
   renderizarDemandas();
   atualizarControles();
 }
+
 function limparSelecao() {
   estado.selecionada = null;
   renderizarDemandas();
@@ -253,6 +254,7 @@ function fecharModal() {
   if (estado.atribuindo) return;
   fecharModalForcado();
 }
+
 function fecharModalForcado() {
   if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = true;
   document.body.style.overflow = '';
@@ -292,7 +294,6 @@ async function atribuirDemanda() {
     estado.selecionada = null;
     exibirMensagem(`Demanda ${demanda.identificador_do_indicio} atribuída com sucesso.`, 'success');
     await Promise.allSettled([carregarResumo(), carregarDemandas()]);
-    console.info('Atribuição concluída', data);
   } catch (error) {
     console.error('Falha na atribuição', error);
     exibirMensagem(mensagemErro(error, 'Não foi possível atribuir a demanda.'), 'error');
@@ -324,7 +325,6 @@ function sincronizarFiltrosEBuscar() {
 }
 
 function registrarEventos() {
-  // Persistência de tema claro/escuro
   const temaSalvo = localStorage.getItem('tema_smi');
   if (temaSalvo) {
     document.documentElement.setAttribute('data-theme', temaSalvo);
@@ -338,7 +338,6 @@ function registrarEventos() {
     localStorage.setItem('tema_smi', novo);
   });
 
-  // Ações do cabeçalho
   el.sairBtn?.addEventListener('click', async () => {
     try {
       await sb.auth.signOut();
@@ -358,7 +357,10 @@ function registrarEventos() {
     if (estado.selecionada) abrirModal(estado.selecionada);
   });
 
-  // Filtro interativo pelos cards numéricos
+  if (el.limparSelecaoBtn) {
+    el.limparSelecaoBtn.addEventListener('click', limparSelecao);
+  }
+
   document.querySelectorAll('.metric.clickable').forEach(card => {
     const aplicarFiltroCard = () => {
       const tipo = card.dataset.cardFilter;
@@ -388,7 +390,6 @@ function registrarEventos() {
     });
   });
 
-  // Filtros de busca e seleção
   el.buscaInput?.addEventListener('input', (e) => {
     clearTimeout(estado.buscaTimer);
     estado.buscaTimer = setTimeout(() => {
@@ -451,7 +452,6 @@ function registrarEventos() {
     carregarDemandas();
   });
 
-  // Controles de paginação
   el.tamanhoPaginaSelect?.addEventListener('change', (e) => {
     estado.paginacao.tamanho = Number(e.target.value);
     estado.paginacao.pagina = 1;
@@ -472,7 +472,6 @@ function registrarEventos() {
     }
   });
 
-  // Delegação de cliques na tabela
   el.demandasTbody?.addEventListener('click', (e) => {
     const radio = e.target.closest('input[data-selecionar]');
     if (radio) {
@@ -491,7 +490,6 @@ function registrarEventos() {
     }
   });
 
-  // Modal
   el.fecharModalBtn?.addEventListener('click', fecharModal);
   el.cancelarModalBtn?.addEventListener('click', fecharModal);
   el.confirmarAtribuicaoBtn?.addEventListener('click', atribuirDemanda);
@@ -507,7 +505,6 @@ function registrarEventos() {
   });
 }
 
-// Inicialização da aplicação
 async function init() {
   registrarEventos();
   try {
