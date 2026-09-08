@@ -45,23 +45,23 @@
     <div id="mensagem" class="status-banner" role="status" aria-live="polite" hidden></div>
 
     <section class="cards" aria-label="Resumo das demandas">
-      <article class="metric clickable" data-card-filter="TODAS" tabindex="0">
-        <span>Total de demandas</span><strong id="cardTotal">...</strong>
+      <article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
+        <span>Total de demandas</span><div class="metric-value-row"><strong id="cardTotal">...</strong><span class="metric-icon-placeholder" aria-hidden="true">01</span></div><small>Todas as demandas atuais</small>
       </article>
-      <article class="metric clickable" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
-        <span>Disponíveis para atribuição</span><strong id="cardDisponiveis">...</strong>
+      <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
+        <span>Disponíveis para atribuição</span><div class="metric-value-row"><strong id="cardDisponiveis">...</strong><span class="metric-icon-placeholder" aria-hidden="true">02</span></div><small>Aguardando distribuição</small>
       </article>
-      <article class="metric clickable" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
-        <span>Pendentes de tratamento</span><strong id="cardPendentes">...</strong>
+      <article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
+        <span>Pendentes de tratamento</span><div class="metric-value-row"><strong id="cardPendentes">...</strong><span class="metric-icon-placeholder" aria-hidden="true">03</span></div><small>Atribuídas, ainda não iniciadas</small>
       </article>
-      <article class="metric clickable" data-card-filter="EM_TRATAMENTO" tabindex="0">
-        <span>Em tratamento</span><strong id="cardEmTratamento">...</strong>
+      <article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO" tabindex="0">
+        <span>Em tratamento</span><div class="metric-value-row"><strong id="cardEmTratamento">...</strong><span class="metric-icon-placeholder" aria-hidden="true">04</span></div><small>Com tratamento iniciado</small>
       </article>
-      <article class="metric clickable" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-        <span>Sem responsável</span><strong id="cardSemResponsavel">...</strong>
+      <article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
+        <span>Sem responsável</span><div class="metric-value-row"><strong id="cardSemResponsavel">...</strong><span class="metric-icon-placeholder" aria-hidden="true">05</span></div><small>Sem operador principal</small>
       </article>
-      <article class="metric clickable" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
-        <span>Com múltiplos vínculos</span><strong id="cardMultiplas">...</strong>
+      <article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
+        <span>Com múltiplos vínculos</span><div class="metric-value-row"><strong id="cardMultiplas">...</strong><span class="metric-icon-placeholder" aria-hidden="true">06</span></div><small>Com mais de um vínculo</small>
       </article>
     </section>
 
@@ -115,7 +115,7 @@
 
     <section class="panel">
       <div class="table-toolbar">
-        <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
+        <div class="selection-summary"><div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div><button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button></div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px">
           <span style="font-size:.8rem;color:var(--muted)">Por página</span>
           <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
@@ -138,7 +138,7 @@
               <th>Situação</th>
               <th>Prioridade</th>
               <th>Operador</th>
-              <th>Espera</th>
+              <th title="Tempo decorrido e data da última modificação registrada no sistema de origem.">Tempo de espera</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -165,14 +165,39 @@
         <button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button>
       </header>
       <div class="modal-body">
-        <div class="summary-box" id="demandaResumoModal"></div>
+        <div class="assignment-hero">
+          <div class="assignment-icon-placeholder" aria-hidden="true">ID</div>
+          <div><span class="eyebrow">Demanda selecionada</span><strong id="modalIdentificador">Não informado</strong><span id="modalSituacao">Disponível para atribuição</span></div>
+        </div>
+        <section class="assignment-section" aria-labelledby="identificacaoModalTitulo">
+          <h3 id="identificacaoModalTitulo">Identificação</h3>
+          <dl class="detail-grid">
+            <div><dt>Nº do indício</dt><dd id="modalNumeroIndicio">Não informado</dd></div>
+            <div><dt>CPF</dt><dd id="modalCpf">Não informado</dd></div>
+            <div class="detail-wide"><dt>Nome da pessoa</dt><dd id="modalNome">Não informado</dd></div>
+          </dl>
+        </section>
+        <section class="assignment-section" aria-labelledby="caracterizacaoModalTitulo">
+          <h3 id="caracterizacaoModalTitulo">Caracterização</h3>
+          <dl class="detail-grid">
+            <div class="detail-wide"><dt>Tipo de indício</dt><dd id="modalTipo">Não informado</dd></div>
+            <div class="detail-wide"><dt>Situação funcional</dt><dd id="modalSituacaoFuncional">Não informado</dd></div>
+            <div><dt>Tempo de espera</dt><dd id="modalEspera">Não informado</dd></div>
+            <div><dt>Última alteração na origem</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
+          </dl>
+          <div class="privacy-note"><strong>Dados protegidos</strong><span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span></div>
+        </section>
         <div class="field">
           <label for="operadorAtribuicaoSelect">Operador principal</label>
           <select class="control" id="operadorAtribuicaoSelect" required>
             <option value="">Selecione um operador</option>
           </select>
         </div>
-        <p class="modal-note">A prioridade será definida como Normal e o modo de trabalho como Individual pelo backend.</p>
+        <div class="assignment-grid">
+          <div class="field"><label for="prioridadeAtribuicao">Prioridade inicial</label><div class="readonly-control" id="prioridadeAtribuicao">Normal</div></div>
+          <div class="field"><label>Modo de trabalho</label><div class="readonly-control">Individual</div></div>
+        </div>
+        <p class="modal-note">Nesta primeira rodada, prioridade e modo são definidos pelo backend e apresentados apenas para conferência.</p>
       </div>
       <footer class="modal-footer">
         <button class="btn" id="cancelarModalBtn" type="button">Cancelar</button>
