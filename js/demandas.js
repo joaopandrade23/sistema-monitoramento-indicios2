@@ -277,3 +277,126 @@ async function atribuirDemanda() {
     atualizarControles();
   }
 }
+
+function configurarEventos() {
+  // Filtros de busca e seleção
+  el.buscaInput.addEventListener('input', () => {
+    clearTimeout(estado.buscaTimer);
+    estado.buscaTimer = setTimeout(() => {
+      estado.filtros.busca = el.buscaInput.value.trim();
+      estado.paginacao.pagina = 1;
+      carregarDemandas();
+    }, 400);
+  });
+
+  el.situacaoSelect.addEventListener('change', () => {
+    estado.filtros.situacao = el.situacaoSelect.value;
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.operadorFiltroSelect.addEventListener('change', () => {
+    estado.filtros.idOperador = el.operadorFiltroSelect.value ? Number(el.operadorFiltroSelect.value) : null;
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.ordenacaoSelect.addEventListener('change', () => {
+    estado.filtros.ordenacao = el.ordenacaoSelect.value;
+    carregarDemandas();
+  });
+
+  el.semResponsavelCheck.addEventListener('change', (e) => {
+    estado.filtros.semResponsavel = e.target.checked || null;
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.multiplasCheck.addEventListener('change', (e) => {
+    estado.filtros.multiplas = e.target.checked || null;
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.analiseCheck.addEventListener('change', (e) => {
+    estado.filtros.requerAnalise = e.target.checked || null;
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.limparFiltrosBtn.addEventListener('click', () => {
+    el.buscaInput.value = '';
+    el.situacaoSelect.value = '';
+    el.operadorFiltroSelect.value = '';
+    el.ordenacaoSelect.value = 'DIAS_ESPERA_DESC';
+    el.semResponsavelCheck.checked = false;
+    el.multiplasCheck.checked = false;
+    el.analiseCheck.checked = false;
+    estado.filtros = { busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC', multiplas: null, semResponsavel: null, requerAnalise: null };
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  // Tabela e Seleção
+  el.demandasTbody.addEventListener('click', (e) => {
+    const radio = e.target.closest('input[data-selecionar]');
+    const btnAtribuir = e.target.closest('button[data-atribuir]');
+    if (radio) {
+      selecionarDemanda(radio.dataset.selecionar);
+    } else if (btnAtribuir) {
+      const demanda = estado.demandas.find(d => String(d.id_indicio) === String(btnAtribuir.dataset.atribuir));
+      if (demanda) abrirModal(demanda);
+    }
+  });
+
+  el.limparSelecaoBtn?.addEventListener('click', limparSelecao);
+  el.atribuirSelecionadaBtn.addEventListener('click', () => abrirModal(estado.selecionada));
+
+  // Modais e Ações Gerais
+  el.fecharModalBtn.addEventListener('click', fecharModal);
+  el.cancelarModalBtn.addEventListener('click', fecharModal);
+  el.confirmarAtribuicaoBtn.addEventListener('click', atribuirDemanda);
+  el.atualizarBtn.addEventListener('click', () => Promise.allSettled([carregarResumo(), carregarDemandas()]));
+
+  // Paginação
+  el.tamanhoPaginaSelect.addEventListener('change', () => {
+    estado.paginacao.tamanho = Number(el.tamanhoPaginaSelect.value);
+    estado.paginacao.pagina = 1;
+    carregarDemandas();
+  });
+
+  el.paginaAnteriorBtn.addEventListener('click', () => {
+    if (estado.paginacao.pagina > 1) {
+      estado.paginacao.pagina--;
+      carregarDemandas();
+    }
+  });
+
+  el.proximaPaginaBtn.addEventListener('click', () => {
+    if (estado.paginacao.pagina < estado.paginacao.totalPaginas) {
+      estado.paginacao.pagina++;
+      carregarDemandas();
+    }
+  });
+
+  // Tema Dark/Light
+  el.temaBtn.addEventListener('click', () => {
+    const atual = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', atual === 'dark' ? 'light' : 'dark');
+  });
+}
+
+async function inicializar() {
+  try {
+    await exigirAcesso();
+    configurarEventos();
+    await Promise.all([carregarOperadores(), carregarResumo(), carregarDemandas()]);
+  } catch (error) {
+    if (error?.message !== 'SESSAO_AUSENTE') {
+      console.error('Erro de inicialização', error);
+      exibirMensagem('Não foi possível carregar a aplicação.', 'error');
+    }
+  }
+}
+
+inicializar();
