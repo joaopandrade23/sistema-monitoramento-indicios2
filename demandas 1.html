@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Demandas | Sistema de Monitoramento de Indícios</title>
+  <meta name="description" content="Consulta e atribuição de demandas aos operadores da SEGEP/CE.">
+
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #dce3ed;
+      --primary: #155eef;
+      --primary-hover: #004eeb;
+      --primary-soft: #eff4ff;
+      --success: #067647;
+      --success-soft: #ecfdf3;
+      --warning: #b54708;
+      --warning-soft: #fffaeb;
+      --danger: #b42318;
+      --danger-soft: #fef3f2;
+      --neutral-soft: #f2f4f7;
+      --shadow: 0 8px 28px rgba(16, 24, 40, 0.08);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(21, 94, 239, 0.22);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0c111d;
+      --surface: #161b26;
+      --surface-2: #1f242f;
+      --text: #f5f7fa;
+      --muted: #98a2b3;
+      --line: #344054;
+      --primary: #84adff;
+      --primary-hover: #b2ccff;
+      --primary-soft: #102a56;
+      --success: #75e0a7;
+      --success-soft: #073d2b;
+      --warning: #fec84b;
+      --warning-soft: #4e2b0c;
+      --danger: #fda29b;
+      --danger-soft: #55160c;
+      --neutral-soft: #292e3a;
+      --shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    a { color: inherit; }
+    :focus-visible { outline: none; box-shadow: var(--focus); }
+    [hidden] { display: none !important; }
+
+    .app-header {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      min-height: 68px; padding: 10px 24px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      border-bottom: 1px solid var(--line); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--primary); color: white; font-weight: 800; }
+    .brand-text { min-width: 0; }
+    .brand-text strong, .brand-text span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-text span { color: var(--muted); font-size: .82rem; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .user-box { text-align: right; margin-right: 6px; }
+    .user-box strong, .user-box span { display: block; }
+    .user-box span { color: var(--muted); font-size: .78rem; }
+
+    .container { width: min(1600px, calc(100% - 32px)); margin: 26px auto 50px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px; }
+    h1 { margin: 0 0 7px; font-size: clamp(1.65rem, 3vw, 2.3rem); letter-spacing: -.03em; }
+    .page-heading p { margin: 0; color: var(--muted); }
+    .heading-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn {
+      border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text);
+      min-height: 40px; padding: 9px 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-weight: 650; transition: .18s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--primary); }
+    .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-ghost { background: transparent; }
+    .btn-danger { color: var(--danger); }
+    .icon-btn { width: 40px; padding: 0; }
+
+    .status-banner { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+    .status-banner.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); background: var(--danger-soft); }
+    .status-banner.success { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, var(--line)); background: var(--success-soft); }
+    .status-banner.warning { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 35%, var(--line)); background: var(--warning-soft); }
+
+    .cards { display: grid; grid-template-columns: repeat(6, minmax(155px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .metric { min-height: 116px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .metric span { display: block; color: var(--muted); font-size: .82rem; line-height: 1.25; }
+    .metric strong { display: block; margin-top: 8px; font-size: 1.8rem; letter-spacing: -.04em; }
+    .metric.clickable { cursor: pointer; transition: .18s ease; }
+    .metric.clickable:hover { border-color: var(--primary); transform: translateY(-2px); }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .filter-panel { padding: 16px; margin-bottom: 16px; }
+    .filter-grid { display: grid; grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(170px, 1fr)); gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: .8rem; font-weight: 700; color: var(--muted); }
+    .control { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--text); }
+    .filter-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+    .check-row { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: .88rem; }
+    .check-row label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+
+    .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .selection-info { color: var(--muted); font-size: .9rem; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; min-width: 1300px; border-collapse: collapse; }
+    th, td { padding: 13px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+    th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    tbody tr:hover { background: color-mix(in srgb, var(--primary-soft) 55%, transparent); }
+    td { font-size: .88rem; }
+    .cell-person strong, .cell-person span { display: block; }
+    .cell-person span { color: var(--muted); margin-top: 3px; font-size: .8rem; }
+    .truncate { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: .74rem; font-weight: 750; white-space: nowrap; background: var(--neutral-soft); color: var(--text); }
+    .badge-success { background: var(--success-soft); color: var(--success); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-primary { background: var(--primary-soft); color: var(--primary); }
+    .actions-cell { display: flex; gap: 7px; }
+    .empty { padding: 52px 20px; text-align: center; color: var(--muted); }
+    .empty strong { display: block; color: var(--text); margin-bottom: 5px; }
+
+    .pagination { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 16px; }
+    .pagination-info { color: var(--muted); font-size: .86rem; }
+    .pagination-actions { display: flex; align-items: center; gap: 8px; }
+
+    .overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px; background: rgba(15, 23, 42, .58); }
+    .modal { width: min(620px, 100%); max-height: min(90vh, 760px); overflow: auto; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+    .modal-header, .modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; }
+    .modal-header { border-bottom: 1px solid var(--line); }
+    .modal-footer { border-top: 1px solid var(--line); justify-content: flex-end; }
+    .modal-header h2 { margin: 0; font-size: 1.15rem; }
+    .modal-body { padding: 18px; }
+    .summary-box { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); margin-bottom: 16px; }
+    .summary-box strong, .summary-box span { display: block; }
+    .summary-box span { color: var(--muted); font-size: .84rem; margin-top: 4px; }
+    .modal-note { margin: 12px 0 0; color: var(--muted); font-size: .82rem; }
+    .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 1250px) { .cards { grid-template-columns: repeat(3, 1fr); } .filter-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 760px) {
+      .app-header { padding: 9px 12px; }
+      .brand-text span, .user-box { display: none; }
+      .container { width: min(100% - 20px, 1600px); margin-top: 18px; }
+      .page-heading { flex-direction: column; }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .filter-grid { grid-template-columns: 1fr; }
+      .filter-footer, .pagination { align-items: stretch; flex-direction: column; }
+      .pagination-actions { justify-content: space-between; }
+      .heading-actions { width: 100%; }
+      .heading-actions .btn { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">MI</div>
+      <div class="brand-text">
+        <strong>Monitoramento de Indícios</strong>
+        <span>Gestão SEGEP/CE</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-box">
+        <strong id="usuarioNome">Carregando...</strong>
+        <span id="usuarioPerfil"></span>
+      </div>
+      <button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema" title="Alternar tema">◐</button>
+      <button class="btn btn-danger" id="sairBtn" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-heading">
+      <div>
+        <h1>Demandas</h1>
+        <p>Consulte, filtre e atribua os indícios aos operadores da SEGEP/CE.</p>
+      </div>
+      <div class="heading-actions">
+        <button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
+        <button class="btn btn-primary" id="atribuirSelecionadaBtn" type="button" disabled>Atribuir selecionada</button>
+      </div>
+    </section>
+
+    <div id="mensagem" class="status-banner" role="status" aria-live="polite" hidden></div>
+
+    <section class="cards" aria-label="Resumo das demandas">
+      <article class="metric clickable" data-card-filter="TODAS" tabindex="0">
+        <span>Total de demandas</span><strong id="cardTotal">...</strong>
+      </article>
+      <article class="metric clickable" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
+        <span>Disponíveis para atribuição</span><strong id="cardDisponiveis">...</strong>
+      </article>
+      <article class="metric clickable" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
+        <span>Pendentes de tratamento</span><strong id="cardPendentes">...</strong>
+      </article>
+      <article class="metric clickable" data-card-filter="EM_TRATAMENTO" tabindex="0">
+        <span>Em tratamento</span><strong id="cardEmTratamento">...</strong>
+      </article>
+      <article class="metric clickable" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
+        <span>Sem responsável</span><strong id="cardSemResponsavel">...</strong>
+      </article>
+      <article class="metric clickable" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
+        <span>Com múltiplos vínculos</span><strong id="cardMultiplas">...</strong>
+      </article>
+    </section>
+
+    <section class="panel filter-panel" aria-label="Filtros">
+      <div class="filter-grid">
+        <div class="field">
+          <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
+          <input class="control" id="buscaInput" type="search" maxlength="120" autocomplete="off" placeholder="Digite para pesquisar">
+        </div>
+        <div class="field">
+          <label for="situacaoSelect">Situação operacional</label>
+          <select class="control" id="situacaoSelect">
+            <option value="">Todas</option>
+            <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
+            <option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
+            <option value="EM_TRATAMENTO">Em tratamento</option>
+            <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
+            <option value="VALIDADO_TCU">Validado pelo TCU</option>
+            <option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="operadorFiltroSelect">Operador principal</label>
+          <select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label for="ordenacaoSelect">Ordenar por</label>
+          <select class="control" id="ordenacaoSelect">
+            <option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
+            <option value="DIAS_ESPERA_ASC">Menor tempo de espera</option>
+            <option value="ATUALIZACAO_DESC">Atualização mais recente</option>
+            <option value="ATUALIZACAO_ASC">Atualização mais antiga</option>
+            <option value="NOME_ASC">Nome de A a Z</option>
+            <option value="NOME_DESC">Nome de Z a A</option>
+            <option value="TIPO_ASC">Tipo de A a Z</option>
+            <option value="IDENTIFICADOR_ASC">Identificador crescente</option>
+            <option value="IDENTIFICADOR_DESC">Identificador decrescente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-footer">
+        <div class="check-row">
+          <label><input id="semResponsavelCheck" type="checkbox"> Apenas sem responsável</label>
+          <label><input id="multiplasCheck" type="checkbox"> Apenas múltiplos vínculos</label>
+          <label><input id="analiseCheck" type="checkbox"> Apenas requerem análise</label>
+        </div>
+        <button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="table-toolbar">
+        <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
+        <label class="field" style="flex-direction:row;align-items:center;gap:8px">
+          <span style="font-size:.8rem;color:var(--muted)">Por página</span>
+          <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Lista de demandas">
+          <thead>
+            <tr>
+              <th style="width:46px">Selecionar</th>
+              <th>Indício</th>
+              <th>Pessoa</th>
+              <th>Tipo</th>
+              <th>Vínculos</th>
+              <th>Situação</th>
+              <th>Prioridade</th>
+              <th>Operador</th>
+              <th>Espera</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="demandasTbody"></tbody>
+        </table>
+        <div class="empty" id="estadoTabela"><strong>Carregando demandas...</strong><span>Aguarde um momento.</span></div>
+      </div>
+
+      <div class="pagination">
+        <div class="pagination-info" id="paginacaoInfo">Carregando...</div>
+        <div class="pagination-actions">
+          <button class="btn" id="paginaAnteriorBtn" type="button" disabled>Anterior</button>
+          <span id="paginaAtualInfo">Página 1</span>
+          <button class="btn" id="proximaPaginaBtn" type="button" disabled>Próxima</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="atribuicaoOverlay" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="atribuicaoTitulo">
+      <header class="modal-header">
+        <h2 id="atribuicaoTitulo">Atribuir demanda</h2>
+        <button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="summary-box" id="demandaResumoModal"></div>
+        <div class="field">
+          <label for="operadorAtribuicaoSelect">Operador principal</label>
+          <select class="control" id="operadorAtribuicaoSelect" required>
+            <option value="">Selecione um operador</option>
+          </select>
+        </div>
+        <p class="modal-note">A prioridade será definida como Normal e o modo de trabalho como Individual pelo backend.</p>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn" id="cancelarModalBtn" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="confirmarAtribuicaoBtn" type="button">Confirmar atribuição</button>
+      </footer>
+    </section>
+  </div>
+
+  <script type="module">
+    'use strict';
+
+    import { supabase } from "./js/supabase.js";
+
+    const CONFIG = Object.freeze({
+      LOGIN_URL: "./login.html",
+      PERFIS_AUTORIZADOS: ["GESTOR_SEGEP_CE", "GESTOR_DADOS_SISTEMA"]
+    });
+
+    const sb = supabase;
+
+    const estado = {
+      contexto: null,
+      operadores: [],
+      demandas: [],
+      selecionada: null,
+      carregando: false,
+      atribuindo: false,
+      buscaTimer: null,
+      paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
+      filtros: {
+        busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC',
+        multiplas: null, semResponsavel: null, requerAnalise: null
+      }
+    };
+
+    const el = Object.fromEntries([
+      'usuarioNome','usuarioPerfil','temaBtn','sairBtn','atualizarBtn','atribuirSelecionadaBtn','mensagem',
+      'cardTotal','cardDisponiveis','cardPendentes','cardEmTratamento','cardSemResponsavel','cardMultiplas',
+      'buscaInput','situacaoSelect','operadorFiltroSelect','ordenacaoSelect','semResponsavelCheck','multiplasCheck','analiseCheck','limparFiltrosBtn',
+      'tamanhoPaginaSelect','demandasTbody','estadoTabela','selectionInfo','paginacaoInfo','paginaAtualInfo','paginaAnteriorBtn','proximaPaginaBtn',
+      'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','demandaResumoModal','operadorAtribuicaoSelect','confirmarAtribuicaoBtn'
+    ].map(id => [id, document.getElementById(id)]));
+
+    function textoSeguro(valor, fallback = 'Não informado') {
+      const texto = valor === null || valor === undefined || valor === '' ? fallback : String(valor);
+      return texto.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+
+    function exibirMensagem(texto, tipo = '') {
+      el.mensagem.textContent = texto;
+      el.mensagem.className = `status-banner ${tipo}`.trim();
+      el.mensagem.hidden = false;
+    }
+    function ocultarMensagem() { el.mensagem.hidden = true; }
+
+    function mensagemErro(error, fallback) {
+      const msg = error?.message || fallback;
+      if (/JWT|session|auth/i.test(msg)) return 'Sua sessão não é mais válida. Entre novamente para continuar.';
+      if (/PERFIL_NAO_AUTORIZADO|permission|42501/i.test(msg)) return 'Seu perfil não possui permissão para executar esta operação.';
+      if (/DEMANDA_NAO_ELEGIVEL|TRATAMENTO_JA_POSSUI_CICLO_ATIVO|23505/i.test(msg)) return 'A demanda foi alterada ou já possui ciclo ativo. A lista será atualizada.';
+      return fallback;
+    }
+
+    function formatarData(valor) {
+      if (!valor) return 'Não informado';
+      const data = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00`) : new Date(valor);
+      return Number.isNaN(data.getTime()) ? 'Não informado' : new Intl.DateTimeFormat('pt-BR').format(data);
+    }
+
+    function rotuloSituacao(codigo) {
+      return ({
+        DISPONIVEL_PARA_ATRIBUICAO: 'Disponível para atribuição',
+        PENDENTE_DE_TRATAMENTO: 'Pendente de tratamento',
+        EM_TRATAMENTO: 'Em tratamento',
+        AGUARDANDO_VALIDACAO_TCU: 'Aguardando validação do TCU',
+        VALIDADO_TCU: 'Validado pelo TCU',
+        ENCERRADO_INTERNAMENTE: 'Encerrado internamente',
+        ESTADO_MISTO_REQUER_ANALISE: 'Requer análise',
+        REQUER_ANALISE: 'Requer análise'
+      })[codigo] || codigo || 'Não classificada';
+    }
+
+    function classeSituacao(codigo) {
+      if (codigo === 'DISPONIVEL_PARA_ATRIBUICAO') return 'badge-primary';
+      if (codigo === 'EM_TRATAMENTO' || codigo === 'VALIDADO_TCU') return 'badge-success';
+      if (codigo === 'PENDENTE_DE_TRATAMENTO' || codigo === 'AGUARDANDO_VALIDACAO_TCU') return 'badge-warning';
+      if (/ANALISE|MISTO/.test(codigo || '')) return 'badge-danger';
+      return '';
+    }
+
+    async function exigirAcesso() {
+      const { data: sessaoData, error: sessaoErro } = await sb.auth.getSession();
+      if (sessaoErro || !sessaoData.session) {
+        window.location.replace(CONFIG.LOGIN_URL);
+        throw new Error('SESSAO_AUSENTE');
+      }
+
+      const { data, error } = await sb.from('v_meu_contexto').select('*').limit(2);
+      if (error) throw error;
+      if (!Array.isArray(data) || data.length !== 1) throw new Error('CONTEXTO_FUNCIONAL_INVALIDO');
+      if (!CONFIG.PERFIS_AUTORIZADOS.includes(data[0].codigo_perfil)) throw new Error('PERFIL_NAO_AUTORIZADO');
+
+      estado.contexto = data[0];
+      el.usuarioNome.textContent = data[0].nome_exibicao || data[0].email_institucional || 'Usuário';
+      el.usuarioPerfil.textContent = data[0].nome_perfil || data[0].codigo_perfil;
+    }
+
+    async function carregarOperadores() {
+      const { data, error } = await sb.from('v_operadores_disponiveis').select('id_usuario,nome_exibicao,email_institucional').order('nome_exibicao');
+      if (error) throw error;
+      estado.operadores = data || [];
+      const options = estado.operadores.map(op => `<option value="${op.id_usuario}">${textoSeguro(op.nome_exibicao)}${op.email_institucional ? ` (${textoSeguro(op.email_institucional)})` : ''}</option>`).join('');
+      el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${options}`;
+      el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${options}`;
+    }
+
+    async function carregarResumo() {
+      const { data, error } = await sb.rpc('resumo_demandas_gestao');
+      if (error) throw error;
+      el.cardTotal.textContent = data?.total_demandas ?? 0;
+      el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
+      el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
+      el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
+      el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
+      el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
+    }
+
+    function parametrosListagem() {
+      return {
+        p_busca: estado.filtros.busca || null,
+        p_situacao_operacional: estado.filtros.situacao || null,
+        p_id_operador: estado.filtros.idOperador,
+        p_id_tipo_indicio: null,
+        p_codigo_prioridade: null,
+        p_codigo_modo: null,
+        p_apenas_multiplas_origens: estado.filtros.multiplas,
+        p_apenas_sem_responsavel: estado.filtros.semResponsavel,
+        p_apenas_requer_analise: estado.filtros.requerAnalise,
+        p_ordenacao: estado.filtros.ordenacao,
+        p_pagina: estado.paginacao.pagina,
+        p_tamanho_pagina: estado.paginacao.tamanho
+      };
+    }
+
+    async function carregarDemandas() {
+      estado.carregando = true;
+      atualizarControles();
+      el.estadoTabela.hidden = false;
+      el.estadoTabela.innerHTML = '<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>';
+      el.demandasTbody.innerHTML = '';
+
+      try {
+        const { data, error } = await sb.rpc('listar_demandas_gestao', parametrosListagem());
+        if (error) throw error;
+        estado.demandas = data?.itens || [];
+        estado.paginacao.pagina = data?.paginacao?.pagina || 1;
+        estado.paginacao.total = data?.paginacao?.total_registros || 0;
+        estado.paginacao.totalPaginas = data?.paginacao?.total_paginas || 0;
+        renderizarDemandas();
+        renderizarPaginacao(data?.paginacao || {});
+      } catch (error) {
+        console.error('Falha ao carregar demandas', error);
+        el.estadoTabela.innerHTML = '<strong>Não foi possível carregar as demandas.</strong><span>Tente atualizar a página.</span>';
+        exibirMensagem(mensagemErro(error, 'Não foi possível carregar as demandas.'), 'error');
+      } finally {
+        estado.carregando = false;
+        atualizarControles();
+      }
+    }
+
+    function renderizarDemandas() {
+      if (!estado.demandas.length) {
+        el.estadoTabela.hidden = false;
+        el.estadoTabela.innerHTML = '<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros aplicados.</span>';
+        return;
+      }
+      el.estadoTabela.hidden = true;
+      el.demandasTbody.innerHTML = estado.demandas.map(d => {
+        const selecionada = estado.selecionada?.id_indicio === d.id_indicio;
+        const habilitada = Boolean(d.pode_abrir_e_atribuir);
+        const vinculos = d.quantidade_origens > 1 ? `${textoSeguro((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>` : textoSeguro(d.situacoes_funcionais_resumo);
+        return `<tr>
+          <td><input type="radio" name="demanda" data-selecionar="${d.id_indicio}" ${selecionada ? 'checked' : ''} ${habilitada ? '' : 'disabled'} aria-label="Selecionar demanda ${textoSeguro(d.identificador_do_indicio)}"></td>
+          <td><strong>${textoSeguro(d.identificador_do_indicio)}</strong><br><small>${textoSeguro(d.base_de_dados)}</small></td>
+          <td class="cell-person"><strong>${textoSeguro(d.nome_atual)}</strong><span>${textoSeguro(d.cpf_mascarado)}</span></td>
+          <td><div class="truncate" title="${textoSeguro(d.tipo_indicio)}">${textoSeguro(d.tipo_indicio)}</div></td>
+          <td><div class="truncate" title="${textoSeguro(d.situacoes_funcionais_resumo)}">${vinculos}</div></td>
+          <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${textoSeguro(rotuloSituacao(d.situacao_operacional))}</span></td>
+          <td>${textoSeguro(d.nome_prioridade, 'Ainda não definida')}</td>
+          <td>${textoSeguro(d.nome_operador_principal, 'Sem responsável')}</td>
+          <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Atualizado em ${formatarData(d.data_ultima_modificacao)}</small></td>
+          <td><div class="actions-cell">
+            <button class="btn btn-primary" type="button" data-atribuir="${d.id_indicio}" ${habilitada ? '' : 'disabled'}>Atribuir</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderizarPaginacao(p) {
+      el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros} demandas` : 'Nenhuma demanda encontrada';
+      el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
+      el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
+      el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
+    }
+
+    function selecionarDemanda(id) {
+      estado.selecionada = estado.demandas.find(d => String(d.id_indicio) === String(id)) || null;
+      atualizarControles();
+    }
+
+    function atualizarControles() {
+      el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
+      el.atribuirSelecionadaBtn.disabled = !estado.selecionada?.pode_abrir_e_atribuir || estado.carregando || estado.atribuindo;
+      el.selectionInfo.textContent = estado.selecionada ? `Indício ${estado.selecionada.identificador_do_indicio} selecionado` : 'Nenhuma demanda selecionada';
+    }
+
+    function abrirModal(demanda) {
+      if (!demanda?.pode_abrir_e_atribuir) return;
+      estado.selecionada = demanda;
+      el.demandaResumoModal.innerHTML = `<strong>${textoSeguro(demanda.identificador_do_indicio)} · ${textoSeguro(demanda.nome_atual)}</strong><span>${textoSeguro(demanda.tipo_indicio)}</span><span>${textoSeguro(demanda.situacoes_funcionais_resumo)}</span>`;
+      el.operadorAtribuicaoSelect.value = '';
+      el.atribuicaoOverlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => el.operadorAtribuicaoSelect.focus(), 0);
+      atualizarControles();
+    }
+
+    function fecharModal() {
+      if (estado.atribuindo) return;
+      el.atribuicaoOverlay.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    function idDataHoje() {
+      const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Fortaleza', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      const mapa = Object.fromEntries(partes.map(p => [p.type, p.value]));
+      return Number(`${mapa.year}${mapa.month}${mapa.day}`);
+    }
+
+    async function atribuirDemanda() {
+      const demanda = estado.selecionada;
+      const idOperador = Number(el.operadorAtribuicaoSelect.value);
+      if (!demanda?.pode_abrir_e_atribuir) return exibirMensagem('A demanda selecionada não está mais elegível para atribuição.', 'warning');
+      if (!idOperador) return exibirMensagem('Selecione o operador principal.', 'warning');
+
+      estado.atribuindo = true;
+      el.confirmarAtribuicaoBtn.disabled = true;
+      el.confirmarAtribuicaoBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Atribuindo...';
+      ocultarMensagem();
+
+      try {
+        const { data, error } = await sb.rpc('abrir_atribuir_fluxo_individual', {
+          p_id_indicio: demanda.id_indicio,
+          p_id_origem_abertura: demanda.id_origem_representativa,
+          p_id_estado_indicio_abertura: demanda.id_estado_indicio,
+          p_id_data_abertura: idDataHoje(),
+          p_id_usuario_operador: idOperador,
+          p_id_data_prazo: null,
+          p_prazo_em: null
+        });
+        if (error) throw error;
+        fecharModalForcado();
+        estado.selecionada = null;
+        exibirMensagem(`Demanda ${demanda.identificador_do_indicio} atribuída com sucesso.`, 'success');
+        await Promise.all([carregarResumo(), carregarDemandas()]);
+        console.info('Atribuição concluída', data);
+      } catch (error) {
+        console.error('Falha na atribuição', error);
+        exibirMensagem(mensagemErro(error, 'Não foi possível atribuir a demanda.'), 'error');
+        if (/DEMANDA_NAO_ELEGIVEL|TRATAMENTO_JA_POSSUI_CICLO_ATIVO|23505/i.test(error?.message || '')) {
+          estado.selecionada = null;
+          fecharModalForcado();
+          await Promise.allSettled([carregarResumo(), carregarDemandas()]);
+        }
+      } finally {
+        estado.atribuindo = false;
+        el.confirmarAtribuicaoBtn.disabled = false;
+        el.confirmarAtribuicaoBtn.textContent = 'Confirmar atribuição';
+        atualizarControles();
+      }
+    }
+
+    function fecharModalForcado() { el.atribuicaoOverlay.hidden = true; document.body.style.overflow = ''; }
+
+    function aplicarFiltrosDaTela() {
+      estado.filtros.busca = el.buscaInput.value.trim();
+      estado.filtros.situacao = el.situacaoSelect.value;
+      estado.filtros.idOperador = el.operadorFiltroSelect.value ? Number(el.operadorFiltroSelect.value) : null;
+      estado.filtros.ordenacao = el.ordenacaoSelect.value;
+      estado.filtros.semResponsavel = el.semResponsavelCheck.checked ? true : null;
+      estado.filtros.multiplas = el.multiplasCheck.checked ? true : null;
+      estado.filtros.requerAnalise = el.analiseCheck.checked ? true : null;
+      estado.paginacao.pagina = 1;
+      estado.selecionada = null;
+      carregarDemandas();
+    }
+
+    function limparFiltros() {
+      el.buscaInput.value = '';
+      el.situacaoSelect.value = '';
+      el.operadorFiltroSelect.value = '';
+      el.ordenacaoSelect.value = 'DIAS_ESPERA_DESC';
+      el.semResponsavelCheck.checked = false;
+      el.multiplasCheck.checked = false;
+      el.analiseCheck.checked = false;
+      aplicarFiltrosDaTela();
+    }
+
+    function aplicarFiltroCard(codigo) {
+      limparFiltrosSemConsulta();
+      if (codigo === 'DISPONIVEL_PARA_ATRIBUICAO' || codigo === 'PENDENTE_DE_TRATAMENTO' || codigo === 'EM_TRATAMENTO') el.situacaoSelect.value = codigo;
+      if (codigo === 'SEM_RESPONSAVEL') el.semResponsavelCheck.checked = true;
+      if (codigo === 'MULTIPLAS_ORIGENS') el.multiplasCheck.checked = true;
+      aplicarFiltrosDaTela();
+    }
+
+    function limparFiltrosSemConsulta() {
+      el.buscaInput.value = ''; el.situacaoSelect.value = ''; el.operadorFiltroSelect.value = '';
+      el.semResponsavelCheck.checked = false; el.multiplasCheck.checked = false; el.analiseCheck.checked = false;
+    }
+
+    async function sair() {
+      el.sairBtn.disabled = true;
+      try { if (sb) await sb.auth.signOut(); } finally { window.location.replace(CONFIG.LOGIN_URL); }
+    }
+
+    function configurarTema() {
+      const preferido = localStorage.getItem('tema') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = preferido;
+      el.temaBtn.addEventListener('click', () => {
+        const novo = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = novo;
+        localStorage.setItem('tema', novo);
+      });
+    }
+
+    function registrarEventos() {
+      el.sairBtn.addEventListener('click', sair);
+      el.atualizarBtn.addEventListener('click', async () => { ocultarMensagem(); await Promise.all([carregarResumo(), carregarDemandas()]); });
+      el.atribuirSelecionadaBtn.addEventListener('click', () => abrirModal(estado.selecionada));
+      el.fecharModalBtn.addEventListener('click', fecharModal);
+      el.cancelarModalBtn.addEventListener('click', fecharModal);
+      el.confirmarAtribuicaoBtn.addEventListener('click', atribuirDemanda);
+      el.atribuicaoOverlay.addEventListener('click', e => { if (e.target === el.atribuicaoOverlay) fecharModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el.atribuicaoOverlay.hidden) fecharModal(); });
+
+      el.demandasTbody.addEventListener('change', e => { const id = e.target.dataset.selecionar; if (id) selecionarDemanda(id); });
+      el.demandasTbody.addEventListener('click', e => {
+        const botao = e.target.closest('[data-atribuir]');
+        if (botao) abrirModal(estado.demandas.find(d => String(d.id_indicio) === botao.dataset.atribuir));
+      });
+
+      el.buscaInput.addEventListener('input', () => { clearTimeout(estado.buscaTimer); estado.buscaTimer = setTimeout(aplicarFiltrosDaTela, 450); });
+      [el.situacaoSelect, el.operadorFiltroSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(c => c.addEventListener('change', aplicarFiltrosDaTela));
+      el.limparFiltrosBtn.addEventListener('click', limparFiltros);
+      el.tamanhoPaginaSelect.addEventListener('change', () => { estado.paginacao.tamanho = Number(el.tamanhoPaginaSelect.value); estado.paginacao.pagina = 1; carregarDemandas(); });
+      el.paginaAnteriorBtn.addEventListener('click', () => { if (estado.paginacao.pagina > 1) { estado.paginacao.pagina--; estado.selecionada = null; carregarDemandas(); } });
+      el.proximaPaginaBtn.addEventListener('click', () => { if (estado.paginacao.pagina < estado.paginacao.totalPaginas) { estado.paginacao.pagina++; estado.selecionada = null; carregarDemandas(); } });
+
+      document.querySelectorAll('[data-card-filter]').forEach(card => {
+        const acionar = () => aplicarFiltroCard(card.dataset.cardFilter);
+        card.addEventListener('click', acionar);
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); acionar(); } });
+      });
+    }
+
+    async function iniciar() {
+      configurarTema();
+      registrarEventos();
+      try {
+        await exigirAcesso();
+        await carregarOperadores();
+        await Promise.all([carregarResumo(), carregarDemandas()]);
+      } catch (error) {
+        if (error.message === 'SESSAO_AUSENTE') return;
+        console.error('Falha na inicialização', error);
+        exibirMensagem(mensagemErro(error, 'Não foi possível inicializar a página.'), 'error');
+        el.estadoTabela.innerHTML = '<strong>Acesso indisponível.</strong><span>Verifique sua sessão e suas permissões.</span>';
+      }
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>
