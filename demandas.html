@@ -3,210 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>Demandas | Sistema de Monitoramento de Indícios</title>
-  <meta name="description" content="Consulta e atribuição de demandas aos operadores da SEGEP/CE.">
-
-  <!-- Integração do arquivo CSS externo -->
+  <title>Gestão de Demandas - SMI</title>
   <link rel="stylesheet" href="demandas.css">
 </head>
 <body>
   <header class="app-header">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">MI</div>
-      <div class="brand-text">
-        <strong>Monitoramento de Indícios</strong>
-        <span>Gestão SEGEP/CE</span>
-      </div>
+    <div class="user-info">
+      <span id="usuarioNome">Carregando...</span>
+      <small id="usuarioPerfil"></small>
     </div>
-
     <div class="header-actions">
-      <div class="user-box">
-        <strong id="usuarioNome">Carregando...</strong>
-        <span id="usuarioPerfil"></span>
-      </div>
-      <button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema" title="Alternar tema">◐</button>
-      <button class="btn btn-danger" id="sairBtn" type="button">Sair</button>
+      <button id="temaBtn" class="btn btn-secondary" type="button">Alternar Tema</button>
+      <button id="sairBtn" class="btn btn-outline-danger" type="button">Sair</button>
     </div>
   </header>
 
   <main class="container">
-    <section class="page-heading">
-      <div>
-        <h1>Demandas</h1>
-        <p>Consulte, filtre e atribua os indícios aos operadores da SEGEP/CE.</p>
+    <div id="mensagem" class="status-banner" hidden></div>
+
+    <section class="toolbar">
+      <h1>Painel de Gestão de Demandas</h1>
+      <button id="atualizarBtn" class="btn btn-primary" type="button">Atualizar Dados</button>
+    </section>
+
+    <!-- Cards Métricos -->
+    <section class="metrics-grid">
+      <div class="metric">
+        <span class="metric-label">Total de Demandas</span>
+        <strong class="metric-value" id="cardTotal">0</strong>
       </div>
-      <div class="heading-actions">
-        <button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
-        <button class="btn btn-primary" id="atribuirSelecionadaBtn" type="button" disabled>Atribuir selecionada</button>
+      <div class="metric clickable" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
+        <span class="metric-label">Disponíveis</span>
+        <strong class="metric-value" id="cardDisponiveis">0</strong>
+      </div>
+      <div class="metric clickable" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
+        <span class="metric-label">Pendentes</span>
+        <strong class="metric-value" id="cardPendentes">0</strong>
+      </div>
+      <div class="metric clickable" data-card-filter="EM_TRATAMENTO" tabindex="0">
+        <span class="metric-label">Em Tratamento</span>
+        <strong class="metric-value" id="cardEmTratamento">0</strong>
+      </div>
+      <div class="metric clickable" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
+        <span class="metric-label">Sem Responsável</span>
+        <strong class="metric-value" id="cardSemResponsavel">0</strong>
+      </div>
+      <div class="metric clickable" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
+        <span class="metric-label">Múltiplas Origens</span>
+        <strong class="metric-value" id="cardMultiplas">0</strong>
       </div>
     </section>
 
-    <div id="mensagem" class="status-banner" role="status" aria-live="polite" hidden></div>
-
-    <section class="cards" aria-label="Resumo das demandas">
-      <article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
-        <span>Total de demandas</span><div class="metric-value-row"><strong id="cardTotal">...</strong><span class="metric-icon-placeholder" aria-hidden="true">01</span></div><small>Todas as demandas atuais</small>
-      </article>
-      <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
-        <span>Disponíveis para atribuição</span><div class="metric-value-row"><strong id="cardDisponiveis">...</strong><span class="metric-icon-placeholder" aria-hidden="true">02</span></div><small>Aguardando distribuição</small>
-      </article>
-      <article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
-        <span>Pendentes de tratamento</span><div class="metric-value-row"><strong id="cardPendentes">...</strong><span class="metric-icon-placeholder" aria-hidden="true">03</span></div><small>Atribuídas, ainda não iniciadas</small>
-      </article>
-      <article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO" tabindex="0">
-        <span>Em tratamento</span><div class="metric-value-row"><strong id="cardEmTratamento">...</strong><span class="metric-icon-placeholder" aria-hidden="true">04</span></div><small>Com tratamento iniciado</small>
-      </article>
-      <article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-        <span>Sem responsável</span><div class="metric-value-row"><strong id="cardSemResponsavel">...</strong><span class="metric-icon-placeholder" aria-hidden="true">05</span></div><small>Sem operador principal</small>
-      </article>
-      <article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
-        <span>Com múltiplos vínculos</span><div class="metric-value-row"><strong id="cardMultiplas">...</strong><span class="metric-icon-placeholder" aria-hidden="true">06</span></div><small>Com mais de um vínculo</small>
-      </article>
-    </section>
-
-    <section class="panel filter-panel" aria-label="Filtros">
-      <div class="filter-grid">
-        <div class="field">
-          <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
-          <input class="control" id="buscaInput" type="search" maxlength="120" autocomplete="off" placeholder="Digite para pesquisar">
-        </div>
-        <div class="field">
-          <label for="situacaoSelect">Situação operacional</label>
-          <select class="control" id="situacaoSelect">
-            <option value="">Todas</option>
-            <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
-            <option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
-            <option value="EM_TRATAMENTO">Em tratamento</option>
-            <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
-            <option value="VALIDADO_TCU">Validado pelo TCU</option>
-            <option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="operadorFiltroSelect">Operador principal</label>
-          <select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select>
-        </div>
-        <div class="field">
-          <label for="ordenacaoSelect">Ordenar por</label>
-          <select class="control" id="ordenacaoSelect">
-            <option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
-            <option value="DIAS_ESPERA_ASC">Menor tempo de espera</option>
-            <option value="ATUALIZACAO_DESC">Atualização mais recente</option>
-            <option value="ATUALIZACAO_ASC">Atualização mais antiga</option>
-            <option value="NOME_ASC">Nome de A a Z</option>
-            <option value="NOME_DESC">Nome de Z a A</option>
-            <option value="TIPO_ASC">Tipo de A a Z</option>
-            <option value="IDENTIFICADOR_ASC">Identificador crescente</option>
-            <option value="IDENTIFICADOR_DESC">Identificador decrescente</option>
-          </select>
-        </div>
+    <!-- Filtros -->
+    <section class="filters-card">
+      <div class="filter-group">
+        <input type="search" id="buscaInput" placeholder="Buscar por ID, nome ou CPF...">
+        <select id="situacaoSelect">
+          <option value="">Todas as situações</option>
+          <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para Atribuição</option>
+          <option value="PENDENTE_DE_TRATAMENTO">Pendente de Tratamento</option>
+          <option value="EM_TRATAMENTO">Em Tratamento</option>
+          <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando Validação TCU</option>
+          <option value="VALIDADO_TCU">Validado TCU</option>
+          <option value="ENCERRADO_INTERNAMENTE">Encerrado Internamente</option>
+          <option value="REQUER_ANALISE">Requer Análise</option>
+        </select>
+        <select id="operadorFiltroSelect">
+          <option value="">Todos os operadores</option>
+        </select>
+        <select id="ordenacaoSelect">
+          <option value="DIAS_ESPERA_DESC">Dias de espera (maior primeiro)</option>
+          <option value="DIAS_ESPERA_ASC">Dias de espera (menor primeiro)</option>
+        </select>
       </div>
 
-      <div class="filter-footer">
-        <div class="check-row">
-          <label><input id="semResponsavelCheck" type="checkbox"> Apenas sem responsável</label>
-          <label><input id="multiplasCheck" type="checkbox"> Apenas múltiplos vínculos</label>
-          <label><input id="analiseCheck" type="checkbox"> Apenas requerem análise</label>
-        </div>
-        <button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button>
+      <div class="filter-checkboxes">
+        <label><input type="checkbox" id="semResponsavelCheck"> Sem responsável</label>
+        <label><input type="checkbox" id="multiplasCheck"> Múltiplas origens</label>
+        <label><input type="checkbox" id="analiseCheck"> Requer análise</label>
+        <button id="limparFiltrosBtn" class="btn btn-link" type="button">Limpar Filtros</button>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="table-toolbar">
-        <div class="selection-summary"><div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div><button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button></div>
-        <label class="field" style="flex-direction:row;align-items:center;gap:8px">
-          <span style="font-size:.8rem;color:var(--muted)">Por página</span>
-          <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="table-wrap">
-        <table aria-label="Lista de demandas">
-          <thead>
-            <tr>
-              <th style="width:46px">Selecionar</th>
-              <th>Indício</th>
-              <th>Pessoa</th>
-              <th>Tipo</th>
-              <th>Vínculos</th>
-              <th>Situação</th>
-              <th>Prioridade</th>
-              <th>Operador</th>
-              <th title="Tempo decorrido e data da última modificação registrada no sistema de origem.">Tempo de espera</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="demandasTbody"></tbody>
-        </table>
-        <div class="empty" id="estadoTabela"><strong>Carregando demandas...</strong><span>Aguarde um momento.</span></div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-info" id="paginacaoInfo">Carregando...</div>
-        <div class="pagination-actions">
-          <button class="btn" id="paginaAnteriorBtn" type="button" disabled>Anterior</button>
-          <span id="paginaAtualInfo">Página 1</span>
-          <button class="btn" id="proximaPaginaBtn" type="button" disabled>Próxima</button>
-        </div>
+    <!-- Ações de Seleção -->
+    <section class="selection-bar">
+      <span id="selectionInfo">Nenhuma demanda selecionada</span>
+      <div class="selection-actions">
+        <button id="limparSelecaoBtn" class="btn btn-secondary" type="button" hidden>Limpar Seleção</button>
+        <button id="atribuirSelecionadaBtn" class="btn btn-primary" type="button" disabled>Atribuir Selecionada</button>
       </div>
     </section>
+
+    <!-- Tabela -->
+    <section class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;"></th>
+            <th>Identificador</th>
+            <th>Pessoa / CPF</th>
+            <th>Tipo de Indício</th>
+            <th>Vínculos / Situação</th>
+            <th>Situação Operacional</th>
+            <th>Prioridade</th>
+            <th>Responsável</th>
+            <th>Espera / Alteração</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="demandasTbody"></tbody>
+      </table>
+      <div id="estadoTabela" class="empty-state" hidden></div>
+    </section>
+
+    <!-- Paginação -->
+    <footer class="pagination-bar">
+      <div class="pagination-size">
+        <label for="tamanhoPaginaSelect">Exibir por página:</label>
+        <select id="tamanhoPaginaSelect">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+        </select>
+        <span id="paginacaoInfo"></span>
+      </div>
+      <div class="pagination-controls">
+        <button id="paginaAnteriorBtn" class="btn btn-secondary" type="button" disabled>Anterior</button>
+        <span id="paginaAtualInfo">Página 1</span>
+        <button id="proximaPaginaBtn" class="btn btn-secondary" type="button" disabled>Próxima</button>
+      </div>
+    </footer>
   </main>
 
-  <div class="overlay" id="atribuicaoOverlay" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="atribuicaoTitulo">
-      <header class="modal-header">
-        <h2 id="atribuicaoTitulo">Atribuir demanda</h2>
-        <button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button>
-      </header>
+  <!-- Modal de Atribuição -->
+  <div id="atribuicaoOverlay" class="modal-overlay" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalIdentificador">
+      <div class="modal-header">
+        <h2>Atribuir Demanda <span id="modalIdentificador"></span></h2>
+        <button id="fecharModalBtn" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+      </div>
       <div class="modal-body">
-        <div class="assignment-hero">
-          <div class="assignment-icon-placeholder" aria-hidden="true">ID</div>
-          <div><span class="eyebrow">Demanda selecionada</span><strong id="modalIdentificador">Não informado</strong><span id="modalSituacao">Disponível para atribuição</span></div>
+        <div class="details-grid">
+          <div><strong>Situação:</strong> <span id="modalSituacao"></span></div>
+          <div><strong>Número Indício:</strong> <span id="modalNumeroIndicio"></span></div>
+          <div><strong>CPF:</strong> <span id="modalCpf"></span></div>
+          <div><strong>Nome:</strong> <span id="modalNome"></span></div>
+          <div><strong>Tipo Indício:</strong> <span id="modalTipo"></span></div>
+          <div><strong>Situação Funcional:</strong> <span id="modalSituacaoFuncional"></span></div>
+          <div><strong>Tempo de Espera:</strong> <span id="modalEspera"></span></div>
+          <div><strong>Última Alteração:</strong> <span id="modalUltimaAlteracao"></span></div>
         </div>
-        <section class="assignment-section" aria-labelledby="identificacaoModalTitulo">
-          <h3 id="identificacaoModalTitulo">Identificação</h3>
-          <dl class="detail-grid">
-            <div><dt>Nº do indício</dt><dd id="modalNumeroIndicio">Não informado</dd></div>
-            <div><dt>CPF</dt><dd id="modalCpf">Não informado</dd></div>
-            <div class="detail-wide"><dt>Nome da pessoa</dt><dd id="modalNome">Não informado</dd></div>
-          </dl>
-        </section>
-        <section class="assignment-section" aria-labelledby="caracterizacaoModalTitulo">
-          <h3 id="caracterizacaoModalTitulo">Caracterização</h3>
-          <dl class="detail-grid">
-            <div class="detail-wide"><dt>Tipo de indício</dt><dd id="modalTipo">Não informado</dd></div>
-            <div class="detail-wide"><dt>Situação funcional</dt><dd id="modalSituacaoFuncional">Não informado</dd></div>
-            <div><dt>Tempo de espera</dt><dd id="modalEspera">Não informado</dd></div>
-            <div><dt>Última alteração na origem</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
-          </dl>
-          <div class="privacy-note"><strong>Dados protegidos</strong><span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span></div>
-        </section>
-        <div class="field">
-          <label for="operadorAtribuicaoSelect">Operador principal</label>
-          <select class="control" id="operadorAtribuicaoSelect" required>
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <label for="operadorAtribuicaoSelect"><strong>Operador Responsável *</strong></label>
+          <select id="operadorAtribuicaoSelect" class="form-control">
             <option value="">Selecione um operador</option>
           </select>
         </div>
-        <div class="assignment-grid">
-          <div class="field"><label for="prioridadeAtribuicao">Prioridade inicial</label><div class="readonly-control" id="prioridadeAtribuicao">Normal</div></div>
-          <div class="field"><label>Modo de trabalho</label><div class="readonly-control">Individual</div></div>
-        </div>
-        <p class="modal-note">Nesta primeira rodada, prioridade e modo são definidos pelo backend e apresentados apenas para conferência.</p>
       </div>
-      <footer class="modal-footer">
-        <button class="btn" id="cancelarModalBtn" type="button">Cancelar</button>
-        <button class="btn btn-primary" id="confirmarAtribuicaoBtn" type="button">Confirmar atribuição</button>
-      </footer>
-    </section>
+      <div class="modal-footer">
+        <button id="cancelarModalBtn" class="btn btn-secondary" type="button">Cancelar</button>
+        <button id="confirmarAtribuicaoBtn" class="btn btn-primary" type="button">Confirmar atribuição</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Vinculação externa do JavaScript -->
-  <script type="module" src="./js/demandas.js"></script>
+  <script type="module" src="/.js/demandas.js"></script>
 </body>
 </html>
