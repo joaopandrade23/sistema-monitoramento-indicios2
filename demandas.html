@@ -115,7 +115,7 @@
 
     <section class="panel">
       <div class="table-toolbar">
-        <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
+        <div class="selection-summary"><div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div><button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button></div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px">
           <span style="font-size:.8rem;color:var(--muted)">Por página</span>
           <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
@@ -180,8 +180,6 @@
       </footer>
     </section>
   </div>
-
-  <!-- Vinculação externa do JavaScript -->
   <script type="module" src="./js/demandas.js"></script>
 </body>
 </html>
