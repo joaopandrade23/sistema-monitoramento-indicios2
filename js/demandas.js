@@ -1,6 +1,4 @@
-'use strict';
-
-import { supabase } from "./js/supabase.js";
+import { supabase } from "./supabase.js";
 
 const CONFIG = Object.freeze({
   LOGIN_URL: "./index.html",
