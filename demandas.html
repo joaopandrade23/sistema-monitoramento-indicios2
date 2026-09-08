@@ -7,7 +7,7 @@
   <title>Demandas | Sistema de Monitoramento de Indícios</title>
   <meta name="description" content="Consulta e atribuição de demandas aos operadores da SEGEP/CE.">
 
-  <!-- Integração do arquivo CSS externo -->
+  <!-- Vinculação do arquivo CSS unificado -->
   <link rel="stylesheet" href="demandas.css">
 </head>
 <body>
@@ -38,7 +38,25 @@
       </div>
       <div class="heading-actions">
         <button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
-        <button class="btn btn-primary" id="atribuirSelecionadaBtn" type="button" disabled>Atribuir selecionada</button>
+        <div class="assignment-menu" id="assignmentMenu">
+          <button class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button" aria-haspopup="menu" aria-expanded="false">
+            Atribuir demandas <span aria-hidden="true">▾</span>
+          </button>
+          <div class="assignment-menu-popover" id="assignmentMenuPopover" role="menu" hidden>
+            <button type="button" role="menuitem" id="atribuirSelecionadasBtn" disabled>
+              <strong>Atribuir selecionadas</strong>
+              <span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
+            </button>
+            <button type="button" role="menuitem" id="atribuirPorTipoBtn">
+              <strong>Atribuir por tipo de indício</strong>
+              <span>Escolher um tipo e revisar o conjunto</span>
+            </button>
+            <button type="button" role="menuitem" id="atribuirPorCpfBtn">
+              <strong>Atribuir por CPF</strong>
+              <span>Localizar as demandas de uma pessoa</span>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -46,22 +64,52 @@
 
     <section class="cards" aria-label="Resumo das demandas">
       <article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
-        <span>Total de demandas</span><div class="metric-value-row"><strong id="cardTotal">...</strong><span class="metric-icon-placeholder" aria-hidden="true">01</span></div><small>Todas as demandas atuais</small>
+        <span>Total de demandas</span>
+        <div class="metric-value-row">
+          <strong id="cardTotal">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">01</span>
+        </div>
+        <small>Todas as demandas atuais</small>
       </article>
       <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
-        <span>Disponíveis para atribuição</span><div class="metric-value-row"><strong id="cardDisponiveis">...</strong><span class="metric-icon-placeholder" aria-hidden="true">02</span></div><small>Aguardando distribuição</small>
+        <span>Disponíveis para atribuição</span>
+        <div class="metric-value-row">
+          <strong id="cardDisponiveis">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">02</span>
+        </div>
+        <small>Aguardando distribuição</small>
       </article>
       <article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
-        <span>Pendentes de tratamento</span><div class="metric-value-row"><strong id="cardPendentes">...</strong><span class="metric-icon-placeholder" aria-hidden="true">03</span></div><small>Atribuídas, ainda não iniciadas</small>
+        <span>Pendentes de tratamento</span>
+        <div class="metric-value-row">
+          <strong id="cardPendentes">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">03</span>
+        </div>
+        <small>Atribuídas, ainda não iniciadas</small>
       </article>
       <article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO" tabindex="0">
-        <span>Em tratamento</span><div class="metric-value-row"><strong id="cardEmTratamento">...</strong><span class="metric-icon-placeholder" aria-hidden="true">04</span></div><small>Com tratamento iniciado</small>
+        <span>Em tratamento</span>
+        <div class="metric-value-row">
+          <strong id="cardEmTratamento">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">04</span>
+        </div>
+        <small>Com tratamento iniciado</small>
       </article>
       <article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-        <span>Sem responsável</span><div class="metric-value-row"><strong id="cardSemResponsavel">...</strong><span class="metric-icon-placeholder" aria-hidden="true">05</span></div><small>Sem operador principal</small>
+        <span>Sem responsável</span>
+        <div class="metric-value-row">
+          <strong id="cardSemResponsavel">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">05</span>
+        </div>
+        <small>Sem operador principal</small>
       </article>
       <article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
-        <span>Com múltiplos vínculos</span><div class="metric-value-row"><strong id="cardMultiplas">...</strong><span class="metric-icon-placeholder" aria-hidden="true">06</span></div><small>Com mais de um vínculo</small>
+        <span>Com múltiplos vínculos</span>
+        <div class="metric-value-row">
+          <strong id="cardMultiplas">...</strong>
+          <span class="metric-icon-placeholder" aria-hidden="true">06</span>
+        </div>
+        <small>Com mais de um vínculo</small>
       </article>
     </section>
 
@@ -115,10 +163,14 @@
 
     <section class="panel">
       <div class="table-toolbar">
-        <div class="selection-summary"><div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div><button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button></div>
-        <label class="field" style="flex-direction:row;align-items:center;gap:8px">
-          <span style="font-size:.8rem;color:var(--muted)">Por página</span>
-          <select class="control" id="tamanhoPaginaSelect" style="width:auto;min-height:36px">
+        <div class="selection-summary">
+          <div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
+          <button class="btn btn-ghost btn-sm" id="verSelecionadasBtn" type="button" hidden>Ver selecionadas</button>
+          <button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button>
+        </div>
+        <label class="field table-page-size">
+          <span>Por página</span>
+          <select class="control" id="tamanhoPaginaSelect">
             <option value="20">20</option>
             <option value="50">50</option>
             <option value="100">100</option>
@@ -130,7 +182,9 @@
         <table aria-label="Lista de demandas">
           <thead>
             <tr>
-              <th style="width:46px">Selecionar</th>
+              <th class="selection-column">
+                <input id="selecionarPaginaCheck" type="checkbox" aria-label="Selecionar demandas elegíveis desta página" title="Selecionar demandas elegíveis desta página">
+              </th>
               <th>Indício</th>
               <th>Pessoa</th>
               <th>Tipo</th>
@@ -144,7 +198,10 @@
           </thead>
           <tbody id="demandasTbody"></tbody>
         </table>
-        <div class="empty" id="estadoTabela"><strong>Carregando demandas...</strong><span>Aguarde um momento.</span></div>
+        <div class="empty" id="estadoTabela">
+          <strong>Carregando demandas...</strong>
+          <span>Aguarde um momento.</span>
+        </div>
       </div>
 
       <div class="pagination">
@@ -158,16 +215,21 @@
     </section>
   </main>
 
+  <!-- Overlay/Modal de Detalhe Individual -->
   <div class="overlay" id="atribuicaoOverlay" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="atribuicaoTitulo">
       <header class="modal-header">
-        <h2 id="atribuicaoTitulo">Atribuir demanda</h2>
+        <h2 id="atribuicaoTitulo">Detalhes da demanda</h2>
         <button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button>
       </header>
       <div class="modal-body">
         <div class="assignment-hero">
           <div class="assignment-icon-placeholder" aria-hidden="true">ID</div>
-          <div><span class="eyebrow">Demanda selecionada</span><strong id="modalIdentificador">Não informado</strong><span id="modalSituacao">Disponível para atribuição</span></div>
+          <div>
+            <span class="eyebrow">Demanda selecionada</span>
+            <strong id="modalIdentificador">Não informado</strong>
+            <span id="modalSituacao">Disponível para atribuição</span>
+          </div>
         </div>
         <section class="assignment-section" aria-labelledby="identificacaoModalTitulo">
           <h3 id="identificacaoModalTitulo">Identificação</h3>
@@ -185,7 +247,10 @@
             <div><dt>Tempo de espera</dt><dd id="modalEspera">Não informado</dd></div>
             <div><dt>Última alteração na origem</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
           </dl>
-          <div class="privacy-note"><strong>Dados protegidos</strong><span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span></div>
+          <div class="privacy-note">
+            <strong>Dados protegidos</strong>
+            <span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span>
+          </div>
         </section>
         <div class="field">
           <label for="operadorAtribuicaoSelect">Operador principal</label>
@@ -194,19 +259,83 @@
           </select>
         </div>
         <div class="assignment-grid">
-          <div class="field"><label for="prioridadeAtribuicao">Prioridade inicial</label><div class="readonly-control" id="prioridadeAtribuicao">Normal</div></div>
-          <div class="field"><label>Modo de trabalho</label><div class="readonly-control">Individual</div></div>
+          <div class="field">
+            <label for="prioridadeAtribuicao">Prioridade inicial</label>
+            <div class="readonly-control" id="prioridadeAtribuicao">Normal</div>
+          </div>
+          <div class="field">
+            <label>Modo de trabalho</label>
+            <div class="readonly-control">Individual</div>
+          </div>
         </div>
         <p class="modal-note">Nesta primeira rodada, prioridade e modo são definidos pelo backend e apresentados apenas para conferência.</p>
       </div>
       <footer class="modal-footer">
         <button class="btn" id="cancelarModalBtn" type="button">Cancelar</button>
-        <button class="btn btn-primary" id="confirmarAtribuicaoBtn" type="button">Confirmar atribuição</button>
+        <button class="btn btn-primary" id="selecionarNoDetalheBtn" type="button">Selecionar para atribuição</button>
       </footer>
     </section>
   </div>
 
-  <!-- Vinculação externa do JavaScript -->
-  <script type="module" src="./js/demandas.js"></script>
+  <!-- Overlay/Modal de Atribuição em Lote -->
+  <div class="overlay" id="loteOverlay" hidden>
+    <section class="modal batch-modal" role="dialog" aria-modal="true" aria-labelledby="loteTitulo">
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Atribuição em lote</span>
+          <h2 id="loteTitulo">Atribuir demandas</h2>
+        </div>
+        <button class="btn icon-btn btn-ghost" id="fecharLoteBtn" type="button" aria-label="Fechar">×</button>
+      </header>
+      <div class="modal-body">
+        <div id="loteEtapaSelecionadas" class="batch-step" hidden>
+          <div class="batch-summary">
+            <strong id="loteQuantidade">0</strong>
+            <span>demandas selecionadas</span>
+          </div>
+          <div class="selected-list" id="loteSelecionadasLista"></div>
+        </div>
+        <div id="loteEtapaTipo" class="batch-step" hidden>
+          <div class="field">
+            <label for="loteTipoSelect">Tipo de indício</label>
+            <select class="control" id="loteTipoSelect">
+              <option value="">Selecione um tipo</option>
+            </select>
+          </div>
+          <p class="modal-note">A consulta e a atribuição transacional por tipo serão ativadas após a criação da RPC de lote.</p>
+        </div>
+        <div id="loteEtapaCpf" class="batch-step" hidden>
+          <div class="field">
+            <label for="loteCpfInput">CPF</label>
+            <input class="control" id="loteCpfInput" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00">
+          </div>
+          <p class="modal-note">O CPF será usado somente como critério de busca. A prévia segura dependerá da RPC de lote.</p>
+        </div>
+        <section class="assignment-section">
+          <h3>Configuração da atribuição</h3>
+          <div class="assignment-grid">
+            <div class="field">
+              <label for="loteOperadorSelect">Operador principal</label>
+              <select class="control" id="loteOperadorSelect">
+                <option value="">Selecione um operador</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prioridade inicial</label>
+              <div class="readonly-control">Normal</div>
+            </div>
+          </div>
+        </section>
+        <div class="status-banner warning" id="loteAviso">Interface preparada. A confirmação em lote permanece bloqueada até a implementação da RPC transacional.</div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn" id="cancelarLoteBtn" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="confirmarLoteBtn" type="button" disabled>Confirmar atribuição</button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- JavaScript Principal -->
+  <script type="module" src="demandas.js"></script>
 </body>
 </html>
