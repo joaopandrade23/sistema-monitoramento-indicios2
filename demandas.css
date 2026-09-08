@@ -108,15 +108,12 @@ h1 { margin: 0 0 7px; font-size: clamp(1.65rem, 3vw, 2.3rem); letter-spacing: -.
 .check-row label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
 
 .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-.selection-summary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .selection-info { color: var(--muted); font-size: .9rem; }
-.btn-sm { min-height: 32px; padding: 5px 10px; font-size: .8rem; }
 .table-wrap { overflow: auto; }
 table { width: 100%; min-width: 1300px; border-collapse: collapse; }
 th, td { padding: 13px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
 tbody tr:hover { background: color-mix(in srgb, var(--primary-soft) 55%, transparent); }
-tbody tr.is-selected { background: var(--primary-soft); box-shadow: inset 4px 0 0 var(--primary); }
 td { font-size: .88rem; }
 .cell-person strong, .cell-person span { display: block; }
 .cell-person span { color: var(--muted); margin-top: 3px; font-size: .8rem; }
@@ -148,43 +145,7 @@ td { font-size: .88rem; }
 .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.metric.clickable { isolation: isolate; opacity: .82; }
-.metric.clickable > * { position: relative; z-index: 1; }
-.metric.clickable.is-filter-active {
-  opacity: 1;
-  border-color: var(--metric-accent, var(--primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--metric-accent, var(--primary)) 24%, transparent), var(--shadow);
-  transform: translateY(-3px);
-}
-.metric.clickable.is-filter-active::before {
-  content: 'Filtro ativo';
-  position: absolute; right: 10px; bottom: 8px; z-index: 2;
-  padding: 3px 7px; border-radius: 999px;
-  color: var(--metric-accent, var(--primary));
-  background: var(--surface); border: 1px solid currentColor;
-  font-size: .62rem; font-weight: 800; letter-spacing: .02em;
-}
-
-[data-theme="dark"] .metric {
-  background: #182131; border-color: #3d4b61; box-shadow: 0 8px 24px rgba(0,0,0,.24);
-}
-[data-theme="dark"] .metric span,
-[data-theme="dark"] .metric small { color: #c5d0e0; }
-[data-theme="dark"] .metric strong { color: var(--metric-dark-value, #ffffff); text-shadow: none; }
-[data-theme="dark"] .metric.clickable { opacity: .9; }
-[data-theme="dark"] .metric.clickable.is-filter-active {
-  opacity: 1; background: #202c40;
-  border-color: var(--metric-dark-value, var(--primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--metric-dark-value, var(--primary)) 30%, transparent), 0 12px 30px rgba(0,0,0,.4);
-}
-[data-theme="dark"] .metric.clickable.is-filter-active::before {
-  color: #0c111d; background: var(--metric-dark-value, #ffffff); border-color: transparent;
-}
-
-@media (max-width: 1250px) { 
-  .cards { grid-template-columns: repeat(3, 1fr); } 
-  .filter-grid { grid-template-columns: repeat(2, 1fr); } 
-}
+@media (max-width: 1250px) { .cards { grid-template-columns: repeat(3, 1fr); } .filter-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) {
   .app-header { padding: 9px 12px; }
   .brand-text span, .user-box { display: none; }
