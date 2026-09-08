@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 import { supabase } from "./supabase.js";
 
@@ -8,122 +8,136 @@ const CONFIG = Object.freeze({
 });
 
 const sb = supabase;
-
 const estado = {
   contexto: null,
   operadores: [],
   demandas: [],
-  selecionada: null,
+  selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
   buscaTimer: null,
+  cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   filtros: {
-    busca: '',
-    situacao: '',
+    busca: "",
+    situacao: "",
     idOperador: null,
-    ordenacao: 'DIAS_ESPERA_DESC',
+    ordenacao: "DIAS_ESPERA_DESC",
     multiplas: null,
     semResponsavel: null,
     requerAnalise: null
   }
 };
 
-const el = Object.fromEntries([
-  'usuarioNome','usuarioPerfil','temaBtn','sairBtn','atualizarBtn','atribuirSelecionadaBtn','mensagem',
-  'cardTotal','cardDisponiveis','cardPendentes','cardEmTratamento','cardSemResponsavel','cardMultiplas',
-  'buscaInput','situacaoSelect','operadorFiltroSelect','ordenacaoSelect','semResponsavelCheck','multiplasCheck','analiseCheck','limparFiltrosBtn',
-  'tamanhoPaginaSelect','demandasTbody','estadoTabela','selectionInfo','paginacaoInfo','paginaAtualInfo','paginaAnteriorBtn','proximaPaginaBtn',
-  'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','operadorAtribuicaoSelect','confirmarAtribuicaoBtn','limparSelecaoBtn',
-  'modalIdentificador','modalSituacao','modalNumeroIndicio','modalCpf','modalNome','modalTipo','modalSituacaoFuncional','modalEspera','modalUltimaAlteracao'
-].map(id => [id, document.getElementById(id)]));
+const ids = [
+  "usuarioNome", "usuarioPerfil", "temaBtn", "sairBtn", "atualizarBtn", "mensagem",
+  "atribuirDemandasBtn", "assignmentMenu", "assignmentMenuPopover", "atribuirSelecionadasBtn",
+  "atribuirSelecionadasHint", "atribuirPorTipoBtn", "atribuirPorCpfBtn",
+  "cardTotal", "cardDisponiveis", "cardPendentes", "cardEmTratamento", "cardSemResponsavel", "cardMultiplas",
+  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "ordenacaoSelect", "semResponsavelCheck",
+  "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
+  "tamanhoPaginaSelect", "demandasTbody", "estadoTabela", "selectionInfo", "verSelecionadasBtn",
+  "limparSelecaoBtn", "selecionarPaginaCheck", "paginacaoInfo", "paginaAtualInfo", "paginaAnteriorBtn", "proximaPaginaBtn",
+  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "selecionarNoDetalheBtn", "modalIdentificador",
+  "modalSituacao", "modalNumeroIndicio", "modalCpf", "modalNome", "modalTipo", "modalSituacaoFuncional",
+  "modalEspera", "modalUltimaAlteracao", "operadorAtribuicaoSelect",
+  "loteOverlay", "fecharLoteBtn", "cancelarLoteBtn", "confirmarLoteBtn", "loteTitulo", "loteEtapaSelecionadas",
+  "loteEtapaTipo", "loteEtapaCpf", "loteQuantidade", "loteSelecionadasLista", "loteTipoSelect", "loteCpfInput", "loteOperadorSelect"
+];
+const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 
-function textoSeguro(valor, fallback = 'Não informado') {
-  const texto = valor === null || valor === undefined || valor === '' ? fallback : String(valor);
-  return texto.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+function escapeHtml(valor, fallback = "Não informado") {
+  const texto = valor === null || valor === undefined || valor === "" ? fallback : String(valor);
+  return texto.replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
 }
 
-function exibirMensagem(texto, tipo = '') {
-  if (!el.mensagem) return;
+function exibirMensagem(texto, tipo = "") {
   el.mensagem.textContent = texto;
   el.mensagem.className = `status-banner ${tipo}`.trim();
   el.mensagem.hidden = false;
 }
 
 function ocultarMensagem() {
-  if (el.mensagem) el.mensagem.hidden = true;
-}
-
-function mensagemErro(error, fallback) {
-  const msg = error?.message || fallback;
-  if (/JWT|session|auth/i.test(msg)) return 'Sua sessão não é mais válida. Entre novamente para continuar.';
-  if (/PERFIL_NAO_AUTORIZADO|permission|42501/i.test(msg)) return 'Seu perfil não possui permissão para executar esta operação.';
-  if (/DEMANDA_NAO_ELEGIVEL|TRATAMENTO_JA_POSSUI_CICLO_ATIVO|23505/i.test(msg)) return 'A demanda foi alterada ou já possui ciclo ativo. A lista será atualizada.';
-  return fallback;
+  el.mensagem.hidden = true;
 }
 
 function formatarData(valor) {
-  if (!valor) return 'Não informado';
-  const data = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00`) : new Date(valor);
-  return Number.isNaN(data.getTime()) ? 'Não informado' : new Intl.DateTimeFormat('pt-BR').format(data);
+  if (!valor) return "Não informado";
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00`) : new Date(valor);
+  return Number.isNaN(d.getTime()) ? "Não informado" : new Intl.DateTimeFormat("pt-BR").format(d);
 }
 
-function rotuloSituacao(codigo) {
+function rotuloSituacao(c) {
   return ({
-    DISPONIVEL_PARA_ATRIBUICAO: 'Disponível para atribuição',
-    PENDENTE_DE_TRATAMENTO: 'Pendente de tratamento',
-    EM_TRATAMENTO: 'Em tratamento',
-    AGUARDANDO_VALIDACAO_TCU: 'Aguardando validação do TCU',
-    VALIDADO_TCU: 'Validado pelo TCU',
-    ENCERRADO_INTERNAMENTE: 'Encerrado internamente',
-    ESTADO_MISTO_REQUER_ANALISE: 'Requer análise',
-    REQUER_ANALISE: 'Requer análise'
-  })[codigo] || codigo || 'Não classificada';
+    DISPONIVEL_PARA_ATRIBUICAO: "Disponível para atribuição",
+    PENDENTE_DE_TRATAMENTO: "Pendente de tratamento",
+    EM_TRATAMENTO: "Em tratamento",
+    AGUARDANDO_VALIDACAO_TCU: "Aguardando validação do TCU",
+    VALIDADO_TCU: "Validado pelo TCU",
+    ENCERRADO_INTERNAMENTE: "Encerrado internamente",
+    ESTADO_MISTO_REQUER_ANALISE: "Requer análise"
+  })[c] || c || "Não classificada";
 }
 
-function classeSituacao(codigo) {
-  if (codigo === 'DISPONIVEL_PARA_ATRIBUICAO') return 'badge-primary';
-  if (codigo === 'EM_TRATAMENTO' || codigo === 'VALIDADO_TCU') return 'badge-success';
-  if (codigo === 'PENDENTE_DE_TRATAMENTO' || codigo === 'AGUARDANDO_VALIDACAO_TCU') return 'badge-warning';
-  if (/ANALISE|MISTO/.test(codigo || '')) return 'badge-danger';
-  return '';
+function classeSituacao(c) {
+  if (c === "DISPONIVEL_PARA_ATRIBUICAO") return "badge-primary";
+  if (["EM_TRATAMENTO", "VALIDADO_TCU"].includes(c)) return "badge-success";
+  if (["PENDENTE_DE_TRATAMENTO", "AGUARDANDO_VALIDACAO_TCU"].includes(c)) return "badge-warning";
+  if (/ANALISE|MISTO/.test(c || "")) return "badge-danger";
+  return "";
+}
+
+function mensagemErro(error, fallback) {
+  const m = error?.message || fallback;
+  if (/JWT|session|auth/i.test(m)) return "Sua sessão não é mais válida.";
+  if (/PERFIL_NAO_AUTORIZADO|permission|42501/i.test(m)) return "Seu perfil não possui permissão.";
+  return fallback;
 }
 
 async function exigirAcesso() {
-  const { data: sessaoData, error: sessaoErro } = await sb.auth.getSession();
-  if (sessaoErro || !sessaoData.session) {
-    window.location.replace(CONFIG.LOGIN_URL);
-    throw new Error('SESSAO_AUSENTE');
+  const { data: s, error: se } = await sb.auth.getSession();
+  if (se || !s.session) {
+    location.replace(CONFIG.LOGIN_URL);
+    throw new Error("SESSAO_AUSENTE");
   }
-
-  const { data, error } = await sb.from('v_meu_contexto').select('*').limit(2);
+  const { data, error } = await sb.from("v_meu_contexto").select("*").limit(2);
   if (error) throw error;
-  if (!Array.isArray(data) || data.length !== 1) throw new Error('CONTEXTO_FUNCIONAL_INVALIDO');
-  if (!CONFIG.PERFIS_AUTORIZADOS.includes(data[0].codigo_perfil)) throw new Error('PERFIL_NAO_AUTORIZADO');
-
+  if (!Array.isArray(data) || data.length !== 1) throw new Error("CONTEXTO_FUNCIONAL_INVALIDO");
+  if (!CONFIG.PERFIS_AUTORIZADOS.includes(data[0].codigo_perfil)) throw new Error("PERFIL_NAO_AUTORIZADO");
+  
   estado.contexto = data[0];
-  if (el.usuarioNome) el.usuarioNome.textContent = data[0].nome_exibicao || data[0].email_institucional || 'Usuário';
-  if (el.usuarioPerfil) el.usuarioPerfil.textContent = data[0].nome_perfil || data[0].codigo_perfil;
+  el.usuarioNome.textContent = data[0].nome_exibicao || data[0].email_institucional || "Usuário";
+  el.usuarioPerfil.textContent = data[0].nome_perfil || data[0].codigo_perfil;
 }
 
 async function carregarOperadores() {
-  const { data, error } = await sb.from('v_operadores_disponiveis').select('id_usuario,nome_exibicao,email_institucional').order('nome_exibicao');
+  const { data, error } = await sb.from("v_operadores_disponiveis")
+    .select("id_usuario,nome_exibicao,email_institucional")
+    .order("nome_exibicao");
   if (error) throw error;
+  
   estado.operadores = data || [];
-  const options = estado.operadores.map(op => `<option value="${op.id_usuario}">${textoSeguro(op.nome_exibicao)}${op.email_institucional ? ` (${textoSeguro(op.email_institucional)})` : ''}</option>`).join('');
-  if (el.operadorFiltroSelect) el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${options}`;
-  if (el.operadorAtribuicaoSelect) el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${options}`;
+  const opcoes = estado.operadores.map(o =>
+    `<option value="${o.id_usuario}">${escapeHtml(o.nome_exibicao)}${o.email_institucional ? ` (${escapeHtml(o.email_institucional)})` : ""}</option>`
+  ).join("");
+  
+  el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${opcoes}`;
+  el.loteOperadorSelect.innerHTML = `<option value="">Selecione um operador</option>${opcoes}`;
+  if (el.operadorAtribuicaoSelect) {
+    el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${opcoes}`;
+  }
 }
 
 async function carregarResumo() {
-  const { data, error } = await sb.rpc('resumo_demandas_gestao');
+  const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
-  if (el.cardTotal) el.cardTotal.textContent = data?.total_demandas ?? 0;
-  if (el.cardDisponiveis) el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
-  if (el.cardPendentes) el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
-  if (el.cardEmTratamento) el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
-  if (el.cardSemResponsavel) el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
-  if (el.cardMultiplas) el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
+  
+  el.cardTotal.textContent = data?.total_demandas ?? 0;
+  el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
+  el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
+  el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
+  el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
+  el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
 }
 
 function parametrosListagem() {
@@ -146,27 +160,27 @@ function parametrosListagem() {
 async function carregarDemandas() {
   estado.carregando = true;
   atualizarControles();
-  if (el.estadoTabela) {
-    el.estadoTabela.hidden = false;
-    el.estadoTabela.innerHTML = '<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>';
-  }
-  if (el.demandasTbody) el.demandasTbody.innerHTML = '';
-
+  el.estadoTabela.hidden = false;
+  el.estadoTabela.innerHTML = "<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>";
+  el.demandasTbody.innerHTML = "";
+  
   try {
-    const { data, error } = await sb.rpc('listar_demandas_gestao', parametrosListagem());
+    const { data, error } = await sb.rpc("listar_demandas_gestao", parametrosListagem());
     if (error) throw error;
+    
     estado.demandas = data?.itens || [];
-    estado.paginacao.pagina = data?.paginacao?.pagina || 1;
-    estado.paginacao.total = data?.paginacao?.total_registros || 0;
-    estado.paginacao.totalPaginas = data?.paginacao?.total_paginas || 0;
+    estado.paginacao = {
+      pagina: data?.paginacao?.pagina || 1,
+      tamanho: estado.paginacao.tamanho,
+      total: data?.paginacao?.total_registros || 0,
+      totalPaginas: data?.paginacao?.total_paginas || 0
+    };
     renderizarDemandas();
     renderizarPaginacao(data?.paginacao || {});
   } catch (error) {
-    console.error('Falha ao carregar demandas', error);
-    if (el.estadoTabela) {
-      el.estadoTabela.innerHTML = '<strong>Não foi possível carregar as demandas.</strong><span>Tente atualizar a página.</span>';
-    }
-    exibirMensagem(mensagemErro(error, 'Não foi possível carregar as demandas.'), 'error');
+    console.error(error);
+    el.estadoTabela.innerHTML = "<strong>Não foi possível carregar.</strong><span>Tente atualizar a página.</span>";
+    exibirMensagem(mensagemErro(error, "Não foi possível carregar as demandas."), "error");
   } finally {
     estado.carregando = false;
     atualizarControles();
@@ -175,333 +189,316 @@ async function carregarDemandas() {
 
 function renderizarDemandas() {
   if (!estado.demandas.length) {
-    if (el.estadoTabela) {
-      el.estadoTabela.hidden = false;
-      el.estadoTabela.innerHTML = '<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros aplicados.</span>';
-    }
+    el.estadoTabela.hidden = false;
+    el.estadoTabela.innerHTML = "<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros.</span>";
+    el.selecionarPaginaCheck.checked = false;
     return;
   }
-  if (el.estadoTabela) el.estadoTabela.hidden = true;
-  if (!el.demandasTbody) return;
-
+  
+  el.estadoTabela.hidden = true;
   el.demandasTbody.innerHTML = estado.demandas.map(d => {
-    const selecionada = estado.selecionada?.id_indicio === d.id_indicio;
-    const habilitada = Boolean(d.pode_abrir_e_atribuir);
-    const vinculos = d.quantidade_origens > 1 ? `${textoSeguro((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>` : textoSeguro(d.situacoes_funcionais_resumo);
-    return `<tr class="${selecionada ? 'is-selected' : ''}">
-      <td><input type="radio" name="demanda" data-selecionar="${d.id_indicio}" ${selecionada ? 'checked' : ''} ${habilitada ? '' : 'disabled'} aria-label="Selecionar demanda ${textoSeguro(d.identificador_do_indicio)}"></td>
-      <td><strong>${textoSeguro(d.identificador_do_indicio)}</strong><br><small>${textoSeguro(d.base_de_dados)}</small></td>
-      <td class="cell-person"><strong>${textoSeguro(d.nome_atual)}</strong><span>${textoSeguro(d.cpf_mascarado)}</span></td>
-      <td><div class="truncate" title="${textoSeguro(d.tipo_indicio)}">${textoSeguro(d.tipo_indicio)}</div></td>
-      <td><div class="truncate" title="${textoSeguro(d.situacoes_funcionais_resumo)}">${vinculos}</div></td>
-      <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${textoSeguro(rotuloSituacao(d.situacao_operacional))}</span></td>
-      <td>${textoSeguro(d.nome_prioridade, 'Ainda não definida')}</td>
-      <td>${textoSeguro(d.nome_operador_principal, 'Sem responsável')}</td>
+    const marcada = estado.selecionadas.has(String(d.id_indicio));
+    const elegivel = Boolean(d.pode_abrir_e_atribuir);
+    const vinculos = d.quantidade_origens > 1
+      ? `${escapeHtml((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>`
+      : escapeHtml(d.situacoes_funcionais_resumo);
+
+    return `<tr class="${marcada ? "is-selected" : ""}" data-row-indicio="${d.id_indicio}" aria-selected="${marcada}">
+      <td>
+        <input class="demand-checkbox" type="checkbox" data-selecionar="${d.id_indicio}" ${marcada ? "checked" : ""} ${elegivel ? "" : "disabled"} aria-label="Selecionar demanda ${escapeHtml(d.identificador_do_indicio)}">
+      </td>
+      <td><strong>${escapeHtml(d.identificador_do_indicio)}</strong><br><small>${escapeHtml(d.base_de_dados)}</small></td>
+      <td class="cell-person"><strong>${escapeHtml(d.nome_atual)}</strong><span>${escapeHtml(d.cpf_mascarado)}</span></td>
+      <td><div class="truncate" title="${escapeHtml(d.tipo_indicio)}">${escapeHtml(d.tipo_indicio)}</div></td>
+      <td><div class="truncate" title="${escapeHtml(d.situacoes_funcionais_resumo)}">${vinculos}</div></td>
+      <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
+      <td>${escapeHtml(d.nome_prioridade, "Ainda não definida")}</td>
+      <td>${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
       <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Última alteração: ${formatarData(d.data_ultima_modificacao)}</small></td>
-      <td><div class="actions-cell">
-        <button class="btn btn-primary" type="button" data-atribuir="${d.id_indicio}" ${habilitada ? '' : 'disabled'}>Atribuir</button>
-      </div></td>
+      <td><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Visualizar</button></td>
     </tr>`;
-  }).join('');
+  }).join("");
+  
+  atualizarCheckPagina();
 }
 
 function renderizarPaginacao(p) {
-  if (el.paginacaoInfo) el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros} demandas` : 'Nenhuma demanda encontrada';
-  if (el.paginaAtualInfo) el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
-  if (el.paginaAnteriorBtn) el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
-  if (el.proximaPaginaBtn) el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
+  el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros}` : "Nenhuma demanda";
+  el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
+  el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
+  el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
 }
 
-function selecionarDemanda(id) {
-  estado.selecionada = estado.demandas.find(d => String(d.id_indicio) === String(id)) || null;
+function alternarSelecao(d) {
+  if (!d?.pode_abrir_e_atribuir) return;
+  const k = String(d.id_indicio);
+  if (estado.selecionadas.has(k)) {
+    estado.selecionadas.delete(k);
+  } else {
+    estado.selecionadas.set(k, d);
+  }
   renderizarDemandas();
   atualizarControles();
 }
 
 function limparSelecao() {
-  estado.selecionada = null;
+  estado.selecionadas.clear();
   renderizarDemandas();
   atualizarControles();
 }
 
-function atualizarControles() {
-  if (el.atualizarBtn) el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
-  if (el.atribuirSelecionadaBtn) el.atribuirSelecionadaBtn.disabled = !estado.selecionada?.pode_abrir_e_atribuir || estado.carregando || estado.atribuindo;
-  if (el.selectionInfo) el.selectionInfo.textContent = estado.selecionada ? `Indício ${estado.selecionada.identificador_do_indicio} selecionado` : 'Nenhuma demanda selecionada';
-  if (el.limparSelecaoBtn) el.limparSelecaoBtn.hidden = !estado.selecionada;
-}
-
-function abrirModal(demanda) {
-  if (!demanda?.pode_abrir_e_atribuir) return;
-  estado.selecionada = demanda;
-  if (el.modalIdentificador) el.modalIdentificador.textContent = demanda.identificador_do_indicio || 'Não informado';
-  if (el.modalSituacao) el.modalSituacao.textContent = rotuloSituacao(demanda.situacao_operacional);
-  if (el.modalNumeroIndicio) el.modalNumeroIndicio.textContent = demanda.identificador_do_indicio || 'Não informado';
-  if (el.modalCpf) el.modalCpf.textContent = demanda.cpf_mascarado || 'Não informado';
-  if (el.modalNome) el.modalNome.textContent = demanda.nome_atual || 'Não informado';
-  if (el.modalTipo) el.modalTipo.textContent = demanda.tipo_indicio || 'Não informado';
-  if (el.modalSituacaoFuncional) el.modalSituacaoFuncional.textContent = demanda.situacoes_funcionais_resumo || 'Não informado';
-  if (el.modalEspera) el.modalEspera.textContent = `${Number(demanda.dias_de_espera || 0)} dias`;
-  if (el.modalUltimaAlteracao) el.modalUltimaAlteracao.textContent = formatarData(demanda.data_ultima_modificacao);
-  if (el.operadorAtribuicaoSelect) el.operadorAtribuicaoSelect.value = '';
-  if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = false;
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => el.operadorAtribuicaoSelect?.focus(), 0);
+function selecionarPagina(marcar) {
+  estado.demandas.filter(d => d.pode_abrir_e_atribuir).forEach(d => {
+    if (marcar) estado.selecionadas.set(String(d.id_indicio), d);
+    else estado.selecionadas.delete(String(d.id_indicio));
+  });
+  renderizarDemandas();
   atualizarControles();
 }
 
-function fecharModal() {
-  if (estado.atribuindo) return;
-  fecharModalForcado();
+function atualizarCheckPagina() {
+  const elegiveis = estado.demandas.filter(d => d.pode_abrir_e_atribuir);
+  const n = elegiveis.filter(d => estado.selecionadas.has(String(d.id_indicio))).length;
+  el.selecionarPaginaCheck.checked = elegiveis.length > 0 && n === elegiveis.length;
+  el.selecionarPaginaCheck.indeterminate = n > 0 && n < elegiveis.length;
 }
 
-function fecharModalForcado() {
-  if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = true;
-  document.body.style.overflow = '';
+function atualizarControles() {
+  const n = estado.selecionadas.size;
+  el.selectionInfo.textContent = n ? `${n} demanda${n > 1 ? "s" : ""} selecionada${n > 1 ? "s" : ""}` : "Nenhuma demanda selecionada";
+  el.limparSelecaoBtn.hidden = !n;
+  el.verSelecionadasBtn.hidden = !n;
+  el.atribuirSelecionadasBtn.disabled = !n;
+  el.atribuirSelecionadasHint.textContent = n ? `${n} selecionada${n > 1 ? "s" : ""}` : "Selecione ao menos uma demanda";
+  el.atualizarBtn.disabled = estado.carregando;
 }
 
-function idDataHoje() {
-  const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Fortaleza', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-  const mapa = Object.fromEntries(partes.map(p => [p.type, p.value]));
-  return Number(`${mapa.year}${mapa.month}${mapa.day}`);
+function abrirDetalhe(d) {
+  if (!d) return;
+  el.modalIdentificador.textContent = d.identificador_do_indicio || "Não informado";
+  el.modalSituacao.textContent = rotuloSituacao(d.situacao_operacional);
+  el.modalNumeroIndicio.textContent = d.identificador_do_indicio || "Não informado";
+  el.modalCpf.textContent = d.cpf_mascarado || "Não informado";
+  el.modalNome.textContent = d.nome_atual || "Não informado";
+  el.modalTipo.textContent = d.tipo_indicio || "Não informado";
+  el.modalSituacaoFuncional.textContent = d.situacoes_funcionais_resumo || "Não informado";
+  el.modalEspera.textContent = `${Number(d.dias_de_espera || 0)} dias`;
+  el.modalUltimaAlteracao.textContent = formatarData(d.data_ultima_modificacao);
+  
+  el.selecionarNoDetalheBtn.dataset.idIndicio = d.id_indicio;
+  el.selecionarNoDetalheBtn.disabled = !d.pode_abrir_e_atribuir;
+  el.selecionarNoDetalheBtn.textContent = estado.selecionadas.has(String(d.id_indicio)) ? "Remover da seleção" : "Selecionar para atribuição";
+  
+  el.atribuicaoOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
 }
 
-async function atribuirDemanda() {
-  const demanda = estado.selecionada;
-  const idOperador = Number(el.operadorAtribuicaoSelect?.value);
-  if (!demanda?.pode_abrir_e_atribuir) return exibirMensagem('A demanda selecionada não está mais elegível para atribuição.', 'warning');
-  if (!idOperador) return exibirMensagem('Selecione o operador principal.', 'warning');
+function fecharDetalhe() {
+  el.atribuicaoOverlay.hidden = true;
+  document.body.style.overflow = "";
+}
 
-  estado.atribuindo = true;
-  if (el.confirmarAtribuicaoBtn) {
-    el.confirmarAtribuicaoBtn.disabled = true;
-    el.confirmarAtribuicaoBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Atribuindo...';
+function alternarMenu(forcar) {
+  const abrir = forcar ?? el.assignmentMenuPopover.hidden;
+  el.assignmentMenuPopover.hidden = !abrir;
+  el.atribuirDemandasBtn.setAttribute("aria-expanded", String(abrir));
+}
+
+function abrirLote(modo) {
+  alternarMenu(false);
+  [el.loteEtapaSelecionadas, el.loteEtapaTipo, el.loteEtapaCpf].forEach(x => x.hidden = true);
+  
+  if (modo === "selecionadas") {
+    el.loteTitulo.textContent = "Atribuir demandas selecionadas";
+    el.loteEtapaSelecionadas.hidden = false;
+    el.loteQuantidade.textContent = estado.selecionadas.size;
+    el.loteSelecionadasLista.innerHTML = [...estado.selecionadas.values()].map(d =>
+      `<div><strong>${escapeHtml(d.identificador_do_indicio)}</strong><span>${escapeHtml(d.nome_atual)} · ${escapeHtml(d.cpf_mascarado)}</span></div>`
+    ).join("");
+  } else if (modo === "tipo") {
+    el.loteTitulo.textContent = "Atribuir por tipo de indício";
+    el.loteEtapaTipo.hidden = false;
+    const tipos = [...new Map(estado.demandas.map(d => [d.id_tipo_indicio, d.tipo_indicio])).entries()]
+      .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+    el.loteTipoSelect.innerHTML = '<option value="">Selecione um tipo</option>' +
+      tipos.map(([id, n]) => `<option value="${id}">${escapeHtml(n)}</option>`).join("");
+  } else {
+    el.loteTitulo.textContent = "Atribuir por CPF";
+    el.loteEtapaCpf.hidden = false;
+    el.loteCpfInput.value = "";
   }
-  ocultarMensagem();
-
-  try {
-    const { data, error } = await sb.rpc('abrir_atribuir_fluxo_individual', {
-      p_id_indicio: demanda.id_indicio,
-      p_id_origem_abertura: demanda.id_origem_representativa,
-      p_id_estado_indicio_abertura: demanda.id_estado_indicio,
-      p_id_data_abertura: idDataHoje(),
-      p_id_usuario_operador: idOperador,
-      p_id_data_prazo: null,
-      p_prazo_em: null
-    });
-    if (error) throw error;
-    fecharModal();
-    estado.selecionada = null;
-    exibirMensagem(`Demanda ${demanda.identificador_do_indicio} atribuída com sucesso.`, 'success');
-    await Promise.allSettled([carregarResumo(), carregarDemandas()]);
-  } catch (error) {
-    console.error('Falha na atribuição', error);
-    exibirMensagem(mensagemErro(error, 'Não foi possível atribuir a demanda.'), 'error');
-    if (/DEMANDA_NAO_ELEGIVEL|TRATAMENTO_JA_POSSUI_CICLO_ATIVO|23505/i.test(error?.message || '')) {
-      estado.selecionada = null;
-      fecharModal();
-      await Promise.allSettled([carregarResumo(), carregarDemandas()]);
-    }
-  } finally {
-    estado.atribuindo = false;
-    if (el.confirmarAtribuicaoBtn) {
-      el.confirmarAtribuicaoBtn.disabled = false;
-      el.confirmarAtribuicaoBtn.textContent = 'Confirmar atribuição';
-    }
-    atualizarControles();
-  }
+  
+  el.loteOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
 }
 
-function sincronizarFiltrosEBuscar() {
-  estado.filtros.busca = el.buscaInput?.value.trim() || '';
-  estado.filtros.situacao = el.situacaoSelect?.value || '';
-  estado.filtros.idOperador = el.operadorFiltroSelect?.value ? Number(el.operadorFiltroSelect.value) : null;
-  estado.filtros.ordenacao = el.ordenacaoSelect?.value || 'DIAS_ESPERA_DESC';
-  estado.filtros.semResponsavel = el.semResponsavelCheck?.checked ? true : null;
-  estado.filtros.multiplas = el.multiplasCheck?.checked ? true : null;
-  estado.filtros.requerAnalise = el.analiseCheck?.checked ? true : null;
+function fecharLote() {
+  el.loteOverlay.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function atualizarCardAtivo(codigo = "TODAS") {
+  estado.cardAtivo = codigo;
+  document.querySelectorAll(".metric.clickable").forEach(card => {
+    const ativo = card.dataset.cardFilter === codigo;
+    card.classList.toggle("is-filter-active", ativo);
+    card.setAttribute("aria-pressed", String(ativo));
+  });
+}
+
+function aplicarFiltros() {
+  estado.filtros = {
+    busca: el.buscaInput.value.trim(),
+    situacao: el.situacaoSelect.value,
+    idOperador: el.operadorFiltroSelect.value ? Number(el.operadorFiltroSelect.value) : null,
+    ordenacao: el.ordenacaoSelect.value,
+    multiplas: el.multiplasCheck.checked ? true : null,
+    semResponsavel: el.semResponsavelCheck.checked ? true : null,
+    requerAnalise: el.analiseCheck.checked ? true : null
+  };
   estado.paginacao.pagina = 1;
   carregarDemandas();
 }
 
 function registrarEventos() {
-  const temaSalvo = localStorage.getItem('tema_smi');
-  if (temaSalvo) {
-    document.documentElement.setAttribute('data-theme', temaSalvo);
-  }
+  atualizarCardAtivo("TODAS");
+  const tema = localStorage.getItem("tema_smi");
+  if (tema) document.documentElement.dataset.theme = tema;
 
-  el.temaBtn?.addEventListener('click', () => {
-    const html = document.documentElement;
-    const atual = html.getAttribute('data-theme');
-    const novo = atual === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', novo);
-    localStorage.setItem('tema_smi', novo);
+  el.temaBtn.addEventListener("click", () => {
+    const n = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = n;
+    localStorage.setItem("tema_smi", n);
   });
 
-  el.sairBtn?.addEventListener('click', async () => {
-    try {
-      await sb.auth.signOut();
-    } catch (err) {
-      console.error('Erro ao sair:', err);
-    } finally {
-      window.location.replace(CONFIG.LOGIN_URL);
+  el.sairBtn.addEventListener("click", async () => {
+    try { await sb.auth.signOut(); }
+    finally { location.replace(CONFIG.LOGIN_URL); }
+  });
+
+  el.atualizarBtn.addEventListener("click", () => Promise.allSettled([carregarResumo(), carregarDemandas()]));
+
+  el.atribuirDemandasBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    alternarMenu();
+  });
+  document.addEventListener("click", e => {
+    if (!el.assignmentMenu.contains(e.target)) alternarMenu(false);
+  });
+
+  el.atribuirSelecionadasBtn.addEventListener("click", () => abrirLote("selecionadas"));
+  el.atribuirPorTipoBtn.addEventListener("click", () => abrirLote("tipo"));
+  el.atribuirPorCpfBtn.addEventListener("click", () => abrirLote("cpf"));
+
+  el.limparSelecaoBtn.addEventListener("click", limparSelecao);
+  el.verSelecionadasBtn.addEventListener("click", () => abrirLote("selecionadas"));
+  el.selecionarPaginaCheck.addEventListener("change", e => selecionarPagina(e.target.checked));
+
+  el.demandasTbody.addEventListener("click", e => {
+    const check = e.target.closest("input[data-selecionar]");
+    if (check) {
+      const d = estado.demandas.find(x => String(x.id_indicio) === check.dataset.selecionar);
+      alternarSelecao(d);
+      return;
+    }
+    const botao = e.target.closest("button[data-visualizar]");
+    if (botao) {
+      abrirDetalhe(estado.demandas.find(x => String(x.id_indicio) === botao.dataset.visualizar));
+      return;
+    }
+    if (!e.target.closest("button,input,a,select")) {
+      const linha = e.target.closest("tr[data-row-indicio]");
+      if (linha) alternarSelecao(estado.demandas.find(x => String(x.id_indicio) === linha.dataset.rowIndicio));
     }
   });
 
-  el.atualizarBtn?.addEventListener('click', () => {
-    ocultarMensagem();
-    Promise.allSettled([carregarResumo(), carregarDemandas()]);
+  el.selecionarNoDetalheBtn.addEventListener("click", () => {
+    const d = estado.demandas.find(x => String(x.id_indicio) === el.selecionarNoDetalheBtn.dataset.idIndicio);
+    alternarSelecao(d);
+    fecharDetalhe();
+  });
+  el.fecharModalBtn.addEventListener("click", fecharDetalhe);
+  el.cancelarModalBtn.addEventListener("click", fecharDetalhe);
+  el.atribuicaoOverlay.addEventListener("click", e => {
+    if (e.target === el.atribuicaoOverlay) fecharDetalhe();
   });
 
-  el.atribuirSelecionadaBtn?.addEventListener('click', () => {
-    if (estado.selecionada) abrirModal(estado.selecionada);
+  el.fecharLoteBtn.addEventListener("click", fecharLote);
+  el.cancelarLoteBtn.addEventListener("click", fecharLote);
+  el.loteOverlay.addEventListener("click", e => {
+    if (e.target === el.loteOverlay) fecharLote();
   });
 
-  if (el.limparSelecaoBtn) {
-    el.limparSelecaoBtn.addEventListener('click', limparSelecao);
-  }
-
-  document.querySelectorAll('.metric.clickable').forEach(card => {
-    const aplicarFiltroCard = () => {
-      const tipo = card.dataset.cardFilter;
-
-      if (el.situacaoSelect) el.situacaoSelect.value = '';
-      if (el.semResponsavelCheck) el.semResponsavelCheck.checked = false;
-      if (el.multiplasCheck) el.multiplasCheck.checked = false;
-      if (el.analiseCheck) el.analiseCheck.checked = false;
-
-      if (['DISPONIVEL_PARA_ATRIBUICAO', 'PENDENTE_DE_TRATAMENTO', 'EM_TRATAMENTO'].includes(tipo)) {
-        if (el.situacaoSelect) el.situacaoSelect.value = tipo;
-      } else if (tipo === 'SEM_RESPONSAVEL') {
-        if (el.semResponsavelCheck) el.semResponsavelCheck.checked = true;
-      } else if (tipo === 'MULTIPLAS_ORIGENS') {
-        if (el.multiplasCheck) el.multiplasCheck.checked = true;
-      }
-
-      sincronizarFiltrosEBuscar();
+  document.querySelectorAll(".metric.clickable").forEach(card => {
+    const fn = () => {
+      const t = card.dataset.cardFilter;
+      atualizarCardAtivo(t);
+      el.situacaoSelect.value = "";
+      el.semResponsavelCheck.checked = false;
+      el.multiplasCheck.checked = false;
+      if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE_DE_TRATAMENTO", "EM_TRATAMENTO"].includes(t)) el.situacaoSelect.value = t;
+      else if (t === "SEM_RESPONSAVEL") el.semResponsavelCheck.checked = true;
+      else if (t === "MULTIPLAS_ORIGENS") el.multiplasCheck.checked = true;
+      aplicarFiltros();
     };
-
-    card.addEventListener('click', aplicarFiltroCard);
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    card.addEventListener("click", fn);
+    card.addEventListener("keydown", e => {
+      if (["Enter", " "].includes(e.key)) {
         e.preventDefault();
-        aplicarFiltroCard();
+        fn();
       }
     });
   });
 
-  el.buscaInput?.addEventListener('input', (e) => {
+  el.buscaInput.addEventListener("input", () => {
     clearTimeout(estado.buscaTimer);
-    estado.buscaTimer = setTimeout(() => {
-      estado.filtros.busca = e.target.value.trim();
-      estado.paginacao.pagina = 1;
-      carregarDemandas();
-    }, 400);
+    estado.buscaTimer = setTimeout(aplicarFiltros, 400);
+  });
+  
+  [el.situacaoSelect, el.operadorFiltroSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(x => {
+    x.addEventListener("change", () => {
+      atualizarCardAtivo("");
+      aplicarFiltros();
+    });
   });
 
-  el.situacaoSelect?.addEventListener('change', (e) => {
-    estado.filtros.situacao = e.target.value;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
+  el.limparFiltrosBtn.addEventListener("click", () => {
+    el.buscaInput.value = "";
+    el.situacaoSelect.value = "";
+    el.operadorFiltroSelect.value = "";
+    el.ordenacaoSelect.value = "DIAS_ESPERA_DESC";
+    el.semResponsavelCheck.checked = false;
+    el.multiplasCheck.checked = false;
+    el.analiseCheck.checked = false;
+    atualizarCardAtivo("TODAS");
+    aplicarFiltros();
   });
 
-  el.operadorFiltroSelect?.addEventListener('change', (e) => {
-    estado.filtros.idOperador = e.target.value ? Number(e.target.value) : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.ordenacaoSelect?.addEventListener('change', (e) => {
-    estado.filtros.ordenacao = e.target.value;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.semResponsavelCheck?.addEventListener('change', (e) => {
-    estado.filtros.semResponsavel = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.multiplasCheck?.addEventListener('change', (e) => {
-    estado.filtros.multiplas = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.analiseCheck?.addEventListener('change', (e) => {
-    estado.filtros.requerAnalise = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.limparFiltrosBtn?.addEventListener('click', () => {
-    if (el.buscaInput) el.buscaInput.value = '';
-    if (el.situacaoSelect) el.situacaoSelect.value = '';
-    if (el.operadorFiltroSelect) el.operadorFiltroSelect.value = '';
-    if (el.ordenacaoSelect) el.ordenacaoSelect.value = 'DIAS_ESPERA_DESC';
-    if (el.semResponsavelCheck) el.semResponsavelCheck.checked = false;
-    if (el.multiplasCheck) el.multiplasCheck.checked = false;
-    if (el.analiseCheck) el.analiseCheck.checked = false;
-
-    estado.filtros = {
-      busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC',
-      multiplas: null, semResponsavel: null, requerAnalise: null
-    };
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.tamanhoPaginaSelect?.addEventListener('change', (e) => {
+  el.tamanhoPaginaSelect.addEventListener("change", e => {
     estado.paginacao.tamanho = Number(e.target.value);
     estado.paginacao.pagina = 1;
     carregarDemandas();
   });
 
-  el.paginaAnteriorBtn?.addEventListener('click', () => {
+  el.paginaAnteriorBtn.addEventListener("click", () => {
     if (estado.paginacao.pagina > 1) {
       estado.paginacao.pagina--;
       carregarDemandas();
     }
   });
 
-  el.proximaPaginaBtn?.addEventListener('click', () => {
+  el.proximaPaginaBtn.addEventListener("click", () => {
     if (estado.paginacao.pagina < estado.paginacao.totalPaginas) {
       estado.paginacao.pagina++;
       carregarDemandas();
     }
   });
 
-  el.demandasTbody?.addEventListener('click', (e) => {
-    const radio = e.target.closest('input[data-selecionar]');
-    if (radio) {
-      selecionarDemanda(radio.dataset.selecionar);
-      return;
-    }
-
-    const btnAtribuir = e.target.closest('button[data-atribuir]');
-    if (btnAtribuir) {
-      const id = btnAtribuir.dataset.atribuir;
-      const demanda = estado.demandas.find(d => String(d.id_indicio) === String(id));
-      if (demanda) {
-        selecionarDemanda(id);
-        abrirModal(demanda);
-      }
-    }
-  });
-
-  el.fecharModalBtn?.addEventListener('click', fecharModal);
-  el.cancelarModalBtn?.addEventListener('click', fecharModal);
-  el.confirmarAtribuicaoBtn?.addEventListener('click', atribuirDemanda);
-
-  el.atribuicaoOverlay?.addEventListener('click', (e) => {
-    if (e.target === el.atribuicaoOverlay) fecharModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && el.atribuicaoOverlay && !el.atribuicaoOverlay.hidden) {
-      fecharModal();
-    }
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!el.loteOverlay.hidden) fecharLote();
+    else if (!el.atribuicaoOverlay.hidden) fecharDetalhe();
+    else if (!el.assignmentMenuPopover.hidden) alternarMenu(false);
   });
 }
 
@@ -510,10 +507,10 @@ async function init() {
   try {
     await exigirAcesso();
     await Promise.all([carregarOperadores(), carregarResumo(), carregarDemandas()]);
-  } catch (err) {
-    console.error('Erro na inicialização da página:', err);
-    if (err.message !== 'SESSAO_AUSENTE') {
-      exibirMensagem(mensagemErro(err, 'Erro ao carregar dados do sistema.'), 'error');
+  } catch (error) {
+    console.error(error);
+    if (error.message !== "SESSAO_AUSENTE") {
+      exibirMensagem(mensagemErro(error, "Erro ao carregar dados do sistema."), "error");
     }
   }
 }
