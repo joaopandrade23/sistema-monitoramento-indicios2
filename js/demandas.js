@@ -17,15 +17,11 @@ const estado = {
   carregando: false,
   atribuindo: false,
   buscaTimer: null,
+  cardAtivo: 'TODAS',
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   filtros: {
-    busca: '',
-    situacao: '',
-    idOperador: null,
-    ordenacao: 'DIAS_ESPERA_DESC',
-    multiplas: null,
-    semResponsavel: null,
-    requerAnalise: null
+    busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC',
+    multiplas: null, semResponsavel: null, requerAnalise: null
   }
 };
 
@@ -34,8 +30,7 @@ const el = Object.fromEntries([
   'cardTotal','cardDisponiveis','cardPendentes','cardEmTratamento','cardSemResponsavel','cardMultiplas',
   'buscaInput','situacaoSelect','operadorFiltroSelect','ordenacaoSelect','semResponsavelCheck','multiplasCheck','analiseCheck','limparFiltrosBtn',
   'tamanhoPaginaSelect','demandasTbody','estadoTabela','selectionInfo','paginacaoInfo','paginaAtualInfo','paginaAnteriorBtn','proximaPaginaBtn',
-  'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','operadorAtribuicaoSelect','confirmarAtribuicaoBtn','limparSelecaoBtn',
-  'modalIdentificador','modalSituacao','modalNumeroIndicio','modalCpf','modalNome','modalTipo','modalSituacaoFuncional','modalEspera','modalUltimaAlteracao'
+  'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','demandaResumoModal','operadorAtribuicaoSelect','confirmarAtribuicaoBtn','limparSelecaoBtn'
 ].map(id => [id, document.getElementById(id)]));
 
 function textoSeguro(valor, fallback = 'Não informado') {
@@ -44,14 +39,13 @@ function textoSeguro(valor, fallback = 'Não informado') {
 }
 
 function exibirMensagem(texto, tipo = '') {
-  if (!el.mensagem) return;
   el.mensagem.textContent = texto;
   el.mensagem.className = `status-banner ${tipo}`.trim();
   el.mensagem.hidden = false;
 }
 
-function ocultarMensagem() {
-  if (el.mensagem) el.mensagem.hidden = true;
+function ocultarMensagem() { 
+  el.mensagem.hidden = true; 
 }
 
 function mensagemErro(error, fallback) {
@@ -102,8 +96,8 @@ async function exigirAcesso() {
   if (!CONFIG.PERFIS_AUTORIZADOS.includes(data[0].codigo_perfil)) throw new Error('PERFIL_NAO_AUTORIZADO');
 
   estado.contexto = data[0];
-  if (el.usuarioNome) el.usuarioNome.textContent = data[0].nome_exibicao || data[0].email_institucional || 'Usuário';
-  if (el.usuarioPerfil) el.usuarioPerfil.textContent = data[0].nome_perfil || data[0].codigo_perfil;
+  el.usuarioNome.textContent = data[0].nome_exibicao || data[0].email_institucional || 'Usuário';
+  el.usuarioPerfil.textContent = data[0].nome_perfil || data[0].codigo_perfil;
 }
 
 async function carregarOperadores() {
@@ -111,19 +105,19 @@ async function carregarOperadores() {
   if (error) throw error;
   estado.operadores = data || [];
   const options = estado.operadores.map(op => `<option value="${op.id_usuario}">${textoSeguro(op.nome_exibicao)}${op.email_institucional ? ` (${textoSeguro(op.email_institucional)})` : ''}</option>`).join('');
-  if (el.operadorFiltroSelect) el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${options}`;
-  if (el.operadorAtribuicaoSelect) el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${options}`;
+  el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${options}`;
+  el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${options}`;
 }
 
 async function carregarResumo() {
   const { data, error } = await sb.rpc('resumo_demandas_gestao');
   if (error) throw error;
-  if (el.cardTotal) el.cardTotal.textContent = data?.total_demandas ?? 0;
-  if (el.cardDisponiveis) el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
-  if (el.cardPendentes) el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
-  if (el.cardEmTratamento) el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
-  if (el.cardSemResponsavel) el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
-  if (el.cardMultiplas) el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
+  el.cardTotal.textContent = data?.total_demandas ?? 0;
+  el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
+  el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
+  el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
+  el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
+  el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
 }
 
 function parametrosListagem() {
@@ -146,11 +140,9 @@ function parametrosListagem() {
 async function carregarDemandas() {
   estado.carregando = true;
   atualizarControles();
-  if (el.estadoTabela) {
-    el.estadoTabela.hidden = false;
-    el.estadoTabela.innerHTML = '<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>';
-  }
-  if (el.demandasTbody) el.demandasTbody.innerHTML = '';
+  el.estadoTabela.hidden = false;
+  el.estadoTabela.innerHTML = '<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>';
+  el.demandasTbody.innerHTML = '';
 
   try {
     const { data, error } = await sb.rpc('listar_demandas_gestao', parametrosListagem());
@@ -163,9 +155,7 @@ async function carregarDemandas() {
     renderizarPaginacao(data?.paginacao || {});
   } catch (error) {
     console.error('Falha ao carregar demandas', error);
-    if (el.estadoTabela) {
-      el.estadoTabela.innerHTML = '<strong>Não foi possível carregar as demandas.</strong><span>Tente atualizar a página.</span>';
-    }
+    el.estadoTabela.innerHTML = '<strong>Não foi possível carregar as demandas.</strong><span>Tente atualizar a página.</span>';
     exibirMensagem(mensagemErro(error, 'Não foi possível carregar as demandas.'), 'error');
   } finally {
     estado.carregando = false;
@@ -175,20 +165,16 @@ async function carregarDemandas() {
 
 function renderizarDemandas() {
   if (!estado.demandas.length) {
-    if (el.estadoTabela) {
-      el.estadoTabela.hidden = false;
-      el.estadoTabela.innerHTML = '<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros aplicados.</span>';
-    }
+    el.estadoTabela.hidden = false;
+    el.estadoTabela.innerHTML = '<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros aplicados.</span>';
     return;
   }
-  if (el.estadoTabela) el.estadoTabela.hidden = true;
-  if (!el.demandasTbody) return;
-
+  el.estadoTabela.hidden = true;
   el.demandasTbody.innerHTML = estado.demandas.map(d => {
     const selecionada = estado.selecionada?.id_indicio === d.id_indicio;
     const habilitada = Boolean(d.pode_abrir_e_atribuir);
     const vinculos = d.quantidade_origens > 1 ? `${textoSeguro((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>` : textoSeguro(d.situacoes_funcionais_resumo);
-    return `<tr>
+    return `<tr class="${selecionada ? 'is-selected' : ''}" data-row-indicio="${d.id_indicio}" aria-selected="${selecionada}">
       <td><input type="radio" name="demanda" data-selecionar="${d.id_indicio}" ${selecionada ? 'checked' : ''} ${habilitada ? '' : 'disabled'} aria-label="Selecionar demanda ${textoSeguro(d.identificador_do_indicio)}"></td>
       <td><strong>${textoSeguro(d.identificador_do_indicio)}</strong><br><small>${textoSeguro(d.base_de_dados)}</small></td>
       <td class="cell-person"><strong>${textoSeguro(d.nome_atual)}</strong><span>${textoSeguro(d.cpf_mascarado)}</span></td>
@@ -197,7 +183,7 @@ function renderizarDemandas() {
       <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${textoSeguro(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td>${textoSeguro(d.nome_prioridade, 'Ainda não definida')}</td>
       <td>${textoSeguro(d.nome_operador_principal, 'Sem responsável')}</td>
-      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Última alteração na origem: ${formatarData(d.data_ultima_modificacao)}</small></td>
+      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Atualizado em ${formatarData(d.data_ultima_modificacao)}</small></td>
       <td><div class="actions-cell">
         <button class="btn btn-primary" type="button" data-atribuir="${d.id_indicio}" ${habilitada ? '' : 'disabled'}>Atribuir</button>
       </div></td>
@@ -206,10 +192,10 @@ function renderizarDemandas() {
 }
 
 function renderizarPaginacao(p) {
-  if (el.paginacaoInfo) el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros} demandas` : 'Nenhuma demanda encontrada';
-  if (el.paginaAtualInfo) el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
-  if (el.paginaAnteriorBtn) el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
-  if (el.proximaPaginaBtn) el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
+  el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros} demandas` : 'Nenhuma demanda encontrada';
+  el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
+  el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
+  el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
 }
 
 function selecionarDemanda(id) {
@@ -217,6 +203,7 @@ function selecionarDemanda(id) {
   renderizarDemandas();
   atualizarControles();
 }
+
 function limparSelecao() {
   estado.selecionada = null;
   renderizarDemandas();
@@ -224,37 +211,26 @@ function limparSelecao() {
 }
 
 function atualizarControles() {
-  if (el.atualizarBtn) el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
-  if (el.atribuirSelecionadaBtn) el.atribuirSelecionadaBtn.disabled = !estado.selecionada?.pode_abrir_e_atribuir || estado.carregando || estado.atribuindo;
-  if (el.selectionInfo) el.selectionInfo.textContent = estado.selecionada ? `Indício ${estado.selecionada.identificador_do_indicio} selecionado` : 'Nenhuma demanda selecionada';
+  el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
+  el.atribuirSelecionadaBtn.disabled = !estado.selecionada?.pode_abrir_e_atribuir || estado.carregando || estado.atribuindo;
+  el.selectionInfo.textContent = estado.selecionada ? `Indício ${estado.selecionada.identificador_do_indicio} selecionado` : 'Nenhuma demanda selecionada';
   if (el.limparSelecaoBtn) el.limparSelecaoBtn.hidden = !estado.selecionada;
 }
 
 function abrirModal(demanda) {
   if (!demanda?.pode_abrir_e_atribuir) return;
   estado.selecionada = demanda;
-  if (el.modalIdentificador) el.modalIdentificador.textContent = demanda.identificador_do_indicio || 'Não informado';
-  if (el.modalSituacao) el.modalSituacao.textContent = rotuloSituacao(demanda.situacao_operacional);
-  if (el.modalNumeroIndicio) el.modalNumeroIndicio.textContent = demanda.identificador_do_indicio || 'Não informado';
-  if (el.modalCpf) el.modalCpf.textContent = demanda.cpf_mascarado || 'Não informado';
-  if (el.modalNome) el.modalNome.textContent = demanda.nome_atual || 'Não informado';
-  if (el.modalTipo) el.modalTipo.textContent = demanda.tipo_indicio || 'Não informado';
-  if (el.modalSituacaoFuncional) el.modalSituacaoFuncional.textContent = demanda.situacoes_funcionais_resumo || 'Não informado';
-  if (el.modalEspera) el.modalEspera.textContent = `${Number(demanda.dias_de_espera || 0)} dias`;
-  if (el.modalUltimaAlteracao) el.modalUltimaAlteracao.textContent = formatarData(demanda.data_ultima_modificacao);
-  if (el.operadorAtribuicaoSelect) el.operadorAtribuicaoSelect.value = '';
-  if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = false;
+  el.demandaResumoModal.innerHTML = `<strong>${textoSeguro(demanda.identificador_do_indicio)} · ${textoSeguro(demanda.nome_atual)}</strong><span>${textoSeguro(demanda.tipo_indicio)}</span><span>${textoSeguro(demanda.situacoes_funcionais_resumo)}</span>`;
+  el.operadorAtribuicaoSelect.value = '';
+  el.atribuicaoOverlay.hidden = false;
   document.body.style.overflow = 'hidden';
-  setTimeout(() => el.operadorAtribuicaoSelect?.focus(), 0);
+  setTimeout(() => el.operadorAtribuicaoSelect.focus(), 0);
   atualizarControles();
 }
 
 function fecharModal() {
   if (estado.atribuindo) return;
-  fecharModalForcado();
-}
-function fecharModalForcado() {
-  if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = true;
+  el.atribuicaoOverlay.hidden = true;
   document.body.style.overflow = '';
 }
 
@@ -266,15 +242,13 @@ function idDataHoje() {
 
 async function atribuirDemanda() {
   const demanda = estado.selecionada;
-  const idOperador = Number(el.operadorAtribuicaoSelect?.value);
+  const idOperador = Number(el.operadorAtribuicaoSelect.value);
   if (!demanda?.pode_abrir_e_atribuir) return exibirMensagem('A demanda selecionada não está mais elegível para atribuição.', 'warning');
   if (!idOperador) return exibirMensagem('Selecione o operador principal.', 'warning');
 
   estado.atribuindo = true;
-  if (el.confirmarAtribuicaoBtn) {
-    el.confirmarAtribuicaoBtn.disabled = true;
-    el.confirmarAtribuicaoBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Atribuindo...';
-  }
+  el.confirmarAtribuicaoBtn.disabled = true;
+  el.confirmarAtribuicaoBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Atribuindo...';
   ocultarMensagem();
 
   try {
@@ -303,92 +277,23 @@ async function atribuirDemanda() {
     }
   } finally {
     estado.atribuindo = false;
-    if (el.confirmarAtribuicaoBtn) {
-      el.confirmarAtribuicaoBtn.disabled = false;
-      el.confirmarAtribuicaoBtn.textContent = 'Confirmar atribuição';
-    }
+    el.confirmarAtribuicaoBtn.disabled = false;
+    el.confirmarAtribuicaoBtn.textContent = 'Confirmar atribuição';
     atualizarControles();
   }
 }
 
-function sincronizarFiltrosEBuscar() {
-  estado.filtros.busca = el.buscaInput?.value.trim() || '';
-  estado.filtros.situacao = el.situacaoSelect?.value || '';
-  estado.filtros.idOperador = el.operadorFiltroSelect?.value ? Number(el.operadorFiltroSelect.value) : null;
-  estado.filtros.ordenacao = el.ordenacaoSelect?.value || 'DIAS_ESPERA_DESC';
-  estado.filtros.semResponsavel = el.semResponsavelCheck?.checked ? true : null;
-  estado.filtros.multiplas = el.multiplasCheck?.checked ? true : null;
-  estado.filtros.requerAnalise = el.analiseCheck?.checked ? true : null;
-  estado.paginacao.pagina = 1;
-  carregarDemandas();
-}
-
-function registrarEventos() {
-  // Persistência de tema claro/escuro
-  const temaSalvo = localStorage.getItem('tema_smi');
-  if (temaSalvo) {
-    document.documentElement.setAttribute('data-theme', temaSalvo);
-  }
-
+function inicializarEventos() {
+  el.atualizarBtn?.addEventListener('click', () => { carregarResumo(); carregarDemandas(); });
+  el.atribuirSelecionadaBtn?.addEventListener('click', () => abrirModal(estado.selecionada));
+  el.limparSelecaoBtn?.addEventListener('click', limparSelecao);
+  el.sairBtn?.addEventListener('click', async () => { await sb.auth.signOut(); window.location.replace(CONFIG.LOGIN_URL); });
+  
   el.temaBtn?.addEventListener('click', () => {
-    const html = document.documentElement;
-    const atual = html.getAttribute('data-theme');
-    const novo = atual === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', novo);
-    localStorage.setItem('tema_smi', novo);
+    const escuro = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', escuro ? 'light' : 'dark');
   });
 
-  // Ações do cabeçalho
-  el.sairBtn?.addEventListener('click', async () => {
-    try {
-      await sb.auth.signOut();
-    } catch (err) {
-      console.error('Erro ao sair:', err);
-    } finally {
-      window.location.replace(CONFIG.LOGIN_URL);
-    }
-  });
-
-  el.atualizarBtn?.addEventListener('click', () => {
-    ocultarMensagem();
-    Promise.allSettled([carregarResumo(), carregarDemandas()]);
-  });
-
-  el.atribuirSelecionadaBtn?.addEventListener('click', () => {
-    if (estado.selecionada) abrirModal(estado.selecionada);
-  });
-
-  // Filtro interativo pelos cards numéricos
-  document.querySelectorAll('.metric.clickable').forEach(card => {
-    const aplicarFiltroCard = () => {
-      const tipo = card.dataset.cardFilter;
-
-      if (el.situacaoSelect) el.situacaoSelect.value = '';
-      if (el.semResponsavelCheck) el.semResponsavelCheck.checked = false;
-      if (el.multiplasCheck) el.multiplasCheck.checked = false;
-      if (el.analiseCheck) el.analiseCheck.checked = false;
-
-      if (['DISPONIVEL_PARA_ATRIBUICAO', 'PENDENTE_DE_TRATAMENTO', 'EM_TRATAMENTO'].includes(tipo)) {
-        if (el.situacaoSelect) el.situacaoSelect.value = tipo;
-      } else if (tipo === 'SEM_RESPONSAVEL') {
-        if (el.semResponsavelCheck) el.semResponsavelCheck.checked = true;
-      } else if (tipo === 'MULTIPLAS_ORIGENS') {
-        if (el.multiplasCheck) el.multiplasCheck.checked = true;
-      }
-
-      sincronizarFiltrosEBuscar();
-    };
-
-    card.addEventListener('click', aplicarFiltroCard);
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        aplicarFiltroCard();
-      }
-    });
-  });
-
-  // Filtros de busca e seleção
   el.buscaInput?.addEventListener('input', (e) => {
     clearTimeout(estado.buscaTimer);
     estado.buscaTimer = setTimeout(() => {
@@ -398,43 +303,17 @@ function registrarEventos() {
     }, 400);
   });
 
-  el.situacaoSelect?.addEventListener('change', (e) => {
-    estado.filtros.situacao = e.target.value;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
+  el.situacaoSelect?.addEventListener('change', (e) => { estado.filtros.situacao = e.target.value; estado.paginacao.pagina = 1; carregarDemandas(); });
+  el.operadorFiltroSelect?.addEventListener('change', (e) => { estado.filtros.idOperador = e.target.value ? Number(e.target.value) : null; estado.paginacao.pagina = 1; carregarDemandas(); });
+  el.ordenacaoSelect?.addEventListener('change', (e) => { estado.filtros.ordenacao = e.target.value; carregarDemandas(); });
+  el.tamanhoPaginaSelect?.addEventListener('change', (e) => { estado.paginacao.tamanho = Number(e.target.value); estado.paginacao.pagina = 1; carregarDemandas(); });
 
-  el.operadorFiltroSelect?.addEventListener('change', (e) => {
-    estado.filtros.idOperador = e.target.value ? Number(e.target.value) : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.ordenacaoSelect?.addEventListener('change', (e) => {
-    estado.filtros.ordenacao = e.target.value;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.semResponsavelCheck?.addEventListener('change', (e) => {
-    estado.filtros.semResponsavel = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.multiplasCheck?.addEventListener('change', (e) => {
-    estado.filtros.multiplas = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.analiseCheck?.addEventListener('change', (e) => {
-    estado.filtros.requerAnalise = e.target.checked ? true : null;
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
+  el.semResponsavelCheck?.addEventListener('change', (e) => { estado.filtros.semResponsavel = e.target.checked || null; carregarDemandas(); });
+  el.multiplasCheck?.addEventListener('change', (e) => { estado.filtros.multiplas = e.target.checked || null; carregarDemandas(); });
+  el.analiseCheck?.addEventListener('change', (e) => { estado.filtros.requerAnalise = e.target.checked || null; carregarDemandas(); });
 
   el.limparFiltrosBtn?.addEventListener('click', () => {
+    estado.filtros = { busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC', multiplas: null, semResponsavel: null, requerAnalise: null };
     if (el.buscaInput) el.buscaInput.value = '';
     if (el.situacaoSelect) el.situacaoSelect.value = '';
     if (el.operadorFiltroSelect) el.operadorFiltroSelect.value = '';
@@ -442,82 +321,36 @@ function registrarEventos() {
     if (el.semResponsavelCheck) el.semResponsavelCheck.checked = false;
     if (el.multiplasCheck) el.multiplasCheck.checked = false;
     if (el.analiseCheck) el.analiseCheck.checked = false;
-
-    estado.filtros = {
-      busca: '', situacao: '', idOperador: null, ordenacao: 'DIAS_ESPERA_DESC',
-      multiplas: null, semResponsavel: null, requerAnalise: null
-    };
-    estado.paginacao.pagina = 1;
     carregarDemandas();
   });
 
-  // Controles de paginação
-  el.tamanhoPaginaSelect?.addEventListener('change', (e) => {
-    estado.paginacao.tamanho = Number(e.target.value);
-    estado.paginacao.pagina = 1;
-    carregarDemandas();
-  });
-
-  el.paginaAnteriorBtn?.addEventListener('click', () => {
-    if (estado.paginacao.pagina > 1) {
-      estado.paginacao.pagina--;
-      carregarDemandas();
-    }
-  });
-
-  el.proximaPaginaBtn?.addEventListener('click', () => {
-    if (estado.paginacao.pagina < estado.paginacao.totalPaginas) {
-      estado.paginacao.pagina++;
-      carregarDemandas();
-    }
-  });
-
-  // Delegação de cliques na tabela
   el.demandasTbody?.addEventListener('click', (e) => {
-    const radio = e.target.closest('input[data-selecionar]');
-    if (radio) {
-      selecionarDemanda(radio.dataset.selecionar);
+    const btnAtribuir = e.target.closest('[data-atribuir]');
+    if (btnAtribuir) {
+      const id = btnAtribuir.getAttribute('data-atribuir');
+      const d = estado.demandas.find(item => String(item.id_indicio) === String(id));
+      if (d) abrirModal(d);
       return;
     }
-
-    const btnAtribuir = e.target.closest('button[data-atribuir]');
-    if (btnAtribuir) {
-      const id = btnAtribuir.dataset.atribuir;
-      const demanda = estado.demandas.find(d => String(d.id_indicio) === String(id));
-      if (demanda) {
-        selecionarDemanda(id);
-        abrirModal(demanda);
-      }
-    }
+    const radio = e.target.closest('[data-selecionar]');
+    if (radio) selecionarDemanda(radio.getAttribute('data-selecionar'));
   });
 
-  // Modal
   el.fecharModalBtn?.addEventListener('click', fecharModal);
   el.cancelarModalBtn?.addEventListener('click', fecharModal);
   el.confirmarAtribuicaoBtn?.addEventListener('click', atribuirDemanda);
 
-  el.atribuicaoOverlay?.addEventListener('click', (e) => {
-    if (e.target === el.atribuicaoOverlay) fecharModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && el.atribuicaoOverlay && !el.atribuicaoOverlay.hidden) {
-      fecharModal();
-    }
-  });
+  el.paginaAnteriorBtn?.addEventListener('click', () => { if (estado.paginacao.pagina > 1) { estado.paginacao.pagina--; carregarDemandas(); } });
+  el.proximaPaginaBtn?.addEventListener('click', () => { if (estado.paginacao.pagina < estado.paginacao.totalPaginas) { estado.paginacao.pagina++; carregarDemandas(); } });
 }
 
-// Inicialização da aplicação
 async function init() {
-  registrarEventos();
   try {
     await exigirAcesso();
+    inicializarEventos();
     await Promise.all([carregarOperadores(), carregarResumo(), carregarDemandas()]);
-  } catch (err) {
-    console.error('Erro na inicialização da página:', err);
-    if (err.message !== 'SESSAO_AUSENTE') {
-      exibirMensagem(mensagemErro(err, 'Erro ao carregar dados do sistema.'), 'error');
-    }
+  } catch (error) {
+    console.error('Inicialização interrompida', error);
   }
 }
 
