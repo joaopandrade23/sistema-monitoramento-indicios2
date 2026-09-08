@@ -34,7 +34,8 @@ const el = Object.fromEntries([
   'cardTotal','cardDisponiveis','cardPendentes','cardEmTratamento','cardSemResponsavel','cardMultiplas',
   'buscaInput','situacaoSelect','operadorFiltroSelect','ordenacaoSelect','semResponsavelCheck','multiplasCheck','analiseCheck','limparFiltrosBtn',
   'tamanhoPaginaSelect','demandasTbody','estadoTabela','selectionInfo','paginacaoInfo','paginaAtualInfo','paginaAnteriorBtn','proximaPaginaBtn',
-  'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','demandaResumoModal','operadorAtribuicaoSelect','confirmarAtribuicaoBtn'
+  'atribuicaoOverlay','fecharModalBtn','cancelarModalBtn','operadorAtribuicaoSelect','confirmarAtribuicaoBtn','limparSelecaoBtn',
+  'modalIdentificador','modalSituacao','modalNumeroIndicio','modalCpf','modalNome','modalTipo','modalSituacaoFuncional','modalEspera','modalUltimaAlteracao'
 ].map(id => [id, document.getElementById(id)]));
 
 function textoSeguro(valor, fallback = 'Não informado') {
@@ -196,7 +197,7 @@ function renderizarDemandas() {
       <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${textoSeguro(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td>${textoSeguro(d.nome_prioridade, 'Ainda não definida')}</td>
       <td>${textoSeguro(d.nome_operador_principal, 'Sem responsável')}</td>
-      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Atualizado em ${formatarData(d.data_ultima_modificacao)}</small></td>
+      <td><strong>${Number(d.dias_de_espera || 0)}</strong> dias<br><small>Última alteração na origem: ${formatarData(d.data_ultima_modificacao)}</small></td>
       <td><div class="actions-cell">
         <button class="btn btn-primary" type="button" data-atribuir="${d.id_indicio}" ${habilitada ? '' : 'disabled'}>Atribuir</button>
       </div></td>
@@ -213,6 +214,12 @@ function renderizarPaginacao(p) {
 
 function selecionarDemanda(id) {
   estado.selecionada = estado.demandas.find(d => String(d.id_indicio) === String(id)) || null;
+  renderizarDemandas();
+  atualizarControles();
+}
+function limparSelecao() {
+  estado.selecionada = null;
+  renderizarDemandas();
   atualizarControles();
 }
 
@@ -220,14 +227,21 @@ function atualizarControles() {
   if (el.atualizarBtn) el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
   if (el.atribuirSelecionadaBtn) el.atribuirSelecionadaBtn.disabled = !estado.selecionada?.pode_abrir_e_atribuir || estado.carregando || estado.atribuindo;
   if (el.selectionInfo) el.selectionInfo.textContent = estado.selecionada ? `Indício ${estado.selecionada.identificador_do_indicio} selecionado` : 'Nenhuma demanda selecionada';
+  if (el.limparSelecaoBtn) el.limparSelecaoBtn.hidden = !estado.selecionada;
 }
 
 function abrirModal(demanda) {
   if (!demanda?.pode_abrir_e_atribuir) return;
   estado.selecionada = demanda;
-  if (el.demandaResumoModal) {
-    el.demandaResumoModal.innerHTML = `<strong>${textoSeguro(demanda.identificador_do_indicio)} · ${textoSeguro(demanda.nome_atual)}</strong><span>${textoSeguro(demanda.tipo_indicio)}</span><span>${textoSeguro(demanda.situacoes_funcionais_resumo)}</span>`;
-  }
+  if (el.modalIdentificador) el.modalIdentificador.textContent = demanda.identificador_do_indicio || 'Não informado';
+  if (el.modalSituacao) el.modalSituacao.textContent = rotuloSituacao(demanda.situacao_operacional);
+  if (el.modalNumeroIndicio) el.modalNumeroIndicio.textContent = demanda.identificador_do_indicio || 'Não informado';
+  if (el.modalCpf) el.modalCpf.textContent = demanda.cpf_mascarado || 'Não informado';
+  if (el.modalNome) el.modalNome.textContent = demanda.nome_atual || 'Não informado';
+  if (el.modalTipo) el.modalTipo.textContent = demanda.tipo_indicio || 'Não informado';
+  if (el.modalSituacaoFuncional) el.modalSituacaoFuncional.textContent = demanda.situacoes_funcionais_resumo || 'Não informado';
+  if (el.modalEspera) el.modalEspera.textContent = `${Number(demanda.dias_de_espera || 0)} dias`;
+  if (el.modalUltimaAlteracao) el.modalUltimaAlteracao.textContent = formatarData(demanda.data_ultima_modificacao);
   if (el.operadorAtribuicaoSelect) el.operadorAtribuicaoSelect.value = '';
   if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = false;
   document.body.style.overflow = 'hidden';
@@ -237,6 +251,9 @@ function abrirModal(demanda) {
 
 function fecharModal() {
   if (estado.atribuindo) return;
+  fecharModalForcado();
+}
+function fecharModalForcado() {
   if (el.atribuicaoOverlay) el.atribuicaoOverlay.hidden = true;
   document.body.style.overflow = '';
 }
