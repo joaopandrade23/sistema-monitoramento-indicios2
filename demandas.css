@@ -199,3 +199,91 @@ tbody tr.is-selected { background: var(--primary-soft); box-shadow: inset 4px 0 
 .privacy-note { display: flex; gap: 7px; flex-direction: column; margin-top: 10px; padding: 11px 12px; border-radius: 10px; color: var(--muted); background: var(--warning-soft); border: 1px solid color-mix(in srgb, var(--warning) 26%, var(--line)); font-size: .78rem; }
 .privacy-note strong { color: var(--warning); }
 @media (max-width: 620px) { .detail-grid, .assignment-grid { grid-template-columns: 1fr; } .detail-grid .detail-wide { grid-column: auto; } }
+
+/* ========================================================================== 
+   Cards no tema escuro
+   Mantem a identidade de cada indicador sem o gradiente claro acinzentado.
+   ========================================================================== */
+[data-theme="dark"] .metric {
+  --card-accent: var(--metric-accent, #8fb4ff);
+  background: #151e2d;
+  border-color: #34445c;
+  border-top-color: var(--card-accent);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  opacity: 1;
+}
+
+[data-theme="dark"] .metric::after {
+  background: color-mix(in srgb, var(--card-accent) 13%, transparent);
+}
+
+[data-theme="dark"] .metric > span,
+[data-theme="dark"] .metric > small {
+  color: #c4cfdf;
+}
+
+[data-theme="dark"] .metric strong {
+  color: var(--card-accent);
+  text-shadow: none;
+}
+
+[data-theme="dark"] .metric-icon-placeholder {
+  color: var(--card-accent) !important;
+  background: color-mix(in srgb, var(--card-accent) 12%, #101827);
+  border-color: color-mix(in srgb, var(--card-accent) 72%, #34445c);
+}
+
+[data-theme="dark"] .metric-total {
+  --metric-accent: #d8e0ec;
+  --metric-soft: #1b2534;
+}
+
+[data-theme="dark"] .metric-available {
+  --metric-accent: #77a9ff;
+  --metric-soft: #14284a;
+}
+
+[data-theme="dark"] .metric-pending {
+  --metric-accent: #ffb66b;
+  --metric-soft: #392518;
+}
+
+[data-theme="dark"] .metric-progress {
+  --metric-accent: #b99cff;
+  --metric-soft: #282044;
+}
+
+[data-theme="dark"] .metric-unassigned {
+  --metric-accent: #ff8580;
+  --metric-soft: #3b2024;
+}
+
+[data-theme="dark"] .metric-links {
+  --metric-accent: #54d7df;
+  --metric-soft: #12343b;
+}
+
+[data-theme="dark"] .metric.clickable:hover {
+  background: #1a2638;
+  border-color: var(--card-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--card-accent) 38%, transparent),
+    0 12px 28px rgba(0, 0, 0, 0.36);
+}
+
+/* Estado preparado para o card que estiver filtrando a tabela. */
+.metric.clickable.is-filter-active {
+  border-color: var(--metric-accent, var(--primary));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--metric-accent, var(--primary)) 22%, transparent),
+    var(--shadow);
+  transform: translateY(-3px);
+}
+
+[data-theme="dark"] .metric.clickable.is-filter-active {
+  background: color-mix(in srgb, var(--metric-accent) 10%, #172235);
+  border-color: var(--metric-accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--metric-accent) 28%, transparent),
+    0 14px 34px rgba(0, 0, 0, 0.42);
+}
