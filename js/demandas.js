@@ -275,6 +275,31 @@ function atualizarControles() {
 
 
 function formatarDataHora(valor) { if (!valor) return "Não informado"; return new Intl.DateTimeFormat("pt-BR", { dateStyle:"short", timeStyle:"short" }).format(new Date(valor)); }
+function classificarSituacaoPrazo(dados) {
+  if (!dados?.possui_ciclo_ativo) {
+    return null;
+  }
+  if (!dados?.prazo_em) {
+    return "SEM_PRAZO";
+  }
+  const dias = Number(dados.dias_ate_prazo);
+  if (!Number.isFinite(dias)) {
+    return null;
+  }
+  if (dias < 0) {
+    return "PRAZO_VENCIDO";
+  }
+  if (dias === 0) {
+    return "VENCE_HOJE";
+  }
+  if (dias <= 3) {
+    return "VENCE_EM_ATE_3_DIAS";
+  }
+  if (dias <= 7) {
+    return "VENCE_EM_ATE_7_DIAS";
+  }
+  return "DENTRO_DO_PRAZO";
+}
 function rotuloPrazo(codigo, dias, possuiCiclo=true) {
   if (!possuiCiclo) return "Não se aplica";
   return ({SEM_PRAZO:"Sem prazo definido",PRAZO_VENCIDO:`Vencido há ${Math.abs(Number(dias||0))} dia(s)`,VENCE_HOJE:"Vence hoje",VENCE_EM_ATE_3_DIAS:`Vence em ${dias} dia(s)`,VENCE_EM_ATE_7_DIAS:`Vence em ${dias} dia(s)`,DENTRO_DO_PRAZO:`${dias} dia(s) restantes`})[codigo] || "Não informado";
@@ -295,10 +320,17 @@ async function abrirDetalhe(d) {
     el.modalPrioridade.textContent=data.nome_prioridade||"Sem prioridade"; el.modalModo.textContent=data.nome_modo||data.codigo_modo||"Individual";
     el.modalOperador.textContent=data.nome_operador||"Sem operador principal"; el.modalAtribuidoEm.textContent=data.atribuido_em?formatarDataHora(data.atribuido_em):"Não informado";
     el.modalNumeroCiclo.textContent=data.numero_ciclo??"Não informado"; el.modalStatusCiclo.textContent=data.nome_status_ciclo||rotuloSituacao(data.situacao_operacional);
-    el.modalPrazo.textContent=data.prazo_em?formatarDataHora(data.prazo_em):"Sem prazo"; el.modalSituacaoPrazo.textContent=rotuloPrazo(data.situacao_prazo,data.dias_ate_prazo,data.possui_ciclo_ativo);
+    el.modalPrazo.textContent=data.prazo_em?formatarDataHora(data.prazo_em):"Sem prazo"; 
+    const situacaoPrazo =
+      data.situacao_prazo ||
+      classificarSituacaoPrazo(data);
+    el.modalSituacaoPrazo.textContent = rotuloPrazo(
+      situacaoPrazo,
+      data.dias_ate_prazo,
+      data.possui_ciclo_ativo
+    );
   } catch(error){ console.error(error); if(req!==estado.detalhe.requisicao)return; el.modalCpf.textContent=d.cpf_mascarado||"Não disponível"; el.modalDescricao.textContent="Não foi possível carregar os detalhes completos."; }
 }
-
 function fecharDetalhe() {
   estado.detalhe.requisicao++;
   el.atribuicaoOverlay.hidden = true;
