@@ -15,10 +15,7 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
-  prioridades: [],
-  tiposIndicio: [],
-  lote: { modo: null, previa: null },
-  detalhe: { requisicao: 0, idIndicio: null },
+  prioridades: [], tiposIndicio: [], lote: { modo: null, previa: null }, detalhe: { requisicao: 0 },
   buscaTimer: null,
   cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
@@ -28,6 +25,7 @@ const estado = {
     idOperador: null,
     idTipoIndicio: null,
     codigoPrioridade: null,
+    situacaoPrazo: null,
     ordenacao: "DIAS_ESPERA_DESC",
     multiplas: null,
     semResponsavel: null,
@@ -36,28 +34,11 @@ const estado = {
 };
 
 const ids = [
-  "usuarioNome", "usuarioPerfil", "temaBtn", "sairBtn", "atualizarBtn", "mensagem",
-  "atribuirDemandasBtn", "assignmentMenu", "assignmentMenuPopover", "atribuirSelecionadasBtn",
-  "atribuirSelecionadasHint", "atribuirPorTipoBtn", "atribuirPorCpfBtn",
-  "cardTotal", "cardDisponiveis", "cardPendentes", "cardEmTratamento", "cardSemResponsavel", "cardMultiplas",
-  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "tipoIndicioFiltroSelect", "prioridadeFiltroSelect",
-  "ordenacaoSelect", "semResponsavelCheck", "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
-  "tamanhoPaginaSelect", "demandasTbody", "estadoTabela", "selectionInfo", "verSelecionadasBtn",
-  "limparSelecaoBtn", "selecionarPaginaCheck", "paginacaoInfo", "paginaAtualInfo", "paginaAnteriorBtn", "proximaPaginaBtn",
-  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "modalIdentificador", "modalSituacao",
-  "modalNumeroIndicio", "modalCpf", "modalNome", "modalTipo", "modalSituacaoFuncional", "modalEspera",
-  "modalUltimaAlteracao", "modalDescricao", "prioridadeAtribuicao",
-  "loteOverlay", "fecharLoteBtn", "cancelarLoteBtn", "revisarLoteBtn", "confirmarLoteBtn", "loteTitulo",
-  "loteEtapaSelecionadas", "loteEtapaTipo", "loteEtapaCpf", "loteQuantidade", "loteSelecionadasLista",
-  "loteTipoSelect", "loteCpfInput", "loteOperadorSelect", "lotePrioridadeSelect", "lotePrazoCheck",
-  "lotePrazoField", "lotePrazoInput", "loteAviso", "lotePrevia", "lotePreviaResumo", "lotePreviaDetalhes"
+"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaDetalhes"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
-
 const idsAusentes = ids.filter(id => !el[id]);
-if (idsAusentes.length) {
-  throw new Error(`HTML_INCOMPATIVEL: elementos ausentes: ${idsAusentes.join(", ")}`);
-}
+if (idsAusentes.length) throw new Error(`HTML_INCOMPATIVEL: ${idsAusentes.join(", ")}`);
 
 function escapeHtml(valor, fallback = "Não informado") {
   const texto = valor === null || valor === undefined || valor === "" ? fallback : String(valor);
@@ -139,106 +120,13 @@ async function carregarOperadores() {
 }
 
 
-async function carregarPrioridades() {
-  const { data, error } = await sb.from("v_prioridades_disponiveis").select("*").order("nivel_prioridade");
-  if (error) throw error;
-  estado.prioridades = data || [];
-  const opcoes = estado.prioridades.map(p => `<option value="${escapeHtml(p.codigo_prioridade)}">${escapeHtml(p.nome_prioridade)}</option>`).join("");
-  el.prioridadeFiltroSelect.innerHTML = '<option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option>' + opcoes;
-  el.lotePrioridadeSelect.innerHTML = opcoes;
-  el.lotePrioridadeSelect.value = estado.prioridades.some(p => p.codigo_prioridade === "NORMAL") ? "NORMAL" : (estado.prioridades[0]?.codigo_prioridade || "");
-}
-
-async function carregarTiposIndicio() {
-  const candidatos = await sb.rpc("listar_demandas_gestao", {
-    ...parametrosListagem(), p_busca: null, p_situacao_operacional: null,
-    p_id_operador: null, p_id_tipo_indicio: null, p_codigo_prioridade: null,
-    p_apenas_multiplas_origens: null, p_apenas_sem_responsavel: null,
-    p_apenas_requer_analise: null, p_pagina: 1, p_tamanho_pagina: 500
-  });
-  if (candidatos.error) throw candidatos.error;
-  estado.tiposIndicio = [...new Map((candidatos.data?.itens || []).map(d => [Number(d.id_tipo_indicio), d.tipo_indicio])).entries()]
-    .filter(([id, nome]) => id && nome).sort((a,b) => String(a[1]).localeCompare(String(b[1])))
-    .map(([id,nome]) => ({ id, nome }));
-  el.tipoIndicioFiltroSelect.innerHTML = '<option value="">Todos os tipos</option>' + estado.tiposIndicio.map(t => `<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");
-}
-
-function parametrosLote() {
-  const modo = estado.lote.modo;
-  const comPrazo = el.lotePrazoCheck.checked;
-  const dataPrazo = comPrazo ? el.lotePrazoInput.value : null;
-  const prazoEm = dataPrazo ? `${dataPrazo}T23:59:59-03:00` : null;
-  return {
-    p_criterio: modo === "tipo" ? "TIPO_INDICIO" : modo === "cpf" ? "CPF" : "SELECIONADAS",
-    p_ids_indicios: modo === "selecionadas" ? [...estado.selecionadas.values()].map(d => Number(d.id_indicio)) : null,
-    p_id_tipo_indicio: modo === "tipo" && el.loteTipoSelect.value ? Number(el.loteTipoSelect.value) : null,
-    p_cpf: modo === "cpf" ? el.loteCpfInput.value : null,
-    p_id_usuario_operador: el.loteOperadorSelect.value ? Number(el.loteOperadorSelect.value) : null,
-    p_codigo_prioridade: el.lotePrioridadeSelect.value || "NORMAL",
-    p_id_data_prazo: dataPrazo ? Number(dataPrazo.replaceAll("-", "")) : null,
-    p_prazo_em: prazoEm,
-    p_limite_resultados: 100
-  };
-}
-
-function validarConfiguracaoLote(p) {
-  if (!p.p_id_usuario_operador) throw new Error("Selecione um operador.");
-  if (p.p_criterio === "SELECIONADAS" && !p.p_ids_indicios?.length) throw new Error("Selecione ao menos uma demanda.");
-  if (p.p_criterio === "TIPO_INDICIO" && !p.p_id_tipo_indicio) throw new Error("Selecione um tipo de indício.");
-  if (p.p_criterio === "CPF" && String(p.p_cpf || "").replace(/\D/g, "").length !== 11) throw new Error("Informe um CPF com 11 dígitos.");
-  if (el.lotePrazoCheck.checked && !el.lotePrazoInput.value) throw new Error("Informe a data limite.");
-}
-
-function renderizarPrevia(previa) {
-  const r = previa.resumo || {};
-  el.lotePreviaResumo.innerHTML = [
-    ["Elegíveis", r.quantidade_elegivel || 0, "success"],
-    ["Bloqueadas", r.quantidade_bloqueada || 0, "danger"],
-    ["Não encontradas", r.quantidade_nao_encontrada || 0, "warning"],
-    ["Excedentes", r.quantidade_excedente || 0, "warning"]
-  ].map(([rotulo, valor, classe]) => `<div class="preview-metric ${classe}"><strong>${valor}</strong><span>${rotulo}</span></div>`).join("");
-  const bloqueadas = previa.bloqueadas || [];
-  el.lotePreviaDetalhes.innerHTML = bloqueadas.length
-    ? `<details><summary>Ver ${bloqueadas.length} demanda(s) bloqueada(s)</summary><ul>${bloqueadas.map(b => `<li>${escapeHtml(b.identificador_do_indicio || b.id_indicio)}: ${escapeHtml(b.motivos?.[0]?.mensagem || "Não elegível")}</li>`).join("")}</ul></details>`
-    : '<p class="preview-ok">Todas as demandas localizadas estão aptas para confirmação.</p>';
-  el.lotePrevia.hidden = false;
-  el.confirmarLoteBtn.disabled = !previa.pode_confirmar;
-}
-
-async function revisarLote() {
-  try {
-    const p = parametrosLote(); validarConfiguracaoLote(p);
-    estado.atribuindo = true; atualizarControles();
-    el.loteAviso.className = "status-banner"; el.loteAviso.textContent = "Gerando prévia...";
-    const { data, error } = await sb.rpc("prever_atribuicao_demandas", { ...p, p_incluir_detalhes: true });
-    if (error) throw error;
-    estado.lote.previa = data; renderizarPrevia(data);
-    el.loteAviso.className = `status-banner ${data.pode_confirmar ? "success" : "warning"}`;
-    el.loteAviso.textContent = data.pode_confirmar ? "Prévia concluída. Revise os dados e confirme a atribuição." : "A prévia não possui demandas confirmáveis.";
-  } catch (error) {
-    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true;
-    el.loteAviso.className = "status-banner danger"; el.loteAviso.textContent = error.message || "Não foi possível gerar a prévia.";
-  } finally { estado.atribuindo = false; atualizarControles(); }
-}
-
-async function confirmarLote() {
-  if (!estado.lote.previa?.pode_confirmar) return;
-  try {
-    const p = parametrosLote(); validarConfiguracaoLote(p);
-    estado.atribuindo = true; atualizarControles(); el.confirmarLoteBtn.disabled = true;
-    el.loteAviso.className = "status-banner"; el.loteAviso.textContent = "Confirmando atribuição transacional...";
-    const { data, error } = await sb.rpc("atribuir_demandas_lote", { ...p, p_politica_bloqueios: "PROCESSAR_ELEGIVEIS" });
-    if (error) throw error;
-    exibirMensagem(data?.mensagem || "Atribuição concluída.", "success");
-    estado.selecionadas.clear(); fecharLote();
-    await Promise.all([carregarResumo(), carregarDemandas()]);
-  } catch (error) {
-    el.loteAviso.className = "status-banner danger";
-    el.loteAviso.textContent = mensagemErro(error, error.message || "Não foi possível confirmar a atribuição.");
-    estado.lote.previa = null;
-  } finally { estado.atribuindo = false; atualizarControles(); }
-}
-
+async function carregarPrioridades(){const {data,error}=await sb.from("v_prioridades_disponiveis").select("*").order("nivel_prioridade");if(error)throw error;estado.prioridades=data||[];const op=estado.prioridades.map(p=>`<option value="${escapeHtml(p.codigo_prioridade)}">${escapeHtml(p.nome_prioridade)}</option>`).join("");el.prioridadeFiltroSelect.innerHTML='<option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option>'+op;el.lotePrioridadeSelect.innerHTML=op;el.lotePrioridadeSelect.value=estado.prioridades.some(p=>p.codigo_prioridade==="NORMAL")?"NORMAL":estado.prioridades[0]?.codigo_prioridade||"";}
+async function carregarTiposIndicio(){const {data,error}=await sb.rpc("listar_demandas_gestao",{...parametrosListagem(),p_busca:null,p_situacao_operacional:null,p_id_operador:null,p_id_tipo_indicio:null,p_codigo_prioridade:null,p_situacao_prazo:null,p_pagina:1,p_tamanho_pagina:100});if(error)throw error;estado.tiposIndicio=[...new Map((data?.itens||[]).map(d=>[Number(d.id_tipo_indicio),d.tipo_indicio])).entries()].filter(x=>x[0]&&x[1]).sort((a,b)=>String(a[1]).localeCompare(String(b[1]))).map(([id,nome])=>({id,nome}));el.tipoIndicioFiltroSelect.innerHTML='<option value="">Todos os tipos</option>'+estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");}
+function parametrosLote(){const m=estado.lote.modo,d=el.lotePrazoCheck.checked?el.lotePrazoInput.value:null;return{p_criterio:m==="tipo"?"TIPO_INDICIO":m==="cpf"?"CPF":"SELECIONADAS",p_ids_indicios:m==="selecionadas"?[...estado.selecionadas.values()].map(x=>Number(x.id_indicio)):null,p_id_tipo_indicio:m==="tipo"&&el.loteTipoSelect.value?Number(el.loteTipoSelect.value):null,p_cpf:m==="cpf"?el.loteCpfInput.value:null,p_id_usuario_operador:el.loteOperadorSelect.value?Number(el.loteOperadorSelect.value):null,p_codigo_prioridade:el.lotePrioridadeSelect.value||"NORMAL",p_id_data_prazo:d?Number(d.replaceAll("-","")):null,p_prazo_em:d?`${d}T23:59:59-03:00`:null,p_limite_resultados:100};}
+function validarLote(p){if(!p.p_id_usuario_operador)throw Error("Selecione um operador.");if(p.p_criterio==="SELECIONADAS"&&!p.p_ids_indicios.length)throw Error("Selecione ao menos uma demanda.");if(p.p_criterio==="TIPO_INDICIO"&&!p.p_id_tipo_indicio)throw Error("Selecione um tipo de indício.");if(p.p_criterio==="CPF"&&String(p.p_cpf||"").replace(/\D/g,"").length!==11)throw Error("Informe um CPF com 11 dígitos.");if(el.lotePrazoCheck.checked&&!el.lotePrazoInput.value)throw Error("Informe a data limite.");}
+function renderizarPrevia(x){const r=x.resumo||{};el.lotePreviaResumo.innerHTML=[["Elegíveis",r.quantidade_elegivel||0,"success"],["Bloqueadas",r.quantidade_bloqueada||0,"danger"],["Não encontradas",r.quantidade_nao_encontrada||0,"warning"],["Excedentes",r.quantidade_excedente||0,"warning"]].map(a=>`<div class="preview-metric ${a[2]}"><strong>${a[1]}</strong><span>${a[0]}</span></div>`).join("");el.lotePreviaDetalhes.innerHTML=(x.bloqueadas||[]).length?`<details><summary>Ver bloqueadas</summary><ul>${x.bloqueadas.map(b=>`<li>${escapeHtml(b.identificador_do_indicio||b.id_indicio)}</li>`).join("")}</ul></details>`:'<p class="preview-ok">Todas as demandas localizadas estão aptas.</p>';el.lotePrevia.hidden=false;el.confirmarLoteBtn.disabled=!x.pode_confirmar;}
+async function revisarLote(){try{const p=parametrosLote();validarLote(p);estado.atribuindo=true;el.loteAviso.textContent="Gerando prévia...";const {data,error}=await sb.rpc("prever_atribuicao_demandas",{...p,p_incluir_detalhes:true});if(error)throw error;estado.lote.previa=data;renderizarPrevia(data);el.loteAviso.textContent=data.pode_confirmar?"Prévia concluída. Revise e confirme.":"Não há demandas confirmáveis.";}catch(e){estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.loteAviso.textContent=e.message;}finally{estado.atribuindo=false;}}
+async function confirmarLote(){if(!estado.lote.previa?.pode_confirmar)return;try{const p=parametrosLote();validarLote(p);estado.atribuindo=true;el.confirmarLoteBtn.disabled=true;const {data,error}=await sb.rpc("atribuir_demandas_lote",{...p,p_politica_bloqueios:"PROCESSAR_ELEGIVEIS"});if(error)throw error;exibirMensagem(data?.mensagem||"Atribuição concluída.","success");estado.selecionadas.clear();fecharLote();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){el.loteAviso.textContent=mensagemErro(e,e.message);estado.lote.previa=null;}finally{estado.atribuindo=false;}}
 async function carregarResumo() {
   const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
@@ -264,7 +152,8 @@ function parametrosListagem() {
     p_apenas_requer_analise: estado.filtros.requerAnalise,
     p_ordenacao: estado.filtros.ordenacao,
     p_pagina: estado.paginacao.pagina,
-    p_tamanho_pagina: estado.paginacao.tamanho
+    p_tamanho_pagina: estado.paginacao.tamanho,
+    p_situacao_prazo: estado.filtros.situacaoPrazo
   };
 }
 
@@ -381,69 +270,37 @@ function atualizarControles() {
   el.verSelecionadasBtn.hidden = !n;
   el.atribuirSelecionadasBtn.disabled = !n;
   el.atribuirSelecionadasHint.textContent = n ? `${n} selecionada${n > 1 ? "s" : ""}` : "Selecione ao menos uma demanda";
-  el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
-  el.revisarLoteBtn.disabled = estado.atribuindo;
-  if (estado.atribuindo) el.confirmarLoteBtn.disabled = true;
+  el.atualizarBtn.disabled = estado.carregando;
 }
 
+
+function formatarDataHora(valor) { if (!valor) return "Não informado"; return new Intl.DateTimeFormat("pt-BR", { dateStyle:"short", timeStyle:"short" }).format(new Date(valor)); }
+function rotuloPrazo(codigo, dias, possuiCiclo=true) {
+  if (!possuiCiclo) return "Não se aplica";
+  return ({SEM_PRAZO:"Sem prazo definido",PRAZO_VENCIDO:`Vencido há ${Math.abs(Number(dias||0))} dia(s)`,VENCE_HOJE:"Vence hoje",VENCE_EM_ATE_3_DIAS:`Vence em ${dias} dia(s)`,VENCE_EM_ATE_7_DIAS:`Vence em ${dias} dia(s)`,DENTRO_DO_PRAZO:`${dias} dia(s) restantes`})[codigo] || "Não informado";
+}
 async function abrirDetalhe(d) {
   if (!d) return;
-
-  const numeroRequisicao = ++estado.detalhe.requisicao;
-  estado.detalhe.idIndicio = String(d.id_indicio);
-
-  // Abre imediatamente com os dados resumidos da listagem.
-  el.modalIdentificador.textContent = d.identificador_do_indicio || "Não informado";
-  el.modalSituacao.textContent = rotuloSituacao(d.situacao_operacional);
-  el.modalNumeroIndicio.textContent = d.identificador_do_indicio || "Não informado";
-  el.modalCpf.textContent = "Carregando...";
-  el.modalNome.textContent = d.nome_atual || "Não informado";
-  el.modalTipo.textContent = d.tipo_indicio || "Não informado";
-  el.modalSituacaoFuncional.textContent = d.situacoes_funcionais_resumo || "Não informado";
-  el.modalEspera.textContent = `${Number(d.dias_de_espera || 0)} dias`;
-  el.modalUltimaAlteracao.textContent = formatarData(d.data_ultima_modificacao);
-  el.modalDescricao.textContent = "Carregando descrição completa...";
-  el.prioridadeAtribuicao.textContent = d.nome_prioridade || d.codigo_prioridade || "Sem prioridade";
-
-  el.atribuicaoOverlay.hidden = false;
-  document.body.style.overflow = "hidden";
-
+  const req = ++estado.detalhe.requisicao;
+  el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado"; el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);
+  el.modalNumeroIndicio.textContent=d.identificador_do_indicio||"Não informado"; el.modalCpf.textContent="Carregando..."; el.modalNome.textContent=d.nome_atual||"Não informado";
+  el.modalTipo.textContent=d.tipo_indicio||"Não informado"; el.modalSituacaoFuncional.textContent=d.situacoes_funcionais_resumo||"Não informado"; el.modalEspera.textContent=`${Number(d.dias_de_espera||0)} dias`;
+  el.modalUltimaAlteracao.textContent=formatarData(d.data_ultima_modificacao); el.modalDescricao.textContent="Carregando descrição completa...";
+  el.atribuicaoOverlay.hidden=false; document.body.style.overflow="hidden";
   try {
-    const { data, error } = await sb.rpc("obter_detalhes_demanda", {
-      p_id_indicio: Number(d.id_indicio)
-    });
-    if (error) throw error;
-
-    // Ignora uma resposta antiga se outro modal já tiver sido aberto ou fechado.
-    if (numeroRequisicao !== estado.detalhe.requisicao || el.atribuicaoOverlay.hidden) return;
-
-    el.modalIdentificador.textContent = data.identificador_do_indicio || "Não informado";
-    el.modalSituacao.textContent = rotuloSituacao(data.situacao_operacional);
-    el.modalNumeroIndicio.textContent = data.identificador_do_indicio || "Não informado";
-    el.modalCpf.textContent = data.cpf || "Não informado";
-    el.modalNome.textContent = data.nome_atual || "Não informado";
-    el.modalTipo.textContent = data.tipo_indicio || "Não informado";
-    el.modalSituacaoFuncional.textContent = data.situacoes_funcionais_resumo || "Sem situação funcional registrada";
-    el.modalEspera.textContent = `${Number(data.dias_de_espera || 0)} dias`;
-    el.modalUltimaAlteracao.textContent = formatarData(data.data_ultima_modificacao);
-    el.modalDescricao.textContent = data.descricao_indicio || "Descrição não informada na base.";
-    el.prioridadeAtribuicao.textContent = data.nome_prioridade || data.codigo_prioridade || "Sem prioridade";
-  } catch (error) {
-    console.error("Erro ao obter detalhes da demanda:", error);
-    if (numeroRequisicao !== estado.detalhe.requisicao || el.atribuicaoOverlay.hidden) return;
-
-    el.modalCpf.textContent = d.cpf_mascarado || "Não disponível";
-    el.modalDescricao.textContent = "Não foi possível carregar a descrição completa.";
-    exibirMensagem(
-      mensagemErro(error, "Não foi possível carregar os detalhes completos da demanda."),
-      "error"
-    );
-  }
+    const {data,error}=await sb.rpc("obter_detalhes_demanda",{p_id_indicio:Number(d.id_indicio)}); if(error) throw error;
+    if(req!==estado.detalhe.requisicao||el.atribuicaoOverlay.hidden)return;
+    el.modalCpf.textContent=data.cpf||"Não informado"; el.modalNome.textContent=data.nome_atual||"Não informado"; el.modalTipo.textContent=data.tipo_indicio||"Não informado";
+    el.modalDescricao.textContent=data.descricao_indicio||"Descrição não informada na base."; el.modalSituacaoFuncional.textContent=data.situacoes_funcionais_resumo||"Não informado";
+    el.modalPrioridade.textContent=data.nome_prioridade||"Sem prioridade"; el.modalModo.textContent=data.nome_modo||data.codigo_modo||"Individual";
+    el.modalOperador.textContent=data.nome_operador||"Sem operador principal"; el.modalAtribuidoEm.textContent=data.atribuido_em?formatarDataHora(data.atribuido_em):"Não informado";
+    el.modalNumeroCiclo.textContent=data.numero_ciclo??"Não informado"; el.modalStatusCiclo.textContent=data.nome_status_ciclo||rotuloSituacao(data.situacao_operacional);
+    el.modalPrazo.textContent=data.prazo_em?formatarDataHora(data.prazo_em):"Sem prazo"; el.modalSituacaoPrazo.textContent=rotuloPrazo(data.situacao_prazo,data.dias_ate_prazo,data.possui_ciclo_ativo);
+  } catch(error){ console.error(error); if(req!==estado.detalhe.requisicao)return; el.modalCpf.textContent=d.cpf_mascarado||"Não disponível"; el.modalDescricao.textContent="Não foi possível carregar os detalhes completos."; }
 }
 
 function fecharDetalhe() {
   estado.detalhe.requisicao++;
-  estado.detalhe.idIndicio = null;
   el.atribuicaoOverlay.hidden = true;
   document.body.style.overflow = "";
 }
@@ -455,12 +312,7 @@ function alternarMenu(forcar) {
 }
 
 function abrirLote(modo) {
-  alternarMenu(false);
-  estado.lote = { modo, previa: null };
-  el.confirmarLoteBtn.disabled = true;
-  el.lotePrevia.hidden = true;
-  el.loteAviso.className = "status-banner";
-  el.loteAviso.textContent = "Configure a atribuição e gere a prévia antes de confirmar.";
+  alternarMenu(false); estado.lote={modo,previa:null}; el.confirmarLoteBtn.disabled=true; el.lotePrevia.hidden=true; el.loteAviso.textContent="Configure a atribuição e gere a prévia antes de confirmar.";
   [el.loteEtapaSelecionadas, el.loteEtapaTipo, el.loteEtapaCpf].forEach(x => x.hidden = true);
   
   if (modo === "selecionadas") {
@@ -473,8 +325,7 @@ function abrirLote(modo) {
   } else if (modo === "tipo") {
     el.loteTitulo.textContent = "Atribuir por tipo de indício";
     el.loteEtapaTipo.hidden = false;
-    el.loteTipoSelect.innerHTML = '<option value="">Selecione um tipo</option>' +
-      estado.tiposIndicio.map(t => `<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");
+    el.loteTipoSelect.innerHTML='<option value="">Selecione um tipo</option>'+estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");
   } else {
     el.loteTitulo.textContent = "Atribuir por CPF";
     el.loteEtapaCpf.hidden = false;
@@ -506,6 +357,7 @@ function aplicarFiltros() {
     idOperador: el.operadorFiltroSelect.value ? Number(el.operadorFiltroSelect.value) : null,
     idTipoIndicio: el.tipoIndicioFiltroSelect.value ? Number(el.tipoIndicioFiltroSelect.value) : null,
     codigoPrioridade: el.prioridadeFiltroSelect.value || null,
+    situacaoPrazo: el.situacaoPrazoSelect.value || null,
     ordenacao: el.ordenacaoSelect.value,
     multiplas: el.multiplasCheck.checked ? true : null,
     semResponsavel: el.semResponsavelCheck.checked ? true : null,
@@ -604,7 +456,7 @@ function registrarEventos() {
     estado.buscaTimer = setTimeout(aplicarFiltros, 400);
   });
   
-  [el.situacaoSelect, el.operadorFiltroSelect, el.tipoIndicioFiltroSelect, el.prioridadeFiltroSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(x => {
+  [el.situacaoSelect, el.operadorFiltroSelect, el.tipoIndicioFiltroSelect, el.prioridadeFiltroSelect, el.situacaoPrazoSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(x => {
     x.addEventListener("change", () => {
       atualizarCardAtivo("");
       aplicarFiltros();
@@ -617,6 +469,7 @@ function registrarEventos() {
     el.operadorFiltroSelect.value = "";
     el.tipoIndicioFiltroSelect.value = "";
     el.prioridadeFiltroSelect.value = "";
+    el.situacaoPrazoSelect.value = "";
     el.ordenacaoSelect.value = "DIAS_ESPERA_DESC";
     el.semResponsavelCheck.checked = false;
     el.multiplasCheck.checked = false;
@@ -645,16 +498,9 @@ function registrarEventos() {
     }
   });
 
-  el.lotePrazoCheck.addEventListener("change", () => {
-    el.lotePrazoField.hidden = !el.lotePrazoCheck.checked;
-    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true; el.lotePrevia.hidden = true;
-  });
-  [el.loteOperadorSelect, el.lotePrioridadeSelect, el.loteTipoSelect, el.loteCpfInput, el.lotePrazoInput].forEach(x => x.addEventListener("change", () => {
-    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true; el.lotePrevia.hidden = true;
-  }));
-  el.revisarLoteBtn.addEventListener("click", revisarLote);
-  el.confirmarLoteBtn.addEventListener("click", confirmarLote);
-
+  el.lotePrazoCheck.addEventListener("change",()=>{el.lotePrazoField.hidden=!el.lotePrazoCheck.checked;estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.lotePrevia.hidden=true;});
+  [el.loteOperadorSelect,el.lotePrioridadeSelect,el.loteTipoSelect,el.loteCpfInput,el.lotePrazoInput].forEach(x=>x.addEventListener("change",()=>{estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.lotePrevia.hidden=true;}));
+  el.revisarLoteBtn.addEventListener("click",revisarLote); el.confirmarLoteBtn.addEventListener("click",confirmarLote);
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     if (!el.loteOverlay.hidden) fecharLote();
@@ -667,8 +513,7 @@ async function init() {
   registrarEventos();
   try {
     await exigirAcesso();
-    await Promise.all([carregarOperadores(), carregarPrioridades(), carregarResumo(), carregarDemandas()]);
-    await carregarTiposIndicio();
+    await Promise.all([carregarOperadores(),carregarPrioridades(),carregarResumo(),carregarDemandas()]); await carregarTiposIndicio();
   } catch (error) {
     console.error(error);
     if (error.message !== "SESSAO_AUSENTE") {
