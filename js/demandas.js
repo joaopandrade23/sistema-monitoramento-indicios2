@@ -15,7 +15,7 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
-  prioridades: [], tiposIndicio: [], lote: { modo: null, previa: null }, detalhe: { requisicao: 0 },
+  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null }, detalhe: { requisicao: 0 },
   buscaTimer: null,
   cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
@@ -34,7 +34,7 @@ const estado = {
 };
 
 const ids = [
-"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaDetalhes"
+"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 const idsAusentes = ids.filter(id => !el[id]);
@@ -122,11 +122,176 @@ async function carregarOperadores() {
 
 async function carregarPrioridades(){const {data,error}=await sb.from("v_prioridades_disponiveis").select("*").order("nivel_prioridade");if(error)throw error;estado.prioridades=data||[];const op=estado.prioridades.map(p=>`<option value="${escapeHtml(p.codigo_prioridade)}">${escapeHtml(p.nome_prioridade)}</option>`).join("");el.prioridadeFiltroSelect.innerHTML='<option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option>'+op;el.lotePrioridadeSelect.innerHTML=op;el.lotePrioridadeSelect.value=estado.prioridades.some(p=>p.codigo_prioridade==="NORMAL")?"NORMAL":estado.prioridades[0]?.codigo_prioridade||"";}
 async function carregarTiposIndicio(){const {data,error}=await sb.rpc("listar_demandas_gestao",{...parametrosListagem(),p_busca:null,p_situacao_operacional:null,p_id_operador:null,p_id_tipo_indicio:null,p_codigo_prioridade:null,p_situacao_prazo:null,p_pagina:1,p_tamanho_pagina:100});if(error)throw error;estado.tiposIndicio=[...new Map((data?.itens||[]).map(d=>[Number(d.id_tipo_indicio),d.tipo_indicio])).entries()].filter(x=>x[0]&&x[1]).sort((a,b)=>String(a[1]).localeCompare(String(b[1]))).map(([id,nome])=>({id,nome}));el.tipoIndicioFiltroSelect.innerHTML='<option value="">Todos os tipos</option>'+estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");}
-function parametrosLote(){const m=estado.lote.modo,d=el.lotePrazoCheck.checked?el.lotePrazoInput.value:null;return{p_criterio:m==="tipo"?"TIPO_INDICIO":m==="cpf"?"CPF":"SELECIONADAS",p_ids_indicios:m==="selecionadas"?[...estado.selecionadas.values()].map(x=>Number(x.id_indicio)):null,p_id_tipo_indicio:m==="tipo"&&el.loteTipoSelect.value?Number(el.loteTipoSelect.value):null,p_cpf:m==="cpf"?el.loteCpfInput.value:null,p_id_usuario_operador:el.loteOperadorSelect.value?Number(el.loteOperadorSelect.value):null,p_codigo_prioridade:el.lotePrioridadeSelect.value||"NORMAL",p_id_data_prazo:d?Number(d.replaceAll("-","")):null,p_prazo_em:d?`${d}T23:59:59-03:00`:null,p_limite_resultados:100};}
-function validarLote(p){if(!p.p_id_usuario_operador)throw Error("Selecione um operador.");if(p.p_criterio==="SELECIONADAS"&&!p.p_ids_indicios.length)throw Error("Selecione ao menos uma demanda.");if(p.p_criterio==="TIPO_INDICIO"&&!p.p_id_tipo_indicio)throw Error("Selecione um tipo de indício.");if(p.p_criterio==="CPF"&&String(p.p_cpf||"").replace(/\D/g,"").length!==11)throw Error("Informe um CPF com 11 dígitos.");if(el.lotePrazoCheck.checked&&!el.lotePrazoInput.value)throw Error("Informe a data limite.");}
-function renderizarPrevia(x){const r=x.resumo||{};el.lotePreviaResumo.innerHTML=[["Elegíveis",r.quantidade_elegivel||0,"success"],["Bloqueadas",r.quantidade_bloqueada||0,"danger"],["Não encontradas",r.quantidade_nao_encontrada||0,"warning"],["Excedentes",r.quantidade_excedente||0,"warning"]].map(a=>`<div class="preview-metric ${a[2]}"><strong>${a[1]}</strong><span>${a[0]}</span></div>`).join("");el.lotePreviaDetalhes.innerHTML=(x.bloqueadas||[]).length?`<details><summary>Ver bloqueadas</summary><ul>${x.bloqueadas.map(b=>`<li>${escapeHtml(b.identificador_do_indicio||b.id_indicio)}</li>`).join("")}</ul></details>`:'<p class="preview-ok">Todas as demandas localizadas estão aptas.</p>';el.lotePrevia.hidden=false;el.confirmarLoteBtn.disabled=!x.pode_confirmar;}
-async function revisarLote(){try{const p=parametrosLote();validarLote(p);estado.atribuindo=true;el.loteAviso.textContent="Gerando prévia...";const {data,error}=await sb.rpc("prever_atribuicao_demandas",{...p,p_incluir_detalhes:true});if(error)throw error;estado.lote.previa=data;renderizarPrevia(data);el.loteAviso.textContent=data.pode_confirmar?"Prévia concluída. Revise e confirme.":"Não há demandas confirmáveis.";}catch(e){estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.loteAviso.textContent=e.message;}finally{estado.atribuindo=false;}}
-async function confirmarLote(){if(!estado.lote.previa?.pode_confirmar)return;try{const p=parametrosLote();validarLote(p);estado.atribuindo=true;el.confirmarLoteBtn.disabled=true;const {data,error}=await sb.rpc("atribuir_demandas_lote",{...p,p_politica_bloqueios:"PROCESSAR_ELEGIVEIS"});if(error)throw error;exibirMensagem(data?.mensagem||"Atribuição concluída.","success");estado.selecionadas.clear();fecharLote();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){el.loteAviso.textContent=mensagemErro(e,e.message);estado.lote.previa=null;}finally{estado.atribuindo=false;}}
+function idsColaboradoresSelecionados() {
+  return [...el.loteColaboradoresLista.querySelectorAll('input[type="checkbox"]:checked')]
+    .map(input => Number(input.value))
+    .filter(Number.isFinite);
+}
+
+function atualizarOpcoesColaboradores() {
+  const principal = el.loteOperadorSelect.value ? Number(el.loteOperadorSelect.value) : null;
+  const selecionados = new Set(idsColaboradoresSelecionados());
+  const disponiveis = estado.operadores.filter(o => Number(o.id_usuario) !== principal);
+
+  el.loteColaboradoresLista.innerHTML = disponiveis.length
+    ? disponiveis.map(o => `
+        <label class="collaborator-option">
+          <input type="checkbox" value="${o.id_usuario}" ${selecionados.has(Number(o.id_usuario)) ? "checked" : ""}>
+          <span><strong>${escapeHtml(o.nome_exibicao)}</strong>${o.email_institucional ? `<small>${escapeHtml(o.email_institucional)}</small>` : ""}</span>
+        </label>`).join("")
+    : '<p class="empty-inline">Nenhum outro operador disponível.</p>';
+}
+
+function atualizarModoLote() {
+  const colaborativo = el.loteModoSelect.value === "COLABORATIVO";
+  el.loteColaboradoresField.hidden = !colaborativo;
+  el.loteModoAjuda.textContent = colaborativo
+    ? "Um operador principal e pelo menos um colaborador atuarão no ciclo."
+    : "Uma pessoa será responsável pelo ciclo.";
+  if (!colaborativo) {
+    el.loteColaboradoresLista.querySelectorAll('input[type="checkbox"]').forEach(x => { x.checked = false; });
+  }
+  invalidarPreviaLote();
+}
+
+function parametrosLote() {
+  const criterio = estado.lote.criterio;
+  const dataPrazo = el.lotePrazoCheck.checked ? el.lotePrazoInput.value : null;
+  return {
+    p_criterio: criterio === "tipo" ? "TIPO_INDICIO" : criterio === "cpf" ? "CPF" : "SELECIONADAS",
+    p_ids_indicios: criterio === "selecionadas" ? [...estado.selecionadas.values()].map(x => Number(x.id_indicio)) : null,
+    p_id_tipo_indicio: criterio === "tipo" && el.loteTipoSelect.value ? Number(el.loteTipoSelect.value) : null,
+    p_cpf: criterio === "cpf" ? el.loteCpfInput.value : null,
+    p_id_usuario_operador: el.loteOperadorSelect.value ? Number(el.loteOperadorSelect.value) : null,
+    p_codigo_prioridade: el.lotePrioridadeSelect.value || "NORMAL",
+    p_id_data_prazo: dataPrazo ? Number(dataPrazo.replaceAll("-", "")) : null,
+    p_prazo_em: dataPrazo ? `${dataPrazo}T23:59:59-03:00` : null,
+    p_limite_resultados: 100,
+    p_codigo_modo: el.loteModoSelect.value || "INDIVIDUAL",
+    p_ids_usuarios_colaboradores: el.loteModoSelect.value === "COLABORATIVO" ? idsColaboradoresSelecionados() : null
+  };
+}
+
+function assinaturaParametrosLote(p) {
+  return JSON.stringify({
+    ...p,
+    p_ids_indicios: [...(p.p_ids_indicios || [])].sort((a, b) => a - b),
+    p_ids_usuarios_colaboradores: [...(p.p_ids_usuarios_colaboradores || [])].sort((a, b) => a - b)
+  });
+}
+
+function validarLote(p) {
+  if (!p.p_id_usuario_operador) throw Error("Selecione um operador principal.");
+  if (p.p_criterio === "SELECIONADAS" && !p.p_ids_indicios?.length) throw Error("Selecione ao menos uma demanda.");
+  if (p.p_criterio === "TIPO_INDICIO" && !p.p_id_tipo_indicio) throw Error("Selecione um tipo de indício.");
+  if (p.p_criterio === "CPF" && String(p.p_cpf || "").replace(/\D/g, "").length !== 11) throw Error("Informe um CPF com 11 dígitos.");
+  if (el.lotePrazoCheck.checked && !el.lotePrazoInput.value) throw Error("Informe a data limite.");
+  if (p.p_codigo_modo === "COLABORATIVO" && !p.p_ids_usuarios_colaboradores?.length) throw Error("Selecione ao menos um colaborador.");
+  if (p.p_ids_usuarios_colaboradores?.includes(p.p_id_usuario_operador)) throw Error("O operador principal não pode ser colaborador.");
+}
+
+function invalidarPreviaLote() {
+  estado.lote.previa = null;
+  estado.lote.assinaturaPrevia = null;
+  el.confirmarLoteBtn.disabled = true;
+  el.lotePrevia.hidden = true;
+}
+
+function renderizarPrevia(x) {
+  const r = x.resumo || {};
+  el.lotePreviaResumo.innerHTML = [
+    ["Elegíveis", r.quantidade_elegivel || 0, "success"],
+    ["Bloqueadas", r.quantidade_bloqueada || 0, "danger"],
+    ["Não encontradas", r.quantidade_nao_encontrada || 0, "warning"],
+    ["Excedentes", r.quantidade_excedente || 0, "warning"]
+  ].map(a => `<div class="preview-metric ${a[2]}"><strong>${a[1]}</strong><span>${a[0]}</span></div>`).join("");
+
+  const participantes = x.participantes || {};
+  const colaboradores = participantes.colaboradores || [];
+  el.lotePreviaParticipantes.innerHTML = `
+    <h4>Participantes</h4>
+    <div class="participant-summary">
+      <div><span class="participant-role">Principal</span><strong>${escapeHtml(participantes.principal?.nome_exibicao)}</strong></div>
+      <div><span class="participant-role">Modo</span><strong>${escapeHtml(x.modo_trabalho?.nome || x.modo_trabalho?.codigo)}</strong></div>
+    </div>
+    ${colaboradores.length ? `<div class="collaborator-chips">${colaboradores.map(c => `<span class="participant-chip">${escapeHtml(c.nome_exibicao)}</span>`).join("")}</div>` : '<p class="muted-text">Sem colaboradores.</p>'}`;
+
+  const bloqueadas = x.bloqueadas || [];
+  el.lotePreviaDetalhes.innerHTML = bloqueadas.length
+    ? `<details><summary>Ver ${bloqueadas.length} demanda(s) bloqueada(s)</summary><ul>${bloqueadas.map(b => `<li>${escapeHtml(b.identificador_do_indicio || b.id_indicio)}: ${escapeHtml(b.motivos?.[0]?.mensagem || "Não elegível")}</li>`).join("")}</ul></details>`
+    : '<p class="preview-ok">Todas as demandas localizadas estão aptas.</p>';
+
+  el.lotePrevia.hidden = false;
+  el.confirmarLoteBtn.disabled = !x.pode_confirmar;
+}
+
+async function revisarLote() {
+  try {
+    const p = parametrosLote();
+    validarLote(p);
+    estado.atribuindo = true;
+    atualizarControles();
+    el.loteAviso.className = "status-banner";
+    el.loteAviso.textContent = "Gerando prévia...";
+
+    const { data, error } = await sb.rpc("prever_atribuicao_demandas_modo", {
+      ...p,
+      p_incluir_detalhes: true
+    });
+    if (error) throw error;
+
+    estado.lote.previa = data;
+    estado.lote.assinaturaPrevia = assinaturaParametrosLote(p);
+    renderizarPrevia(data);
+    el.loteAviso.className = `status-banner ${data.pode_confirmar ? "success" : "warning"}`;
+    el.loteAviso.textContent = data.pode_confirmar
+      ? "Prévia concluída. Revise os participantes e confirme."
+      : "Não há demandas confirmáveis.";
+  } catch (error) {
+    invalidarPreviaLote();
+    el.loteAviso.className = "status-banner error";
+    el.loteAviso.textContent = mensagemErro(error, error.message || "Não foi possível gerar a prévia.");
+  } finally {
+    estado.atribuindo = false;
+    atualizarControles();
+  }
+}
+
+async function confirmarLote() {
+  if (!estado.lote.previa?.pode_confirmar) return;
+  try {
+    const p = parametrosLote();
+    validarLote(p);
+    if (estado.lote.assinaturaPrevia !== assinaturaParametrosLote(p)) {
+      throw Error("A configuração foi alterada. Gere uma nova prévia antes de confirmar.");
+    }
+
+    estado.atribuindo = true;
+    atualizarControles();
+    el.confirmarLoteBtn.disabled = true;
+    el.loteAviso.className = "status-banner";
+    el.loteAviso.textContent = "Confirmando atribuição transacional...";
+
+    const { data, error } = await sb.rpc("atribuir_demandas_lote_modo", {
+      ...p,
+      p_politica_bloqueios: "PROCESSAR_ELEGIVEIS"
+    });
+    if (error) throw error;
+
+    exibirMensagem(data?.mensagem || "Atribuição concluída.", "success");
+    estado.selecionadas.clear();
+    fecharLote();
+    await Promise.all([carregarResumo(), carregarDemandas()]);
+  } catch (error) {
+    invalidarPreviaLote();
+    el.loteAviso.className = "status-banner error";
+    el.loteAviso.textContent = mensagemErro(error, error.message || "Não foi possível confirmar a atribuição.");
+  } finally {
+    estado.atribuindo = false;
+    atualizarControles();
+  }
+}
+
 async function carregarResumo() {
   const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
@@ -270,34 +435,22 @@ function atualizarControles() {
   el.verSelecionadasBtn.hidden = !n;
   el.atribuirSelecionadasBtn.disabled = !n;
   el.atribuirSelecionadasHint.textContent = n ? `${n} selecionada${n > 1 ? "s" : ""}` : "Selecione ao menos uma demanda";
-  el.atualizarBtn.disabled = estado.carregando;
+  el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
+  el.revisarLoteBtn.disabled = estado.atribuindo;
+  if (estado.atribuindo) el.confirmarLoteBtn.disabled = true;
 }
 
 
 function formatarDataHora(valor) { if (!valor) return "Não informado"; return new Intl.DateTimeFormat("pt-BR", { dateStyle:"short", timeStyle:"short" }).format(new Date(valor)); }
 function classificarSituacaoPrazo(dados) {
-  if (!dados?.possui_ciclo_ativo) {
-    return null;
-  }
-  if (!dados?.prazo_em) {
-    return "SEM_PRAZO";
-  }
+  if (!dados?.possui_ciclo_ativo) return null;
+  if (!dados?.prazo_em) return "SEM_PRAZO";
   const dias = Number(dados.dias_ate_prazo);
-  if (!Number.isFinite(dias)) {
-    return null;
-  }
-  if (dias < 0) {
-    return "PRAZO_VENCIDO";
-  }
-  if (dias === 0) {
-    return "VENCE_HOJE";
-  }
-  if (dias <= 3) {
-    return "VENCE_EM_ATE_3_DIAS";
-  }
-  if (dias <= 7) {
-    return "VENCE_EM_ATE_7_DIAS";
-  }
+  if (!Number.isFinite(dias)) return null;
+  if (dias < 0) return "PRAZO_VENCIDO";
+  if (dias === 0) return "VENCE_HOJE";
+  if (dias <= 3) return "VENCE_EM_ATE_3_DIAS";
+  if (dias <= 7) return "VENCE_EM_ATE_7_DIAS";
   return "DENTRO_DO_PRAZO";
 }
 function rotuloPrazo(codigo, dias, possuiCiclo=true) {
@@ -313,24 +466,25 @@ async function abrirDetalhe(d) {
   el.modalUltimaAlteracao.textContent=formatarData(d.data_ultima_modificacao); el.modalDescricao.textContent="Carregando descrição completa...";
   el.atribuicaoOverlay.hidden=false; document.body.style.overflow="hidden";
   try {
-    const {data,error}=await sb.rpc("obter_detalhes_demanda",{p_id_indicio:Number(d.id_indicio)}); if(error) throw error;
+    const {data,error}=await sb.rpc("obter_detalhes_demanda_modo",{p_id_indicio:Number(d.id_indicio)}); if(error) throw error;
     if(req!==estado.detalhe.requisicao||el.atribuicaoOverlay.hidden)return;
     el.modalCpf.textContent=data.cpf||"Não informado"; el.modalNome.textContent=data.nome_atual||"Não informado"; el.modalTipo.textContent=data.tipo_indicio||"Não informado";
     el.modalDescricao.textContent=data.descricao_indicio||"Descrição não informada na base."; el.modalSituacaoFuncional.textContent=data.situacoes_funcionais_resumo||"Não informado";
-    el.modalPrioridade.textContent=data.nome_prioridade||"Sem prioridade"; el.modalModo.textContent=data.nome_modo||data.codigo_modo||"Individual";
-    el.modalOperador.textContent=data.nome_operador||"Sem operador principal"; el.modalAtribuidoEm.textContent=data.atribuido_em?formatarDataHora(data.atribuido_em):"Não informado";
+    el.modalPrioridade.textContent = data.nome_prioridade || "Sem prioridade";
+    el.modalModo.textContent = data.modo_trabalho?.nome || data.modo_trabalho?.codigo || "Não informado";
+    el.modalOperador.textContent = data.operador_principal?.nome_exibicao || data.nome_operador || "Sem operador principal";
+    el.modalAtribuidoEm.textContent = (data.operador_principal?.atribuido_em || data.atribuido_em) ? formatarDataHora(data.operador_principal?.atribuido_em || data.atribuido_em) : "Não informado";
+    const colaboradores = data.colaboradores || [];
+    el.modalColaboradores.innerHTML = colaboradores.length
+      ? `<div class="collaborator-chips">${colaboradores.map(c => `<span class="participant-chip">${escapeHtml(c.nome_exibicao)}</span>`).join("")}</div>`
+      : '<span class="muted-text">Nenhum colaborador ativo</span>';
     el.modalNumeroCiclo.textContent=data.numero_ciclo??"Não informado"; el.modalStatusCiclo.textContent=data.nome_status_ciclo||rotuloSituacao(data.situacao_operacional);
-    el.modalPrazo.textContent=data.prazo_em?formatarDataHora(data.prazo_em):"Sem prazo"; 
-    const situacaoPrazo =
-      data.situacao_prazo ||
-      classificarSituacaoPrazo(data);
-    el.modalSituacaoPrazo.textContent = rotuloPrazo(
-      situacaoPrazo,
-      data.dias_ate_prazo,
-      data.possui_ciclo_ativo
-    );
+    el.modalPrazo.textContent = data.prazo_em ? formatarDataHora(data.prazo_em) : "Sem prazo";
+    const situacaoPrazo = data.situacao_prazo || classificarSituacaoPrazo(data);
+    el.modalSituacaoPrazo.textContent = rotuloPrazo(situacaoPrazo, data.dias_ate_prazo, data.possui_ciclo_ativo);
   } catch(error){ console.error(error); if(req!==estado.detalhe.requisicao)return; el.modalCpf.textContent=d.cpf_mascarado||"Não disponível"; el.modalDescricao.textContent="Não foi possível carregar os detalhes completos."; }
 }
+
 function fecharDetalhe() {
   estado.detalhe.requisicao++;
   el.atribuicaoOverlay.hidden = true;
@@ -344,7 +498,13 @@ function alternarMenu(forcar) {
 }
 
 function abrirLote(modo) {
-  alternarMenu(false); estado.lote={modo,previa:null}; el.confirmarLoteBtn.disabled=true; el.lotePrevia.hidden=true; el.loteAviso.textContent="Configure a atribuição e gere a prévia antes de confirmar.";
+  alternarMenu(false);
+  estado.lote = { criterio: modo, previa: null, assinaturaPrevia: null };
+  el.loteModoSelect.value = "INDIVIDUAL";
+  atualizarOpcoesColaboradores();
+  atualizarModoLote();
+  el.confirmarLoteBtn.disabled = true;
+  el.lotePrevia.hidden = true; el.loteAviso.textContent="Configure a atribuição e gere a prévia antes de confirmar.";
   [el.loteEtapaSelecionadas, el.loteEtapaTipo, el.loteEtapaCpf].forEach(x => x.hidden = true);
   
   if (modo === "selecionadas") {
@@ -530,9 +690,13 @@ function registrarEventos() {
     }
   });
 
-  el.lotePrazoCheck.addEventListener("change",()=>{el.lotePrazoField.hidden=!el.lotePrazoCheck.checked;estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.lotePrevia.hidden=true;});
-  [el.loteOperadorSelect,el.lotePrioridadeSelect,el.loteTipoSelect,el.loteCpfInput,el.lotePrazoInput].forEach(x=>x.addEventListener("change",()=>{estado.lote.previa=null;el.confirmarLoteBtn.disabled=true;el.lotePrevia.hidden=true;}));
-  el.revisarLoteBtn.addEventListener("click",revisarLote); el.confirmarLoteBtn.addEventListener("click",confirmarLote);
+  el.lotePrazoCheck.addEventListener("change",()=>{el.lotePrazoField.hidden=!el.lotePrazoCheck.checked;invalidarPreviaLote();});
+  el.loteOperadorSelect.addEventListener("change", () => { atualizarOpcoesColaboradores(); invalidarPreviaLote(); });
+  el.loteModoSelect.addEventListener("change", atualizarModoLote);
+  el.loteColaboradoresLista.addEventListener("change", invalidarPreviaLote);
+  [el.lotePrioridadeSelect, el.loteTipoSelect, el.loteCpfInput, el.lotePrazoInput].forEach(x => x.addEventListener("change", invalidarPreviaLote));
+  el.revisarLoteBtn.addEventListener("click", revisarLote);
+  el.confirmarLoteBtn.addEventListener("click", confirmarLote);
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     if (!el.loteOverlay.hidden) fecharLote();
