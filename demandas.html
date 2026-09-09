@@ -226,7 +226,7 @@
         <div class="assignment-hero">
           <div class="assignment-icon-placeholder" aria-hidden="true">ID</div>
           <div>
-            <span class="eyebrow">Demanda selecionada</span>
+            <span class="eyebrow">Consulta da demanda</span>
             <strong id="modalIdentificador">Não informado</strong>
             <span id="modalSituacao">Disponível para atribuição</span>
           </div>
@@ -245,19 +245,13 @@
             <div class="detail-wide"><dt>Tipo de indício</dt><dd id="modalTipo">Não informado</dd></div>
             <div class="detail-wide"><dt>Situação funcional</dt><dd id="modalSituacaoFuncional">Não informado</dd></div>
             <div><dt>Tempo de espera</dt><dd id="modalEspera">Não informado</dd></div>
-            <div><dt>Última alteração na origem</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
+            <div><dt>Última alteração no E-Pessoal</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
           </dl>
           <div class="privacy-note">
             <strong>Dados protegidos</strong>
             <span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span>
           </div>
         </section>
-        <div class="field">
-          <label for="operadorAtribuicaoSelect">Operador principal</label>
-          <select class="control" id="operadorAtribuicaoSelect" required>
-            <option value="">Selecione um operador</option>
-          </select>
-        </div>
         <div class="assignment-grid">
           <div class="field">
             <label for="prioridadeAtribuicao">Prioridade inicial</label>
@@ -270,10 +264,7 @@
         </div>
         <p class="modal-note">Nesta primeira rodada, prioridade e modo são definidos pelo backend e apresentados apenas para conferência.</p>
       </div>
-      <footer class="modal-footer">
-        <button class="btn" id="cancelarModalBtn" type="button">Cancelar</button>
-        <button class="btn btn-primary" id="selecionarNoDetalheBtn" type="button">Selecionar para atribuição</button>
-      </footer>
+      <footer class="modal-footer"><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
     </section>
   </div>
 
