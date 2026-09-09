@@ -39,17 +39,24 @@ const ids = [
   "atribuirDemandasBtn", "assignmentMenu", "assignmentMenuPopover", "atribuirSelecionadasBtn",
   "atribuirSelecionadasHint", "atribuirPorTipoBtn", "atribuirPorCpfBtn",
   "cardTotal", "cardDisponiveis", "cardPendentes", "cardEmTratamento", "cardSemResponsavel", "cardMultiplas",
-  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "tipoIndicioFiltroSelect", "prioridadeFiltroSelect", "ordenacaoSelect", "semResponsavelCheck",
-  "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
+  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "tipoIndicioFiltroSelect", "prioridadeFiltroSelect",
+  "ordenacaoSelect", "semResponsavelCheck", "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
   "tamanhoPaginaSelect", "demandasTbody", "estadoTabela", "selectionInfo", "verSelecionadasBtn",
   "limparSelecaoBtn", "selecionarPaginaCheck", "paginacaoInfo", "paginaAtualInfo", "paginaAnteriorBtn", "proximaPaginaBtn",
-  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "modalIdentificador",
-  "modalSituacao", "modalNumeroIndicio", "modalCpf", "modalNome", "modalTipo", "modalSituacaoFuncional",
-  "modalEspera", "modalUltimaAlteracao",
-  "loteOverlay", "fecharLoteBtn", "cancelarLoteBtn", "confirmarLoteBtn", "loteTitulo", "loteEtapaSelecionadas",
-  "loteEtapaTipo", "loteEtapaCpf", "loteQuantidade", "loteSelecionadasLista", "loteTipoSelect", "loteCpfInput", "loteOperadorSelect"
-];
+  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "modalIdentificador", "modalSituacao",
+  "modalNumeroIndicio", "modalCpf", "modalNome", "modalTipo", "modalSituacaoFuncional", "modalEspera",
+  "modalUltimaAlteracao", "modalDescricao", "prioridadeAtribuicao",
+  "loteOverlay", "fecharLoteBtn", "cancelarLoteBtn", "revisarLoteBtn", "confirmarLoteBtn", "loteTitulo",
+  "loteEtapaSelecionadas", "loteEtapaTipo", "loteEtapaCpf", "loteQuantidade", "loteSelecionadasLista",
+  "loteTipoSelect", "loteCpfInput", "loteOperadorSelect", "lotePrioridadeSelect", "lotePrazoCheck",
+  "lotePrazoField", "lotePrazoInput", "loteAviso", "lotePrevia", "lotePreviaResumo", "lotePreviaDetalhes"
+]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+
+const idsAusentes = ids.filter(id => !el[id]);
+if (idsAusentes.length) {
+  throw new Error(`HTML_INCOMPATIVEL: elementos ausentes: ${idsAusentes.join(", ")}`);
+}
 
 function escapeHtml(valor, fallback = "Não informado") {
   const texto = valor === null || valor === undefined || valor === "" ? fallback : String(valor);
@@ -373,7 +380,9 @@ function atualizarControles() {
   el.verSelecionadasBtn.hidden = !n;
   el.atribuirSelecionadasBtn.disabled = !n;
   el.atribuirSelecionadasHint.textContent = n ? `${n} selecionada${n > 1 ? "s" : ""}` : "Selecione ao menos uma demanda";
-  el.atualizarBtn.disabled = estado.carregando;
+  el.atualizarBtn.disabled = estado.carregando || estado.atribuindo;
+  el.revisarLoteBtn.disabled = estado.atribuindo;
+  if (estado.atribuindo) el.confirmarLoteBtn.disabled = true;
 }
 
 function abrirDetalhe(d) {
