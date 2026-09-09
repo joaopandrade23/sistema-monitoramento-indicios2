@@ -259,6 +259,7 @@
             <div><dt>Prioridade</dt><dd id="modalPrioridade">Sem prioridade</dd></div>
             <div><dt>Modo de trabalho</dt><dd id="modalModo">Não informado</dd></div>
             <div class="detail-wide"><dt>Operador principal</dt><dd id="modalOperador">Sem operador principal</dd></div>
+            <div class="detail-wide"><dt>Colaboradores</dt><dd id="modalColaboradores"><span class="muted-text">Nenhum colaborador ativo</span></dd></div>
             <div><dt>Data da atribuição</dt><dd id="modalAtribuidoEm">Não informado</dd></div>
             <div><dt>Número do ciclo</dt><dd id="modalNumeroCiclo">Não informado</dd></div>
             <div><dt>Situação do ciclo</dt><dd id="modalStatusCiclo">Não informado</dd></div>
@@ -315,13 +316,29 @@
               </select>
             </div>
             <div class="field"><label for="lotePrioridadeSelect">Prioridade inicial</label><select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select></div>
-            <div class="field"><label>Modo de trabalho</label><div class="readonly-control">Individual</div><small>Modo colaborativo será ativado após homologação do backend.</small></div>
+            <div class="field">
+              <label for="loteModoSelect">Modo de trabalho</label>
+              <select class="control" id="loteModoSelect">
+                <option value="INDIVIDUAL">Individual</option>
+                <option value="COLABORATIVO">Colaborativo</option>
+              </select>
+              <small id="loteModoAjuda">Uma pessoa será responsável pelo ciclo.</small>
+            </div>
+            <div class="field detail-wide collaborators-field" id="loteColaboradoresField" hidden>
+              <span class="field-label">Colaboradores</span>
+              <div class="collaborator-options" id="loteColaboradoresLista" role="group" aria-label="Selecione os colaboradores"></div>
+              <small>Selecione pelo menos uma pessoa diferente do operador principal.</small>
+            </div>
             <div class="field"><label for="lotePrazoCheck">Prazo</label><label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"><span>Definir prazo para o lote</span></label></div>
             <div class="field" id="lotePrazoField" hidden><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"></div>
           </div>
         </section>
         <div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
-        <section class="preview-panel" id="lotePrevia" hidden aria-live="polite"><div class="preview-metrics" id="lotePreviaResumo"></div><div id="lotePreviaDetalhes"></div></section>
+        <section class="preview-panel" id="lotePrevia" hidden aria-live="polite">
+          <div class="preview-metrics" id="lotePreviaResumo"></div>
+          <div class="participants-preview" id="lotePreviaParticipantes"></div>
+          <div id="lotePreviaDetalhes"></div>
+        </section>
       </div>
       <footer class="modal-footer">
         <button class="btn" id="cancelarLoteBtn" type="button">Cancelar</button>
@@ -332,6 +349,6 @@
   </div>
 
   <!-- JavaScript Principal -->
-  <script type="module" src="./js/demandas.js"></script>
+  <script type="module" src=".js/demandas.js"></script>
 </body>
 </html>
