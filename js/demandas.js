@@ -15,6 +15,9 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
+  prioridades: [],
+  tiposIndicio: [],
+  lote: { modo: null, previa: null },
   buscaTimer: null,
   cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
@@ -22,6 +25,8 @@ const estado = {
     busca: "",
     situacao: "",
     idOperador: null,
+    idTipoIndicio: null,
+    codigoPrioridade: null,
     ordenacao: "DIAS_ESPERA_DESC",
     multiplas: null,
     semResponsavel: null,
@@ -34,7 +39,7 @@ const ids = [
   "atribuirDemandasBtn", "assignmentMenu", "assignmentMenuPopover", "atribuirSelecionadasBtn",
   "atribuirSelecionadasHint", "atribuirPorTipoBtn", "atribuirPorCpfBtn",
   "cardTotal", "cardDisponiveis", "cardPendentes", "cardEmTratamento", "cardSemResponsavel", "cardMultiplas",
-  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "ordenacaoSelect", "semResponsavelCheck",
+  "buscaInput", "situacaoSelect", "operadorFiltroSelect", "tipoIndicioFiltroSelect", "prioridadeFiltroSelect", "ordenacaoSelect", "semResponsavelCheck",
   "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
   "tamanhoPaginaSelect", "demandasTbody", "estadoTabela", "selectionInfo", "verSelecionadasBtn",
   "limparSelecaoBtn", "selecionarPaginaCheck", "paginacaoInfo", "paginaAtualInfo", "paginaAnteriorBtn", "proximaPaginaBtn",
@@ -125,6 +130,107 @@ async function carregarOperadores() {
   el.loteOperadorSelect.innerHTML = `<option value="">Selecione um operador</option>${opcoes}`;
 }
 
+
+async function carregarPrioridades() {
+  const { data, error } = await sb.from("v_prioridades_disponiveis").select("*").order("nivel_prioridade");
+  if (error) throw error;
+  estado.prioridades = data || [];
+  const opcoes = estado.prioridades.map(p => `<option value="${escapeHtml(p.codigo_prioridade)}">${escapeHtml(p.nome_prioridade)}</option>`).join("");
+  el.prioridadeFiltroSelect.innerHTML = '<option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option>' + opcoes;
+  el.lotePrioridadeSelect.innerHTML = opcoes;
+  el.lotePrioridadeSelect.value = estado.prioridades.some(p => p.codigo_prioridade === "NORMAL") ? "NORMAL" : (estado.prioridades[0]?.codigo_prioridade || "");
+}
+
+async function carregarTiposIndicio() {
+  const candidatos = await sb.rpc("listar_demandas_gestao", {
+    ...parametrosListagem(), p_busca: null, p_situacao_operacional: null,
+    p_id_operador: null, p_id_tipo_indicio: null, p_codigo_prioridade: null,
+    p_apenas_multiplas_origens: null, p_apenas_sem_responsavel: null,
+    p_apenas_requer_analise: null, p_pagina: 1, p_tamanho_pagina: 500
+  });
+  if (candidatos.error) throw candidatos.error;
+  estado.tiposIndicio = [...new Map((candidatos.data?.itens || []).map(d => [Number(d.id_tipo_indicio), d.tipo_indicio])).entries()]
+    .filter(([id, nome]) => id && nome).sort((a,b) => String(a[1]).localeCompare(String(b[1])))
+    .map(([id,nome]) => ({ id, nome }));
+  el.tipoIndicioFiltroSelect.innerHTML = '<option value="">Todos os tipos</option>' + estado.tiposIndicio.map(t => `<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");
+}
+
+function parametrosLote() {
+  const modo = estado.lote.modo;
+  const comPrazo = el.lotePrazoCheck.checked;
+  const dataPrazo = comPrazo ? el.lotePrazoInput.value : null;
+  const prazoEm = dataPrazo ? `${dataPrazo}T23:59:59-03:00` : null;
+  return {
+    p_criterio: modo === "tipo" ? "TIPO_INDICIO" : modo === "cpf" ? "CPF" : "SELECIONADAS",
+    p_ids_indicios: modo === "selecionadas" ? [...estado.selecionadas.values()].map(d => Number(d.id_indicio)) : null,
+    p_id_tipo_indicio: modo === "tipo" && el.loteTipoSelect.value ? Number(el.loteTipoSelect.value) : null,
+    p_cpf: modo === "cpf" ? el.loteCpfInput.value : null,
+    p_id_usuario_operador: el.loteOperadorSelect.value ? Number(el.loteOperadorSelect.value) : null,
+    p_codigo_prioridade: el.lotePrioridadeSelect.value || "NORMAL",
+    p_id_data_prazo: dataPrazo ? Number(dataPrazo.replaceAll("-", "")) : null,
+    p_prazo_em: prazoEm,
+    p_limite_resultados: 100
+  };
+}
+
+function validarConfiguracaoLote(p) {
+  if (!p.p_id_usuario_operador) throw new Error("Selecione um operador.");
+  if (p.p_criterio === "SELECIONADAS" && !p.p_ids_indicios?.length) throw new Error("Selecione ao menos uma demanda.");
+  if (p.p_criterio === "TIPO_INDICIO" && !p.p_id_tipo_indicio) throw new Error("Selecione um tipo de indício.");
+  if (p.p_criterio === "CPF" && String(p.p_cpf || "").replace(/\D/g, "").length !== 11) throw new Error("Informe um CPF com 11 dígitos.");
+  if (el.lotePrazoCheck.checked && !el.lotePrazoInput.value) throw new Error("Informe a data limite.");
+}
+
+function renderizarPrevia(previa) {
+  const r = previa.resumo || {};
+  el.lotePreviaResumo.innerHTML = [
+    ["Elegíveis", r.quantidade_elegivel || 0, "success"],
+    ["Bloqueadas", r.quantidade_bloqueada || 0, "danger"],
+    ["Não encontradas", r.quantidade_nao_encontrada || 0, "warning"],
+    ["Excedentes", r.quantidade_excedente || 0, "warning"]
+  ].map(([rotulo, valor, classe]) => `<div class="preview-metric ${classe}"><strong>${valor}</strong><span>${rotulo}</span></div>`).join("");
+  const bloqueadas = previa.bloqueadas || [];
+  el.lotePreviaDetalhes.innerHTML = bloqueadas.length
+    ? `<details><summary>Ver ${bloqueadas.length} demanda(s) bloqueada(s)</summary><ul>${bloqueadas.map(b => `<li>${escapeHtml(b.identificador_do_indicio || b.id_indicio)}: ${escapeHtml(b.motivos?.[0]?.mensagem || "Não elegível")}</li>`).join("")}</ul></details>`
+    : '<p class="preview-ok">Todas as demandas localizadas estão aptas para confirmação.</p>';
+  el.lotePrevia.hidden = false;
+  el.confirmarLoteBtn.disabled = !previa.pode_confirmar;
+}
+
+async function revisarLote() {
+  try {
+    const p = parametrosLote(); validarConfiguracaoLote(p);
+    estado.atribuindo = true; atualizarControles();
+    el.loteAviso.className = "status-banner"; el.loteAviso.textContent = "Gerando prévia...";
+    const { data, error } = await sb.rpc("prever_atribuicao_demandas", { ...p, p_incluir_detalhes: true });
+    if (error) throw error;
+    estado.lote.previa = data; renderizarPrevia(data);
+    el.loteAviso.className = `status-banner ${data.pode_confirmar ? "success" : "warning"}`;
+    el.loteAviso.textContent = data.pode_confirmar ? "Prévia concluída. Revise os dados e confirme a atribuição." : "A prévia não possui demandas confirmáveis.";
+  } catch (error) {
+    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true;
+    el.loteAviso.className = "status-banner danger"; el.loteAviso.textContent = error.message || "Não foi possível gerar a prévia.";
+  } finally { estado.atribuindo = false; atualizarControles(); }
+}
+
+async function confirmarLote() {
+  if (!estado.lote.previa?.pode_confirmar) return;
+  try {
+    const p = parametrosLote(); validarConfiguracaoLote(p);
+    estado.atribuindo = true; atualizarControles(); el.confirmarLoteBtn.disabled = true;
+    el.loteAviso.className = "status-banner"; el.loteAviso.textContent = "Confirmando atribuição transacional...";
+    const { data, error } = await sb.rpc("atribuir_demandas_lote", { ...p, p_politica_bloqueios: "PROCESSAR_ELEGIVEIS" });
+    if (error) throw error;
+    exibirMensagem(data?.mensagem || "Atribuição concluída.", "success");
+    estado.selecionadas.clear(); fecharLote();
+    await Promise.all([carregarResumo(), carregarDemandas()]);
+  } catch (error) {
+    el.loteAviso.className = "status-banner danger";
+    el.loteAviso.textContent = mensagemErro(error, error.message || "Não foi possível confirmar a atribuição.");
+    estado.lote.previa = null;
+  } finally { estado.atribuindo = false; atualizarControles(); }
+}
+
 async function carregarResumo() {
   const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
@@ -142,8 +248,8 @@ function parametrosListagem() {
     p_busca: estado.filtros.busca || null,
     p_situacao_operacional: estado.filtros.situacao || null,
     p_id_operador: estado.filtros.idOperador,
-    p_id_tipo_indicio: null,
-    p_codigo_prioridade: null,
+    p_id_tipo_indicio: estado.filtros.idTipoIndicio,
+    p_codigo_prioridade: estado.filtros.codigoPrioridade,
     p_codigo_modo: null,
     p_apenas_multiplas_origens: estado.filtros.multiplas,
     p_apenas_sem_responsavel: estado.filtros.semResponsavel,
@@ -275,13 +381,15 @@ function abrirDetalhe(d) {
   el.modalIdentificador.textContent = d.identificador_do_indicio || "Não informado";
   el.modalSituacao.textContent = rotuloSituacao(d.situacao_operacional);
   el.modalNumeroIndicio.textContent = d.identificador_do_indicio || "Não informado";
-  el.modalCpf.textContent = d.cpf_mascarado || "Não informado";
+  el.modalCpf.textContent = d.cpf || d.cpf_completo || d.cpf_mascarado || "Não informado";
   el.modalNome.textContent = d.nome_atual || "Não informado";
   el.modalTipo.textContent = d.tipo_indicio || "Não informado";
   el.modalSituacaoFuncional.textContent = d.situacoes_funcionais_resumo || "Não informado";
   el.modalEspera.textContent = `${Number(d.dias_de_espera || 0)} dias`;
   el.modalUltimaAlteracao.textContent = formatarData(d.data_ultima_modificacao);
-el.atribuicaoOverlay.hidden = false;
+  el.modalDescricao.textContent = d.descricao_indicio || d.descricao || "Descrição não disponível na consulta atual.";
+  el.prioridadeAtribuicao.textContent = d.nome_prioridade || d.codigo_prioridade || "Sem prioridade";
+  el.atribuicaoOverlay.hidden = false;
   document.body.style.overflow = "hidden";
 }
 
@@ -298,6 +406,11 @@ function alternarMenu(forcar) {
 
 function abrirLote(modo) {
   alternarMenu(false);
+  estado.lote = { modo, previa: null };
+  el.confirmarLoteBtn.disabled = true;
+  el.lotePrevia.hidden = true;
+  el.loteAviso.className = "status-banner";
+  el.loteAviso.textContent = "Configure a atribuição e gere a prévia antes de confirmar.";
   [el.loteEtapaSelecionadas, el.loteEtapaTipo, el.loteEtapaCpf].forEach(x => x.hidden = true);
   
   if (modo === "selecionadas") {
@@ -310,10 +423,8 @@ function abrirLote(modo) {
   } else if (modo === "tipo") {
     el.loteTitulo.textContent = "Atribuir por tipo de indício";
     el.loteEtapaTipo.hidden = false;
-    const tipos = [...new Map(estado.demandas.map(d => [d.id_tipo_indicio, d.tipo_indicio])).entries()]
-      .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
     el.loteTipoSelect.innerHTML = '<option value="">Selecione um tipo</option>' +
-      tipos.map(([id, n]) => `<option value="${id}">${escapeHtml(n)}</option>`).join("");
+      estado.tiposIndicio.map(t => `<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");
   } else {
     el.loteTitulo.textContent = "Atribuir por CPF";
     el.loteEtapaCpf.hidden = false;
@@ -343,6 +454,8 @@ function aplicarFiltros() {
     busca: el.buscaInput.value.trim(),
     situacao: el.situacaoSelect.value,
     idOperador: el.operadorFiltroSelect.value ? Number(el.operadorFiltroSelect.value) : null,
+    idTipoIndicio: el.tipoIndicioFiltroSelect.value ? Number(el.tipoIndicioFiltroSelect.value) : null,
+    codigoPrioridade: el.prioridadeFiltroSelect.value || null,
     ordenacao: el.ordenacaoSelect.value,
     multiplas: el.multiplasCheck.checked ? true : null,
     semResponsavel: el.semResponsavelCheck.checked ? true : null,
@@ -441,7 +554,7 @@ function registrarEventos() {
     estado.buscaTimer = setTimeout(aplicarFiltros, 400);
   });
   
-  [el.situacaoSelect, el.operadorFiltroSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(x => {
+  [el.situacaoSelect, el.operadorFiltroSelect, el.tipoIndicioFiltroSelect, el.prioridadeFiltroSelect, el.ordenacaoSelect, el.semResponsavelCheck, el.multiplasCheck, el.analiseCheck].forEach(x => {
     x.addEventListener("change", () => {
       atualizarCardAtivo("");
       aplicarFiltros();
@@ -452,6 +565,8 @@ function registrarEventos() {
     el.buscaInput.value = "";
     el.situacaoSelect.value = "";
     el.operadorFiltroSelect.value = "";
+    el.tipoIndicioFiltroSelect.value = "";
+    el.prioridadeFiltroSelect.value = "";
     el.ordenacaoSelect.value = "DIAS_ESPERA_DESC";
     el.semResponsavelCheck.checked = false;
     el.multiplasCheck.checked = false;
@@ -480,6 +595,16 @@ function registrarEventos() {
     }
   });
 
+  el.lotePrazoCheck.addEventListener("change", () => {
+    el.lotePrazoField.hidden = !el.lotePrazoCheck.checked;
+    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true; el.lotePrevia.hidden = true;
+  });
+  [el.loteOperadorSelect, el.lotePrioridadeSelect, el.loteTipoSelect, el.loteCpfInput, el.lotePrazoInput].forEach(x => x.addEventListener("change", () => {
+    estado.lote.previa = null; el.confirmarLoteBtn.disabled = true; el.lotePrevia.hidden = true;
+  }));
+  el.revisarLoteBtn.addEventListener("click", revisarLote);
+  el.confirmarLoteBtn.addEventListener("click", confirmarLote);
+
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
     if (!el.loteOverlay.hidden) fecharLote();
@@ -492,7 +617,8 @@ async function init() {
   registrarEventos();
   try {
     await exigirAcesso();
-    await Promise.all([carregarOperadores(), carregarResumo(), carregarDemandas()]);
+    await Promise.all([carregarOperadores(), carregarPrioridades(), carregarResumo(), carregarDemandas()]);
+    await carregarTiposIndicio();
   } catch (error) {
     console.error(error);
     if (error.message !== "SESSAO_AUSENTE") {
