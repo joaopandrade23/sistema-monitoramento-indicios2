@@ -38,9 +38,9 @@ const ids = [
   "multiplasCheck", "analiseCheck", "limparFiltrosBtn",
   "tamanhoPaginaSelect", "demandasTbody", "estadoTabela", "selectionInfo", "verSelecionadasBtn",
   "limparSelecaoBtn", "selecionarPaginaCheck", "paginacaoInfo", "paginaAtualInfo", "paginaAnteriorBtn", "proximaPaginaBtn",
-  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "selecionarNoDetalheBtn", "modalIdentificador",
+  "atribuicaoOverlay", "fecharModalBtn", "cancelarModalBtn", "modalIdentificador",
   "modalSituacao", "modalNumeroIndicio", "modalCpf", "modalNome", "modalTipo", "modalSituacaoFuncional",
-  "modalEspera", "modalUltimaAlteracao", "operadorAtribuicaoSelect",
+  "modalEspera", "modalUltimaAlteracao",
   "loteOverlay", "fecharLoteBtn", "cancelarLoteBtn", "confirmarLoteBtn", "loteTitulo", "loteEtapaSelecionadas",
   "loteEtapaTipo", "loteEtapaCpf", "loteQuantidade", "loteSelecionadasLista", "loteTipoSelect", "loteCpfInput", "loteOperadorSelect"
 ];
@@ -123,9 +123,6 @@ async function carregarOperadores() {
   
   el.operadorFiltroSelect.innerHTML = `<option value="">Todos</option>${opcoes}`;
   el.loteOperadorSelect.innerHTML = `<option value="">Selecione um operador</option>${opcoes}`;
-  if (el.operadorAtribuicaoSelect) {
-    el.operadorAtribuicaoSelect.innerHTML = `<option value="">Selecione um operador</option>${opcoes}`;
-  }
 }
 
 async function carregarResumo() {
@@ -284,12 +281,7 @@ function abrirDetalhe(d) {
   el.modalSituacaoFuncional.textContent = d.situacoes_funcionais_resumo || "Não informado";
   el.modalEspera.textContent = `${Number(d.dias_de_espera || 0)} dias`;
   el.modalUltimaAlteracao.textContent = formatarData(d.data_ultima_modificacao);
-  
-  el.selecionarNoDetalheBtn.dataset.idIndicio = d.id_indicio;
-  el.selecionarNoDetalheBtn.disabled = !d.pode_abrir_e_atribuir;
-  el.selecionarNoDetalheBtn.textContent = estado.selecionadas.has(String(d.id_indicio)) ? "Remover da seleção" : "Selecionar para atribuição";
-  
-  el.atribuicaoOverlay.hidden = false;
+el.atribuicaoOverlay.hidden = false;
   document.body.style.overflow = "hidden";
 }
 
@@ -410,12 +402,6 @@ function registrarEventos() {
       const linha = e.target.closest("tr[data-row-indicio]");
       if (linha) alternarSelecao(estado.demandas.find(x => String(x.id_indicio) === linha.dataset.rowIndicio));
     }
-  });
-
-  el.selecionarNoDetalheBtn.addEventListener("click", () => {
-    const d = estado.demandas.find(x => String(x.id_indicio) === el.selecionarNoDetalheBtn.dataset.idIndicio);
-    alternarSelecao(d);
-    fecharDetalhe();
   });
   el.fecharModalBtn.addEventListener("click", fecharDetalhe);
   el.cancelarModalBtn.addEventListener("click", fecharDetalhe);
