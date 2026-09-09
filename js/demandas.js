@@ -18,6 +18,7 @@ const estado = {
   prioridades: [],
   tiposIndicio: [],
   lote: { modo: null, previa: null },
+  detalhe: { requisicao: 0, idIndicio: null },
   buscaTimer: null,
   cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
@@ -385,24 +386,64 @@ function atualizarControles() {
   if (estado.atribuindo) el.confirmarLoteBtn.disabled = true;
 }
 
-function abrirDetalhe(d) {
+async function abrirDetalhe(d) {
   if (!d) return;
+
+  const numeroRequisicao = ++estado.detalhe.requisicao;
+  estado.detalhe.idIndicio = String(d.id_indicio);
+
+  // Abre imediatamente com os dados resumidos da listagem.
   el.modalIdentificador.textContent = d.identificador_do_indicio || "Não informado";
   el.modalSituacao.textContent = rotuloSituacao(d.situacao_operacional);
   el.modalNumeroIndicio.textContent = d.identificador_do_indicio || "Não informado";
-  el.modalCpf.textContent = d.cpf || d.cpf_completo || d.cpf_mascarado || "Não informado";
+  el.modalCpf.textContent = "Carregando...";
   el.modalNome.textContent = d.nome_atual || "Não informado";
   el.modalTipo.textContent = d.tipo_indicio || "Não informado";
   el.modalSituacaoFuncional.textContent = d.situacoes_funcionais_resumo || "Não informado";
   el.modalEspera.textContent = `${Number(d.dias_de_espera || 0)} dias`;
   el.modalUltimaAlteracao.textContent = formatarData(d.data_ultima_modificacao);
-  el.modalDescricao.textContent = d.descricao_indicio || d.descricao || "Descrição não disponível na consulta atual.";
+  el.modalDescricao.textContent = "Carregando descrição completa...";
   el.prioridadeAtribuicao.textContent = d.nome_prioridade || d.codigo_prioridade || "Sem prioridade";
+
   el.atribuicaoOverlay.hidden = false;
   document.body.style.overflow = "hidden";
+
+  try {
+    const { data, error } = await sb.rpc("obter_detalhes_demanda", {
+      p_id_indicio: Number(d.id_indicio)
+    });
+    if (error) throw error;
+
+    // Ignora uma resposta antiga se outro modal já tiver sido aberto ou fechado.
+    if (numeroRequisicao !== estado.detalhe.requisicao || el.atribuicaoOverlay.hidden) return;
+
+    el.modalIdentificador.textContent = data.identificador_do_indicio || "Não informado";
+    el.modalSituacao.textContent = rotuloSituacao(data.situacao_operacional);
+    el.modalNumeroIndicio.textContent = data.identificador_do_indicio || "Não informado";
+    el.modalCpf.textContent = data.cpf || "Não informado";
+    el.modalNome.textContent = data.nome_atual || "Não informado";
+    el.modalTipo.textContent = data.tipo_indicio || "Não informado";
+    el.modalSituacaoFuncional.textContent = data.situacoes_funcionais_resumo || "Sem situação funcional registrada";
+    el.modalEspera.textContent = `${Number(data.dias_de_espera || 0)} dias`;
+    el.modalUltimaAlteracao.textContent = formatarData(data.data_ultima_modificacao);
+    el.modalDescricao.textContent = data.descricao_indicio || "Descrição não informada na base.";
+    el.prioridadeAtribuicao.textContent = data.nome_prioridade || data.codigo_prioridade || "Sem prioridade";
+  } catch (error) {
+    console.error("Erro ao obter detalhes da demanda:", error);
+    if (numeroRequisicao !== estado.detalhe.requisicao || el.atribuicaoOverlay.hidden) return;
+
+    el.modalCpf.textContent = d.cpf_mascarado || "Não disponível";
+    el.modalDescricao.textContent = "Não foi possível carregar a descrição completa.";
+    exibirMensagem(
+      mensagemErro(error, "Não foi possível carregar os detalhes completos da demanda."),
+      "error"
+    );
+  }
 }
 
 function fecharDetalhe() {
+  estado.detalhe.requisicao++;
+  estado.detalhe.idIndicio = null;
   el.atribuicaoOverlay.hidden = true;
   document.body.style.overflow = "";
 }
