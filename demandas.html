@@ -136,6 +136,17 @@
           <select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select>
         </div>
         <div class="field">
+          <label for="tipoIndicioFiltroSelect">Tipo de indício</label>
+          <select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select>
+        </div>
+        <div class="field">
+          <label for="prioridadeFiltroSelect">Prioridade</label>
+          <select class="control" id="prioridadeFiltroSelect">
+            <option value="">Todas as prioridades</option>
+            <option value="SEM_PRIORIDADE">Sem prioridade</option>
+          </select>
+        </div>
+        <div class="field">
           <label for="ordenacaoSelect">Ordenar por</label>
           <select class="control" id="ordenacaoSelect">
             <option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
@@ -247,22 +258,26 @@
             <div><dt>Tempo de espera</dt><dd id="modalEspera">Não informado</dd></div>
             <div><dt>Última alteração no E-Pessoal</dt><dd id="modalUltimaAlteracao">Não informado</dd></div>
           </dl>
+          <div class="detail-description">
+            <strong>Descrição do indício</strong>
+            <p id="modalDescricao">Não informado</p>
+          </div>
           <div class="privacy-note">
-            <strong>Dados protegidos</strong>
-            <span>O CPF permanece mascarado e a descrição integral do indício não é carregada nesta etapa.</span>
+            <strong>Uso restrito</strong>
+            <span>Dados pessoais exibidos somente a usuários autenticados e homologados.</span>
           </div>
         </section>
         <div class="assignment-grid">
           <div class="field">
             <label for="prioridadeAtribuicao">Prioridade inicial</label>
-            <div class="readonly-control" id="prioridadeAtribuicao">Normal</div>
+            <div class="readonly-control" id="prioridadeAtribuicao">Sem prioridade</div>
           </div>
           <div class="field">
             <label>Modo de trabalho</label>
             <div class="readonly-control">Individual</div>
           </div>
         </div>
-        <p class="modal-note">Nesta primeira rodada, prioridade e modo são definidos pelo backend e apresentados apenas para conferência.</p>
+        <p class="modal-note">As informações operacionais refletem o ciclo ativo da demanda.</p>
       </div>
       <footer class="modal-footer"><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
     </section>
@@ -293,14 +308,14 @@
               <option value="">Selecione um tipo</option>
             </select>
           </div>
-          <p class="modal-note">A consulta e a atribuição transacional por tipo serão ativadas após a criação da RPC de lote.</p>
+          <p class="modal-note">A prévia localizará todas as demandas elegíveis do tipo selecionado.</p>
         </div>
         <div id="loteEtapaCpf" class="batch-step" hidden>
           <div class="field">
             <label for="loteCpfInput">CPF</label>
             <input class="control" id="loteCpfInput" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00">
           </div>
-          <p class="modal-note">O CPF será usado somente como critério de busca. A prévia segura dependerá da RPC de lote.</p>
+          <p class="modal-note">O CPF será usado somente como critério de busca e não será gravado na auditoria.</p>
         </div>
         <section class="assignment-section">
           <h3>Configuração da atribuição</h3>
@@ -312,15 +327,28 @@
               </select>
             </div>
             <div class="field">
-              <label>Prioridade inicial</label>
-              <div class="readonly-control">Normal</div>
+              <label for="lotePrioridadeSelect">Prioridade inicial</label>
+              <select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select>
+            </div>
+            <div class="field">
+              <label for="lotePrazoCheck">Prazo</label>
+              <label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"><span>Definir prazo para o lote</span></label>
+            </div>
+            <div class="field" id="lotePrazoField" hidden>
+              <label for="lotePrazoInput">Data limite</label>
+              <input class="control" id="lotePrazoInput" type="date">
             </div>
           </div>
         </section>
-        <div class="status-banner warning" id="loteAviso">Interface preparada. A confirmação em lote permanece bloqueada até a implementação da RPC transacional.</div>
+        <div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
+        <section class="preview-panel" id="lotePrevia" hidden aria-live="polite">
+          <div class="preview-metrics" id="lotePreviaResumo"></div>
+          <div id="lotePreviaDetalhes"></div>
+        </section>
       </div>
       <footer class="modal-footer">
         <button class="btn" id="cancelarLoteBtn" type="button">Cancelar</button>
+        <button class="btn" id="revisarLoteBtn" type="button">Revisar atribuição</button>
         <button class="btn btn-primary" id="confirmarLoteBtn" type="button" disabled>Confirmar atribuição</button>
       </footer>
     </section>
