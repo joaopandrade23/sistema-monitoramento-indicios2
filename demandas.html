@@ -268,7 +268,10 @@
           </dl>
         </section>
       </div>
-      <footer class="modal-footer"><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
+      <footer class="modal-footer detail-actions">
+        <button class="btn btn-secondary" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar equipe e responsabilidade</button>
+        <button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button>
+      </footer>
     </section>
   </div>
 
@@ -309,15 +312,15 @@
         <section class="assignment-section">
           <h3>Configuração da atribuição</h3>
           <div class="assignment-grid">
-            <div class="field">
-              <label for="loteOperadorSelect">Operador principal</label>
+            <div class="field principal-field">
+              <label for="loteOperadorSelect" id="loteOperadorLabel">Operador responsável</label>
               <select class="control" id="loteOperadorSelect">
                 <option value="">Selecione um operador</option>
               </select>
             </div>
             <div class="field"><label for="lotePrioridadeSelect">Prioridade inicial</label><select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select></div>
-            <div class="field">
-              <label for="loteModoSelect">Modo de trabalho</label>
+            <div class="field mode-field">
+              <label for="loteModoSelect">1. Modo de trabalho</label>
               <select class="control" id="loteModoSelect">
                 <option value="INDIVIDUAL">Individual</option>
                 <option value="COLABORATIVO">Colaborativo</option>
@@ -325,7 +328,7 @@
               <small id="loteModoAjuda">Uma pessoa será responsável pelo ciclo.</small>
             </div>
             <div class="field detail-wide collaborators-field" id="loteColaboradoresField" hidden>
-              <span class="field-label">Colaboradores</span>
+              <span class="field-label">3. Equipe colaboradora</span>
               <div class="collaborator-options" id="loteColaboradoresLista" role="group" aria-label="Selecione os colaboradores"></div>
               <small>Selecione pelo menos uma pessoa diferente do operador principal.</small>
             </div>
@@ -345,6 +348,58 @@
         <button class="btn" id="revisarLoteBtn" type="button">Revisar atribuição</button>
         <button class="btn btn-primary" id="confirmarLoteBtn" type="button" disabled>Confirmar atribuição</button>
       </footer>
+    </section>
+  </div>
+
+  <!-- Modal de gerenciamento da equipe -->
+  <div class="overlay" id="equipeOverlay" hidden>
+    <section class="modal team-modal" role="dialog" aria-modal="true" aria-labelledby="equipeTitulo">
+      <header class="modal-header"><div><span class="eyebrow">Equipe da demanda</span><h2 id="equipeTitulo">Gerenciar equipe e responsabilidade</h2></div><button class="btn icon-btn btn-ghost" id="fecharEquipeBtn" type="button" aria-label="Fechar">×</button></header>
+      <div class="modal-body">
+        <div class="team-current" id="equipeResumoAtual"></div>
+        <div class="team-tabs" role="tablist">
+          <button class="team-tab is-active" id="equipeAbaAdicionar" type="button">Adicionar colaboradores</button>
+          <button class="team-tab" id="equipeAbaRemover" type="button">Remover colaboradores</button>
+          <button class="team-tab" id="equipeAbaRedistribuir" type="button">Trocar responsável</button>
+        </div>
+        <section id="equipePainelAdicionar" class="team-panel">
+          <div class="collaborator-options" id="equipeDisponiveisLista"></div>
+          <div class="status-banner warning" id="equipeConversaoAviso" hidden>A inclusão do primeiro colaborador alterará o modo para Colaborativo.</div>
+          <button class="btn btn-primary" id="incluirColaboradoresBtn" type="button">Adicionar selecionados</button>
+        </section>
+        <section id="equipePainelRemover" class="team-panel" hidden>
+          <div id="equipeAtivosLista" class="member-list"></div>
+          <div class="field"><label for="remocaoJustificativa">Justificativa da remoção</label><textarea class="control textarea" id="remocaoJustificativa" minlength="10" maxlength="500" placeholder="Informe o motivo da remoção"></textarea></div>
+        </section>
+        <section id="equipePainelRedistribuir" class="team-panel" hidden>
+          <div class="field"><label for="equipeNovoPrincipalSelect">Novo responsável principal</label><select class="control" id="equipeNovoPrincipalSelect"><option value="">Selecione</option></select></div>
+          <label class="check-option compact"><input id="equipeManterAnteriorCheck" type="checkbox"><span>Manter o responsável atual como colaborador</span></label>
+          <div class="field"><label for="equipeRedistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="equipeRedistribuicaoJustificativa" minlength="10" maxlength="500" placeholder="Informe o motivo da troca"></textarea></div>
+          <button class="btn btn-primary" id="redistribuirIndividualBtn" type="button">Trocar responsável</button>
+        </section>
+        <div class="status-banner" id="equipeAviso" hidden></div>
+      </div>
+      <footer class="modal-footer"><button class="btn" id="cancelarEquipeBtn" type="button">Fechar</button></footer>
+    </section>
+  </div>
+
+  <!-- Modal de redistribuição em lote -->
+  <div class="overlay" id="redistribuicaoOverlay" hidden>
+    <section class="modal batch-modal" role="dialog" aria-modal="true" aria-labelledby="redistribuicaoTitulo">
+      <header class="modal-header"><div><span class="eyebrow">Redistribuição em lote</span><h2 id="redistribuicaoTitulo">Redistribuir demandas</h2></div><button class="btn icon-btn btn-ghost" id="fecharRedistribuicaoBtn" type="button" aria-label="Fechar">×</button></header>
+      <div class="modal-body">
+        <div id="redistribuicaoCampoTipo" class="field"><label for="redistribuicaoTipoSelect">Tipo de indício</label><select class="control" id="redistribuicaoTipoSelect"><option value="">Selecione um tipo</option></select></div>
+        <div id="redistribuicaoCampoCpf" class="field" hidden><label for="redistribuicaoCpfInput">CPF</label><input class="control" id="redistribuicaoCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+        <div class="assignment-grid">
+          <div class="field"><label for="redistribuicaoAtualSelect">Responsável atual</label><select class="control" id="redistribuicaoAtualSelect"><option value="">Selecione</option></select></div>
+          <div class="field"><label for="redistribuicaoNovoSelect">Novo responsável</label><select class="control" id="redistribuicaoNovoSelect"><option value="">Selecione</option></select></div>
+          <label class="check-option compact detail-wide"><input id="redistribuicaoManterCheck" type="checkbox"><span>Manter o responsável anterior como colaborador</span></label>
+          <div class="field detail-wide"><label for="redistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="redistribuicaoJustificativa" minlength="10" maxlength="500" placeholder="Informe o motivo da redistribuição"></textarea></div>
+        </div>
+        <div class="status-banner" id="redistribuicaoAviso">Configure os filtros e gere a prévia.</div>
+        <section class="preview-panel" id="redistribuicaoPrevia" hidden><div class="preview-metrics" id="redistribuicaoResumo"></div><div id="redistribuicaoDetalhes"></div></section>
+      </div>
+      <footer class="modal-footer"><button class="btn" id="cancelarRedistribuicaoBtn" type="button">Cancelar</button><button class="btn" id="revisarRedistribuicaoBtn" type="button">Gerar prévia</button><button class="btn btn-primary" id="confirmarRedistribuicaoBtn" type="button" disabled>Confirmar redistribuição</button></footer>
     </section>
   </div>
 
