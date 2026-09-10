@@ -15,7 +15,8 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
-  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null }, detalhe: { requisicao: 0 },
+  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null }, detalhe: { requisicao: 0, demanda: null, dados: null },
+  redistribuicao: { criterio: null, previa: null, assinatura: null },
   buscaTimer: null,
   cardAtivo: "TODAS",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
@@ -34,6 +35,7 @@ const estado = {
 };
 
 const ids = [
+"redistributionMenu","redistributionMenuPopover","redistribuirDemandasBtn","redistribuirPorTipoBtn","redistribuirPorCpfBtn","gerenciarEquipeBtn","equipeOverlay","fecharEquipeBtn","cancelarEquipeBtn","equipeResumoAtual","equipeAbaAdicionar","equipeAbaRemover","equipeAbaRedistribuir","equipePainelAdicionar","equipePainelRemover","equipePainelRedistribuir","equipeDisponiveisLista","equipeAtivosLista","equipeConversaoAviso","incluirColaboradoresBtn","remocaoJustificativa","equipeNovoPrincipalSelect","equipeManterAnteriorCheck","equipeRedistribuicaoJustificativa","redistribuirIndividualBtn","equipeAviso","redistribuicaoOverlay","fecharRedistribuicaoBtn","cancelarRedistribuicaoBtn","redistribuicaoTitulo","redistribuicaoCampoTipo","redistribuicaoCampoCpf","redistribuicaoTipoSelect","redistribuicaoCpfInput","redistribuicaoAtualSelect","redistribuicaoNovoSelect","redistribuicaoManterCheck","redistribuicaoJustificativa","redistribuicaoAviso","redistribuicaoPrevia","redistribuicaoResumo","redistribuicaoDetalhes","revisarRedistribuicaoBtn","confirmarRedistribuicaoBtn","loteOperadorLabel",
 "usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
@@ -145,6 +147,7 @@ function atualizarOpcoesColaboradores() {
 function atualizarModoLote() {
   const colaborativo = el.loteModoSelect.value === "COLABORATIVO";
   el.loteColaboradoresField.hidden = !colaborativo;
+  el.loteOperadorLabel.textContent = colaborativo ? "2. Responsável principal" : "2. Operador responsável";
   el.loteModoAjuda.textContent = colaborativo
     ? "Um operador principal e pelo menos um colaborador atuarão no ciclo."
     : "Uma pessoa será responsável pelo ciclo.";
@@ -459,6 +462,7 @@ function rotuloPrazo(codigo, dias, possuiCiclo=true) {
 }
 async function abrirDetalhe(d) {
   if (!d) return;
+  estado.detalhe.demanda = d; estado.detalhe.dados = null; el.gerenciarEquipeBtn.hidden = true;
   const req = ++estado.detalhe.requisicao;
   el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado"; el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);
   el.modalNumeroIndicio.textContent=d.identificador_do_indicio||"Não informado"; el.modalCpf.textContent="Carregando..."; el.modalNome.textContent=d.nome_atual||"Não informado";
@@ -468,6 +472,7 @@ async function abrirDetalhe(d) {
   try {
     const {data,error}=await sb.rpc("obter_detalhes_demanda_modo",{p_id_indicio:Number(d.id_indicio)}); if(error) throw error;
     if(req!==estado.detalhe.requisicao||el.atribuicaoOverlay.hidden)return;
+    estado.detalhe.dados = data; el.gerenciarEquipeBtn.hidden = !data.possui_ciclo_ativo;
     el.modalCpf.textContent=data.cpf||"Não informado"; el.modalNome.textContent=data.nome_atual||"Não informado"; el.modalTipo.textContent=data.tipo_indicio||"Não informado";
     el.modalDescricao.textContent=data.descricao_indicio||"Descrição não informada na base."; el.modalSituacaoFuncional.textContent=data.situacoes_funcionais_resumo||"Não informado";
     el.modalPrioridade.textContent = data.nome_prioridade || "Sem prioridade";
@@ -488,7 +493,7 @@ async function abrirDetalhe(d) {
 function fecharDetalhe() {
   estado.detalhe.requisicao++;
   el.atribuicaoOverlay.hidden = true;
-  document.body.style.overflow = "";
+  if (el.equipeOverlay.hidden) document.body.style.overflow = "";
 }
 
 function alternarMenu(forcar) {
@@ -559,8 +564,61 @@ function aplicarFiltros() {
   carregarDemandas();
 }
 
+
+function opcoesOperadores(excluir = []) {
+  const bloqueados = new Set(excluir.map(Number));
+  return estado.operadores.filter(o => !bloqueados.has(Number(o.id_usuario))).map(o => `<option value="${o.id_usuario}">${escapeHtml(o.nome_exibicao)}</option>`).join("");
+}
+function mostrarAvisoEquipe(texto, tipo="") { el.equipeAviso.textContent=texto; el.equipeAviso.className=`status-banner ${tipo}`.trim(); el.equipeAviso.hidden=false; }
+function selecionarAbaEquipe(aba) {
+  [["adicionar",el.equipeAbaAdicionar,el.equipePainelAdicionar],["remover",el.equipeAbaRemover,el.equipePainelRemover],["redistribuir",el.equipeAbaRedistribuir,el.equipePainelRedistribuir]].forEach(([k,b,p])=>{b.classList.toggle("is-active",k===aba);p.hidden=k!==aba;});
+  el.equipeAviso.hidden=true;
+}
+function renderizarEquipe(dados) {
+  const principal=dados.operador_principal||{}; const colaboradores=dados.colaboradores||[];
+  el.equipeResumoAtual.innerHTML=`<div class="role-card role-primary"><span class="participant-role">Responsável principal</span><strong>${escapeHtml(principal.nome_exibicao)}</strong></div><div class="role-card"><span class="participant-role">Modo atual</span><strong>${escapeHtml(dados.modo_trabalho?.nome||dados.modo_trabalho?.codigo)}</strong><small>${colaboradores.length} colaborador(es)</small></div>`;
+  const ativos=new Set([Number(principal.id_usuario),...colaboradores.map(c=>Number(c.id_usuario))]);
+  const disponiveis=estado.operadores.filter(o=>!ativos.has(Number(o.id_usuario)));
+  el.equipeDisponiveisLista.innerHTML=disponiveis.length?disponiveis.map(o=>`<label class="collaborator-option"><input type="checkbox" value="${o.id_usuario}"><span><strong>${escapeHtml(o.nome_exibicao)}</strong><small>${escapeHtml(o.email_institucional,"")}</small></span></label>`).join(""):'<p class="muted-text">Nenhum operador disponível.</p>';
+  el.equipeConversaoAviso.hidden=colaboradores.length>0;
+  el.equipeAtivosLista.innerHTML=colaboradores.length?colaboradores.map(c=>`<div class="member-row"><div><strong>${escapeHtml(c.nome_exibicao)}</strong><span>Colaborador ativo</span></div><button class="btn btn-danger btn-sm" data-remover-colaborador="${c.id_usuario}">Remover</button></div>`).join(""):'<p class="muted-text">Nenhum colaborador ativo.</p>';
+  el.equipeNovoPrincipalSelect.innerHTML='<option value="">Selecione</option>'+opcoesOperadores([principal.id_usuario]);
+}
+async function recarregarDetalheEquipe() {
+  const id=Number(estado.detalhe.demanda?.id_indicio); if(!id)return;
+  const {data,error}=await sb.rpc("obter_detalhes_demanda_modo",{p_id_indicio:id}); if(error)throw error;
+  estado.detalhe.dados=data; renderizarEquipe(data); return data;
+}
+async function abrirEquipe() { if(!estado.detalhe.dados)return; renderizarEquipe(estado.detalhe.dados); selecionarAbaEquipe("adicionar"); el.equipeOverlay.hidden=false; document.body.style.overflow="hidden"; }
+function fecharEquipe(){el.equipeOverlay.hidden=true; if(el.atribuicaoOverlay.hidden)document.body.style.overflow="";}
+async function incluirColaboradores(){try{const ids=[...el.equipeDisponiveisLista.querySelectorAll('input:checked')].map(x=>Number(x.value));if(!ids.length)throw Error("Selecione ao menos um colaborador.");el.incluirColaboradoresBtn.disabled=true;const {data,error}=await sb.rpc("incluir_colaboradores_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_ids_usuarios_colaboradores:ids});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Colaboradores incluídos.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível incluir."),"error");}finally{el.incluirColaboradoresBtn.disabled=false;}}
+async function removerColaborador(id){try{const justificativa=el.remocaoJustificativa.value.trim();if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const {data,error}=await sb.rpc("remover_colaborador_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_id_usuario_colaborador:Number(id),p_justificativa:justificativa});if(error)throw error;el.remocaoJustificativa.value="";mostrarAvisoEquipe(data.mensagem||"Colaborador removido.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível remover."),"error");}}
+async function redistribuirIndividual(){try{const dados=estado.detalhe.dados;const demanda=estado.detalhe.demanda;const novo=Number(el.equipeNovoPrincipalSelect.value);const justificativa=el.equipeRedistribuicaoJustificativa.value.trim();if(!novo)throw Error("Selecione o novo responsável.");if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const base={p_criterio:"CPF",p_id_tipo_indicio:null,p_cpf:dados.cpf,p_id_responsavel_atual:Number(dados.operador_principal.id_usuario),p_id_novo_responsavel:novo,p_manter_anterior_como_colaborador:el.equipeManterAnteriorCheck.checked,p_limite_resultados:100};const {data:previa,error:erroPrevia}=await sb.rpc("prever_redistribuicao_demandas",{...base,p_incluir_detalhes:true});if(erroPrevia)throw erroPrevia;const elegiveis=previa?.elegiveis||[];if(elegiveis.length!==1||Number(elegiveis[0].id_indicio)!==Number(demanda.id_indicio))throw Error("A troca individual não pode ser concluída por este fluxo porque o CPF possui outra demanda pendente com o mesmo responsável. Use a redistribuição em lote por CPF.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",{...base,p_limite_resultados:1,p_justificativa:justificativa,p_politica_bloqueios:"EXIGIR_TODAS_ELEGIVEIS"});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Responsabilidade alterada.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível trocar o responsável."),"error");}}
+function alternarMenuRedistribuicao(forcar){const abrir=forcar??el.redistributionMenuPopover.hidden;el.redistributionMenuPopover.hidden=!abrir;el.redistribuirDemandasBtn.setAttribute("aria-expanded",String(abrir));}
+function parametrosRedistribuicao(incluirDetalhes=true){const tipo=estado.redistribuicao.criterio==="tipo";return {p_criterio:tipo?"TIPO_INDICIO":"CPF",p_id_tipo_indicio:tipo&&el.redistribuicaoTipoSelect.value?Number(el.redistribuicaoTipoSelect.value):null,p_cpf:tipo?null:el.redistribuicaoCpfInput.value,p_id_responsavel_atual:el.redistribuicaoAtualSelect.value?Number(el.redistribuicaoAtualSelect.value):null,p_id_novo_responsavel:el.redistribuicaoNovoSelect.value?Number(el.redistribuicaoNovoSelect.value):null,p_manter_anterior_como_colaborador:el.redistribuicaoManterCheck.checked,p_limite_resultados:100,...(incluirDetalhes?{p_incluir_detalhes:true}:{p_justificativa:el.redistribuicaoJustificativa.value.trim(),p_politica_bloqueios:"PROCESSAR_ELEGIVEIS"})};}
+function assinaturaRedistribuicao(){const p=parametrosRedistribuicao();delete p.p_incluir_detalhes;return JSON.stringify(p);}
+function abrirRedistribuicao(criterio){alternarMenuRedistribuicao(false);estado.redistribuicao={criterio,previa:null,assinatura:null};el.redistribuicaoTitulo.textContent=criterio==="tipo"?"Redistribuir por tipo de indício":"Redistribuir por CPF";el.redistribuicaoCampoTipo.hidden=criterio!=="tipo";el.redistribuicaoCampoCpf.hidden=criterio!=="cpf";el.redistribuicaoTipoSelect.innerHTML='<option value="">Selecione um tipo</option>'+estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");const ops=opcoesOperadores();el.redistribuicaoAtualSelect.innerHTML='<option value="">Selecione</option>'+ops;el.redistribuicaoNovoSelect.innerHTML='<option value="">Selecione</option>'+ops;el.redistribuicaoPrevia.hidden=true;el.confirmarRedistribuicaoBtn.disabled=true;el.redistribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";}
+function fecharRedistribuicao(){el.redistribuicaoOverlay.hidden=true;document.body.style.overflow="";}
+async function revisarRedistribuicao(){try{const p=parametrosRedistribuicao();if(!p.p_id_responsavel_atual||!p.p_id_novo_responsavel)throw Error("Selecione os dois responsáveis.");if(p.p_id_responsavel_atual===p.p_id_novo_responsavel)throw Error("Os responsáveis devem ser diferentes.");if(p.p_criterio==="TIPO_INDICIO"&&!p.p_id_tipo_indicio)throw Error("Selecione o tipo de indício.");if(p.p_criterio==="CPF"&&String(p.p_cpf||"").replace(/\D/g,"").length!==11)throw Error("Informe um CPF com 11 dígitos.");const {data,error}=await sb.rpc("prever_redistribuicao_demandas",p);if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();const r=data.resumo||{};el.redistribuicaoResumo.innerHTML=[["Elegíveis",r.quantidade_elegivel||0,"success"],["Bloqueadas",r.quantidade_bloqueada||0,"danger"],["Excedentes",r.quantidade_excedente||0,"warning"]].map(x=>`<div class="preview-metric ${x[2]}"><strong>${x[1]}</strong><span>${x[0]}</span></div>`).join("");el.redistribuicaoDetalhes.innerHTML=`<div class="transfer-summary"><div><span>De</span><strong>${escapeHtml(data.responsavel_atual?.nome_exibicao)}</strong></div><div class="transfer-arrow">→</div><div><span>Para</span><strong>${escapeHtml(data.novo_responsavel?.nome_exibicao)}</strong></div></div>`;el.redistribuicaoPrevia.hidden=false;el.confirmarRedistribuicaoBtn.disabled=!data.pode_confirmar;el.redistribuicaoAviso.textContent=data.pode_confirmar?"Prévia pronta. Somente pendências elegíveis serão alteradas.":"Nenhuma demanda elegível.";el.redistribuicaoAviso.className=`status-banner ${data.pode_confirmar?"success":"warning"}`;}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível gerar a prévia.");el.redistribuicaoAviso.className="status-banner error";}}
+async function confirmarRedistribuicao(){try{if(estado.redistribuicao.assinatura!==assinaturaRedistribuicao())throw Error("A configuração mudou. Gere uma nova prévia.");const p=parametrosRedistribuicao(false);if(p.p_justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",p);if(error)throw error;exibirMensagem(data.mensagem||"Redistribuição concluída.","success");fecharRedistribuicao();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível confirmar.");el.redistribuicaoAviso.className="status-banner error";}}
+
 function registrarEventos() {
   atualizarCardAtivo("TODAS");
+  el.redistribuirDemandasBtn.addEventListener("click",e=>{e.stopPropagation();alternarMenuRedistribuicao();});
+  el.redistribuirPorTipoBtn.addEventListener("click",()=>abrirRedistribuicao("tipo"));
+  el.redistribuirPorCpfBtn.addEventListener("click",()=>abrirRedistribuicao("cpf"));
+  el.gerenciarEquipeBtn.addEventListener("click",abrirEquipe);
+  el.fecharEquipeBtn.addEventListener("click",fecharEquipe); el.cancelarEquipeBtn.addEventListener("click",fecharEquipe);
+  el.equipeOverlay.addEventListener("click",e=>{if(e.target===el.equipeOverlay)fecharEquipe();});
+  el.equipeAbaAdicionar.addEventListener("click",()=>selecionarAbaEquipe("adicionar")); el.equipeAbaRemover.addEventListener("click",()=>selecionarAbaEquipe("remover")); el.equipeAbaRedistribuir.addEventListener("click",()=>selecionarAbaEquipe("redistribuir"));
+  el.incluirColaboradoresBtn.addEventListener("click",incluirColaboradores);
+  el.equipeAtivosLista.addEventListener("click",e=>{const b=e.target.closest("[data-remover-colaborador]");if(b)removerColaborador(b.dataset.removerColaborador);});
+  el.redistribuirIndividualBtn.addEventListener("click",redistribuirIndividual);
+  el.fecharRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao); el.cancelarRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao);
+  el.redistribuicaoOverlay.addEventListener("click",e=>{if(e.target===el.redistribuicaoOverlay)fecharRedistribuicao();});
+  el.revisarRedistribuicaoBtn.addEventListener("click",revisarRedistribuicao); el.confirmarRedistribuicaoBtn.addEventListener("click",confirmarRedistribuicao);
+  [el.redistribuicaoTipoSelect,el.redistribuicaoCpfInput,el.redistribuicaoAtualSelect,el.redistribuicaoNovoSelect,el.redistribuicaoManterCheck].forEach(x=>x.addEventListener("change",()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;el.redistribuicaoPrevia.hidden=true;el.confirmarRedistribuicaoBtn.disabled=true;}));
+
   const tema = localStorage.getItem("tema_smi");
   if (tema) document.documentElement.dataset.theme = tema;
 
@@ -583,6 +641,7 @@ function registrarEventos() {
   });
   document.addEventListener("click", e => {
     if (!el.assignmentMenu.contains(e.target)) alternarMenu(false);
+    if (!el.redistributionMenu.contains(e.target)) alternarMenuRedistribuicao(false);
   });
 
   el.atribuirSelecionadasBtn.addEventListener("click", () => abrirLote("selecionadas"));
