@@ -476,6 +476,12 @@ function renderTreatmentPanel(item) {
           <textarea class="control textarea" id="provInput" placeholder="Descreva a providência..."></textarea>
           <button class="btn btn-primary" data-reg="PROVIDENCIA">Registrar providência</button>
         </article>
+        <article class="action-card action-conclusion">
+          <h3>Concluir tratamento</h3>
+          <p>Finalize o ciclo somente depois de registrar as análises e providências necessárias.</p>
+          <textarea class="control textarea" id="concInput" placeholder="Descreva o parecer de encerramento..."></textarea>
+          <button class="btn btn-danger" data-reg="CONCLUSAO">Concluir tratamento</button>
+        </article>
       </div>
     `;
 
@@ -599,13 +605,19 @@ async function startTreatment() {
 
 async function registerAction(type) {
   const item = state.atual;
-  const inputId = type === "OBSERVACAO" ? "obsInput" : "provInput";
-  const description = getElement(inputId)?.value.trim() || "";
 
-  const rpcName =
-    type === "OBSERVACAO"
-      ? "registrar_observacao_individual"
-      : "registrar_providencia_individual";
+  let inputId = "obsInput";
+  let rpcName = "registrar_observacao_individual";
+
+  if (type === "PROVIDENCIA") {
+    inputId = "provInput";
+    rpcName = "registrar_providencia_individual";
+  } else if (type === "CONCLUSAO") {
+    inputId = "concInput";
+    rpcName = "concluir_tratamento_individual";
+  }
+
+  const description = getElement(inputId)?.value.trim() || "";
 
   await handleAsyncAction(async () => {
     const { error } = await supabase.rpc(rpcName, {
