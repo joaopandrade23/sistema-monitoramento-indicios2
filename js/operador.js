@@ -1,57 +1,752 @@
 "use strict";
+
 import { supabase } from "./supabase.js";
 
-const CONFIG={LOGIN_URL:"./index.html",PERFIS:["OPERADOR_SEGEP_CE","GESTOR_DADOS_SISTEMA"],LEITURA:["GESTOR_DADOS_SISTEMA"]};
-const $=id=>document.getElementById(id);
-const ids=["usuarioNome","usuarioPerfil","temaBtn","sairBtn","voltarGestaoBtn","atualizarBtn","mensagemGlobal","cardTotal","cardPendentes","cardEmTratamento","cardAtrasadas","buscaInput","tipoFiltro","statusFiltro","prioridadeFiltro","papelFiltro","prazoFiltro","processoFiltro","ordenacaoFiltro","filtrosAvancados","alternarFiltrosBtn","limparFiltrosBtn","aplicarFiltrosBtn","tamanhoPagina","resultadoResumo","demandasTbody","estadoTabela","paginacao","paginaAnteriorBtn","proximaPaginaBtn","paginaInfo","detalheOverlay","fecharDetalheBtn","fecharRodapeBtn","headerIdentificador","detalheTitulo","headerCpf","headerTipo","headerStatus","headerPrioridade","headerPrazo","headerPapel","headerProcessos","modalAviso","detalhesConteudo","tratamentoConteudo","abrirProcessoFormBtn","processoForm","cancelarProcessoBtn","numeroProcesso","assuntoProcesso","observacaoProcesso","processoPrincipal","processoResumo","processosLista","historicoLista"];
-const el=Object.fromEntries(ids.map(id=>[id,$(id)]));
-const estado={contexto:null,demandas:[],selecionada:null,card:"TODAS",pagina:1,tamanho:20,detalheReq:0};
+// Constantes de Mapeamento e Configuração
+const STATUS_CODES = {
+  PENDENTE: "PENDENTE_DE_TRATAMENTO",
+  EM_TRATAMENTO: "EM_TRATAMENTO",
+  ENCERRADO: "ENCERRADO_INTERNAMENTE"
+};
 
-const escapeHtml=v=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
-const valor=(v,p="Não informado")=>v===null||v===undefined||v===""?p:v;
-const dataBR=v=>{if(!v)return"Não informado";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):new Intl.DateTimeFormat("pt-BR").format(d)};
-const dataHoraBR=v=>{if(!v)return"Não informado";const d=new Date(v);return Number.isNaN(d.getTime())?String(v):new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(d)};
-const idDataHoje=()=>{const d=new Date();return Number(`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`)};
-const leitura=()=>CONFIG.LEITURA.includes(estado.contexto?.codigo_perfil);
-const tituloCodigo=c=>String(c||"").replaceAll("_"," ").toLowerCase().replace(/(^|\s)\S/g,x=>x.toUpperCase());
-function mostrar(box,texto,tipo=""){box.hidden=!texto;box.className=`status-banner ${tipo}`;box.textContent=texto||""}
-function erroAmigavel(e,p="Não foi possível concluir a operação."){const m=e?.message||e?.details||p;return({VERSAO_DESATUALIZADA:"A demanda foi atualizada. Recarregue os dados e tente novamente.",USUARIO_SEM_PARTICIPACAO_ATIVA:"Você não possui participação ativa neste ciclo.",CICLO_NAO_PERMITE_MOVIMENTACAO:"O ciclo ainda não permite esta operação.",PROCESSO_SEI_JA_VINCULADO_AO_CICLO:"Este processo já está vinculado ao ciclo.",NUMERO_PROCESSO_SEI_INVALIDO:"Informe o processo no formato 00000.000000/0000-00."})[m]||m}
-function classeStatus(c){if(c==="PENDENTE_DE_TRATAMENTO")return"badge-warning";if(c==="EM_TRATAMENTO"||c==="VALIDADO_TCU")return"badge-success";if(c==="ENCERRADO_INTERNAMENTE")return"badge-neutral";return"badge-primary"}
-function diasAte(v){if(!v)return null;const hoje=new Date();hoje.setHours(0,0,0,0);const d=new Date(v);d.setHours(0,0,0,0);return Math.ceil((d-hoje)/86400000)}
-function situacaoPrazo(d){const n=diasAte(d.prazo_em);if(n===null)return"SEM_PRAZO";if(n<0)return"ATRASADA";if(n<=7)return"PROXIMA";return"NO_PRAZO"}
-function rotuloPrazo(d){const n=diasAte(d.prazo_em);if(n===null)return"Sem prazo";if(n<0)return`Vencido há ${Math.abs(n)} dia(s)`;if(n===0)return"Vence hoje";return`${n} dia(s) restantes`}
+const ERROR_MESSAGES = {
+  VERSAO_DESATUALIZADA: "A demanda foi atualizada. Recarregue e tente novamente.",
+  CICLO_NAO_PERMITE_MOVIMENTACAO: "Inicie o tratamento antes desta ação.",
+  PROCESSO_SEI_JA_VINCULADO_AO_CICLO: "Este processo já está vinculado.",
+  NUMERO_PROCESSO_SEI_INVALIDO: "Número de processo inválido."
+};
 
-async function contexto(){const {data:{session},error:es}=await supabase.auth.getSession();if(es||!session){location.replace(CONFIG.LOGIN_URL);throw Error("SESSAO_AUSENTE")};const{data,error}=await supabase.schema("api").from("v_meu_contexto").select("*").limit(1).maybeSingle();if(error||!data)throw error||Error("CONTEXTO_AUSENTE");if(!CONFIG.PERFIS.includes(data.codigo_perfil)){location.replace("./inicio.html");throw Error("PERFIL_NAO_AUTORIZADO")};estado.contexto=data;el.usuarioNome.textContent=data.nome_exibicao||session.user.email;el.usuarioPerfil.textContent=data.nome_perfil||data.codigo_perfil;el.voltarGestaoBtn.hidden=data.codigo_perfil!=="GESTOR_DADOS_SISTEMA"}
-async function colecao(nome){const{data,error}=await supabase.schema("api").from(nome).select("*");if(error)throw error;return data||[]}
-async function obterDetalhe(id){const{data,error}=await supabase.rpc("obter_detalhes_demanda_modo",{p_id_indicio:Number(id)});if(error)throw error;return data||{}}
+// Funções Utilitárias
+const getElement = (id) => document.getElementById(id);
 
-async function carregar(){el.estadoTabela.hidden=false;el.estadoTabela.innerHTML="<strong>Carregando demandas...</strong><span>Consultando atribuições, processos e detalhes.</span>";el.demandasTbody.innerHTML="";try{const[ciclos,participacoes,processos]=await Promise.all([colecao("v_ciclos"),colecao("v_participacoes"),colecao("v_processos_sei")]);const partAtiva=new Map();participacoes.filter(p=>p.participacao_ativa).forEach(p=>{const k=String(p.id_ciclo_tratamento),a=partAtiva.get(k);if(!a||p.papel_principal)partAtiva.set(k,p)});let base=ciclos.filter(c=>c.ciclo_ativo).map(c=>({...c,participacao:partAtiva.get(String(c.id_ciclo_tratamento))||null,processos:processos.filter(p=>String(p.id_ciclo_tratamento)===String(c.id_ciclo_tratamento)&&p.processo_ativo),detalhes:null})).filter(d=>leitura()||d.participacao);
-const resultados=await Promise.allSettled(base.map(d=>obterDetalhe(d.id_indicio)));base=base.map((d,i)=>({...d,detalhes:resultados[i].status==="fulfilled"?resultados[i].value:null,detalhesErro:resultados[i].status==="rejected"}));estado.demandas=base;preencherFiltros();atualizarCards();estado.pagina=1;renderizar();mostrar(el.mensagemGlobal,"")}catch(e){console.error(e);el.estadoTabela.innerHTML="<strong>Não foi possível carregar.</strong><span>Verifique as permissões das views do operador.</span>";mostrar(el.mensagemGlobal,erroAmigavel(e,"Não foi possível consultar as demandas."),"error")}}
-function campo(d,n,...alternativas){for(const k of [n,...alternativas]){const v=d.detalhes?.[k]??d[k];if(v!==null&&v!==undefined&&v!=="")return v}return null}
-function preencherFiltros(){const tipos=[...new Set(estado.demandas.map(d=>campo(d,"tipo_indicio")).filter(Boolean))].sort();const prios=[...new Set(estado.demandas.map(d=>d.nome_prioridade).filter(Boolean))].sort();el.tipoFiltro.innerHTML='<option value="">Todos os tipos</option>'+tipos.map(x=>`<option>${escapeHtml(x)}</option>`).join("");el.prioridadeFiltro.innerHTML='<option value="">Todas</option>'+prios.map(x=>`<option>${escapeHtml(x)}</option>`).join("")}
-function atualizarCards(){el.cardTotal.textContent=estado.demandas.length;el.cardPendentes.textContent=estado.demandas.filter(d=>d.codigo_status_ciclo==="PENDENTE_DE_TRATAMENTO").length;el.cardEmTratamento.textContent=estado.demandas.filter(d=>d.codigo_status_ciclo==="EM_TRATAMENTO").length;el.cardAtrasadas.textContent=estado.demandas.filter(d=>situacaoPrazo(d)==="ATRASADA").length}
-function filtradas(){const q=el.buscaInput.value.trim().toLowerCase(),tipo=el.tipoFiltro.value,status=el.statusFiltro.value,prio=el.prioridadeFiltro.value,papel=el.papelFiltro.value,prazo=el.prazoFiltro.value,proc=el.processoFiltro.value;let a=estado.demandas.filter(d=>{const det=d.detalhes||{},texto=[d.id_indicio,campo(d,"identificador_do_indicio"),campo(d,"nome_atual"),campo(d,"cpf_mascarado","cpf"),campo(d,"tipo_indicio"),...d.processos.map(p=>p.numero_processo)].join(" ").toLowerCase();const card=estado.card==="TODAS"||(estado.card==="ATRASADAS"?situacaoPrazo(d)==="ATRASADA":d.codigo_status_ciclo===estado.card);return card&&(!q||texto.includes(q))&&(!tipo||campo(d,"tipo_indicio")===tipo)&&(!status||d.codigo_status_ciclo===status)&&(!prio||d.nome_prioridade===prio)&&(!papel||d.participacao?.codigo_papel===papel)&&(!prazo||situacaoPrazo(d)===prazo)&&(!proc||(proc==="COM"&&d.processos.length)||(proc==="SEM"&&!d.processos.length)||(proc==="MULTIPLOS"&&d.processos.length>1))});const ord=el.ordenacaoFiltro.value,prioN={URGENTE:0,ALTA:1,NORMAL:2,BAIXA:3};a.sort((x,y)=>{if(ord==="ESPERA_DESC")return Number(campo(y,"dias_de_espera")||0)-Number(campo(x,"dias_de_espera")||0);if(ord==="RECENTE")return new Date(y.atualizado_em||0)-new Date(x.atualizado_em||0);if(ord==="PRIORIDADE")return(prioN[y.codigo_prioridade]??9)-(prioN[x.codigo_prioridade]??9);return(diasAte(x.prazo_em)??99999)-(diasAte(y.prazo_em)??99999)});return a}
-function renderizar(){const todos=filtradas(),totalPag=Math.max(1,Math.ceil(todos.length/estado.tamanho));if(estado.pagina>totalPag)estado.pagina=totalPag;const inicio=(estado.pagina-1)*estado.tamanho,itens=todos.slice(inicio,inicio+estado.tamanho);el.resultadoResumo.textContent=`${todos.length} demanda(s) encontrada(s)`;el.paginaInfo.textContent=`Página ${estado.pagina} de ${totalPag}`;el.paginaAnteriorBtn.disabled=estado.pagina<=1;el.proximaPaginaBtn.disabled=estado.pagina>=totalPag;el.estadoTabela.hidden=itens.length>0;if(!itens.length)el.estadoTabela.innerHTML="<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros selecionados.</span>";el.demandasTbody.innerHTML=itens.map(linha).join("")}
-function linha(d){const ident=campo(d,"identificador_do_indicio")||d.id_indicio,nome=campo(d,"nome_atual")||"Nome não disponível",cpf=campo(d,"cpf_mascarado","cpf")||"CPF não disponível",tipo=campo(d,"tipo_indicio")||"Tipo não disponível",vinc=campo(d,"situacoes_funcionais_resumo","situacao_funcional")||"Sem situação funcional registrada",base=campo(d,"base_de_dados")||"",p=d.processos.find(x=>x.processo_principal)||d.processos[0];return`<tr><td class="cell-indicio"><strong>${escapeHtml(ident)}</strong><small>${escapeHtml(base)}</small></td><td class="cell-person"><strong>${escapeHtml(nome)}</strong><span>${escapeHtml(cpf)}</span></td><td><div class="truncate-2" title="${escapeHtml(tipo)}">${escapeHtml(tipo)}</div></td><td><div class="truncate-2" title="${escapeHtml(vinc)}">${escapeHtml(vinc)}</div></td><td class="cell-process">${p?`<span class="process-number">${escapeHtml(p.numero_processo)}</span><small>${d.processos.length>1?`+ ${d.processos.length-1} outro(s)`:p.processo_principal?"Processo principal":"Processo vinculado"}</small>`:'<span class="muted-text">Nenhum processo</span>'}</td><td><span class="badge ${classeStatus(d.codigo_status_ciclo)}">${escapeHtml(d.nome_status_ciclo||tituloCodigo(d.codigo_status_ciclo))}</span></td><td>${escapeHtml(d.nome_prioridade||"Não definida")}</td><td class="cell-prazo"><strong>${escapeHtml(dataBR(d.prazo_em))}</strong><small>${escapeHtml(rotuloPrazo(d))}</small></td><td>${escapeHtml(d.participacao?.nome_papel||(leitura()?"Consulta":"Não identificado"))}</td><td><button class="btn btn-secondary" data-visualizar="${d.id_ciclo_tratamento}" type="button">Visualizar</button></td></tr>`}
+const escapeHtml = (str) =>
+  String(str ?? "").replace(/[&<>'"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;"
+  })[char]);
 
-function cardDetalhe(rotulo,v,classe=""){return`<div class="detail-card-v2 ${classe}"><span>${escapeHtml(rotulo)}</span><strong>${escapeHtml(valor(v))}</strong></div>`}
-function secao(titulo,conteudo){return`<section class="details-section"><h3 class="details-section-title">${escapeHtml(titulo)}</h3>${conteudo}</section>`}
-async function abrirDetalhe(id){const d=estado.demandas.find(x=>String(x.id_ciclo_tratamento)===String(id));if(!d)return;estado.selecionada=d;const req=++estado.detalheReq;el.detalheOverlay.hidden=false;document.body.style.overflow="hidden";trocarAba("detalhes");mostrar(el.modalAviso,"");cabecalho(d);el.detalhesConteudo.innerHTML='<div class="table-state"><strong>Carregando detalhes...</strong></div>';if(!d.detalhes&&!d.detalhesErro){try{d.detalhes=await obterDetalhe(d.id_indicio)}catch(e){d.detalhesErro=true}}if(req!==estado.detalheReq)return;renderDetalhes(d);renderTratamento(d);renderProcessos(d);carregarHistorico(d)}
-function cabecalho(d){el.headerIdentificador.textContent=campo(d,"identificador_do_indicio")||d.id_indicio;el.detalheTitulo.textContent=campo(d,"nome_atual")||`Demanda #${d.id_indicio}`;el.headerCpf.textContent=campo(d,"cpf_mascarado","cpf")||"CPF não disponível";el.headerTipo.textContent=campo(d,"tipo_indicio")||"Tipo não disponível";el.headerStatus.textContent=d.nome_status_ciclo||tituloCodigo(d.codigo_status_ciclo);el.headerStatus.className=`badge ${classeStatus(d.codigo_status_ciclo)}`;el.headerPrioridade.textContent=d.nome_prioridade||"Não informada";el.headerPrazo.textContent=d.prazo_em?`${dataBR(d.prazo_em)} · ${rotuloPrazo(d)}`:"Sem prazo";el.headerPapel.textContent=d.participacao?.nome_papel||(leitura()?"Consulta":"Não identificado");el.headerProcessos.textContent=String(d.processos.length)}
-function renderDetalhes(d){const x=d.detalhes||{};const origens=x.origens||[];el.detalhesConteudo.innerHTML=(d.detalhesErro?'<p class="readonly-note">Os dados operacionais estão disponíveis, mas o backend não autorizou a consulta detalhada do indício para este perfil.</p>':'')+secao("Identificação do indício",`<div class="details-grid-v2">${cardDetalhe("Identificador",campo(d,"identificador_do_indicio")||d.id_indicio)}${cardDetalhe("Base de dados",campo(d,"base_de_dados"))}${cardDetalhe("Tipo de indício",campo(d,"tipo_indicio"),"wide")}${cardDetalhe("Descrição",campo(d,"descricao_indicio"),"full")}</div>`)+secao("Pessoa",`<div class="details-grid-v2">${cardDetalhe("Nome",campo(d,"nome_atual"),"wide")}${cardDetalhe("CPF",campo(d,"cpf_mascarado","cpf"))}${cardDetalhe("Situação funcional",campo(d,"situacoes_funcionais_resumo","situacao_funcional"),"full")}</div>`)+secao("Vínculos e origens",origens.length?`<div class="origin-list">${origens.map(o=>`<article class="origin-item"><strong>${escapeHtml(valor(o.situacao_funcional,"Vínculo funcional"))}</strong><p>${escapeHtml(valor(o.orgao||o.unidade||o.nome_orgao,"Informação de órgão não disponível"))}</p></article>`).join("")}</div>`:`<div class="detail-card-v2 full"><span>Vínculos</span><strong>${escapeHtml(valor(campo(d,"situacoes_funcionais_resumo"),"Nenhum vínculo detalhado disponível"))}</strong></div>`)+secao("Informações operacionais",`<div class="details-grid-v2">${cardDetalhe("Responsável principal",x.operador_principal?.nome_exibicao)}${cardDetalhe("Modo de trabalho",x.modo_trabalho?.nome||x.modo_trabalho?.codigo)}${cardDetalhe("Data de atribuição",dataHoraBR(x.operador_principal?.atribuido_em||d.participacao?.atribuido_em))}${cardDetalhe("Prioridade",d.nome_prioridade)}${cardDetalhe("Prazo",dataBR(d.prazo_em))}${cardDetalhe("Meu papel",d.participacao?.nome_papel||(leitura()?"Consulta":"Não identificado"))}</div>`)}
-function podeAgir(d){return!leitura()&&d.participacao?.participacao_ativa}
-function renderTratamento(d){const principal=d.participacao?.papel_principal===true,x=d.detalhes||{},cols=(x.colaboradores||[]).map(c=>c.nome_exibicao).join(", ")||"Nenhum colaborador ativo";let a="";if(leitura())a='<p class="readonly-note">Acesso temporário de consulta. As ações permanecem restritas ao operador participante.</p>';else if(d.codigo_status_ciclo==="PENDENTE_DE_TRATAMENTO"&&principal)a='<div class="action-card"><h3>Iniciar tratamento</h3><p>Altera a situação para Em tratamento e libera os registros operacionais.</p><button class="btn btn-primary" id="iniciarTratamentoBtn" type="button">Iniciar tratamento</button></div>';else if(d.codigo_status_ciclo==="EM_TRATAMENTO"&&podeAgir(d))a=`<div class="treatment-actions-grid"><article class="action-card"><h3>Registrar observação</h3><p>Inclua uma anotação sobre a análise realizada.</p><button class="btn" data-abrir-registro="OBSERVACAO" type="button">Nova observação</button><form class="action-form" id="formOBSERVACAO" hidden><textarea class="control textarea" required minlength="3" placeholder="Descreva a observação"></textarea><div class="form-actions"><button class="btn btn-primary" type="submit">Registrar</button></div></form></article><article class="action-card"><h3>Registrar providência</h3><p>Registre uma ação adotada durante o tratamento.</p><button class="btn" data-abrir-registro="PROVIDENCIA" type="button">Nova providência</button><form class="action-form" id="formPROVIDENCIA" hidden><textarea class="control textarea" required minlength="3" placeholder="Descreva a providência"></textarea><div class="form-actions"><button class="btn btn-primary" type="submit">Registrar</button></div></form></article>${principal?'<article class="action-card"><h3>Concluir tratamento</h3><p>Encerre internamente o ciclo após finalizar a análise.</p><button class="btn btn-danger" id="abrirConclusaoBtn" type="button">Concluir tratamento</button><form class="action-form" id="formCONCLUSAO" hidden><textarea class="control textarea" required minlength="3" placeholder="Informe o resultado do tratamento"></textarea><div class="form-actions"><button class="btn btn-danger" type="submit">Confirmar conclusão</button></div></form></article>':''}</div>`;else a='<p class="readonly-note">Não há ações disponíveis para seu papel ou para a situação atual.</p>';el.tratamentoConteudo.innerHTML=`<div class="treatment-hero"><article class="treatment-status"><h3>Andamento do tratamento</h3><p><span class="badge ${classeStatus(d.codigo_status_ciclo)}">${escapeHtml(d.nome_status_ciclo||tituloCodigo(d.codigo_status_ciclo))}</span></p><p>Iniciado em: <strong>${escapeHtml(dataHoraBR(d.iniciado_em))}</strong></p><p>Prazo: <strong>${escapeHtml(dataBR(d.prazo_em))}</strong> · ${escapeHtml(rotuloPrazo(d))}</p></article><article class="treatment-team"><h3>Equipe</h3><p>Principal: <strong>${escapeHtml(valor(x.operador_principal?.nome_exibicao))}</strong></p><p>Colaboradores: ${escapeHtml(cols)}</p></article></div>${a}`;el.tratamentoConteudo.querySelector("#iniciarTratamentoBtn")?.addEventListener("click",iniciar);el.tratamentoConteudo.querySelectorAll("[data-abrir-registro]").forEach(b=>b.addEventListener("click",()=>$("form"+b.dataset.abrirRegistro).hidden=false));["OBSERVACAO","PROVIDENCIA"].forEach(t=>$("form"+t)?.addEventListener("submit",e=>registrar(e,t)));el.tratamentoConteudo.querySelector("#abrirConclusaoBtn")?.addEventListener("click",()=>$("formCONCLUSAO").hidden=false);el.tratamentoConteudo.querySelector("#formCONCLUSAO")?.addEventListener("submit",concluir)}
-function renderProcessos(d){const ativos=d.processos,principal=ativos.find(p=>p.processo_principal);el.abrirProcessoFormBtn.hidden=!(podeAgir(d)&&d.permite_movimentacao);el.processoForm.hidden=true;el.processoResumo.innerHTML=`<div class="process-summary-card"><span>Processos ativos</span><strong>${ativos.length}</strong></div><div class="process-summary-card"><span>Processo principal</span><strong>${escapeHtml(principal?.numero_processo||"Não definido")}</strong></div><div class="process-summary-card"><span>Última vinculação</span><strong>${escapeHtml(dataBR(ativos.map(p=>p.incluido_em).sort().at(-1)))}</strong></div>`;el.processosLista.innerHTML=ativos.length?ativos.map(p=>`<article class="process-card-v2"><div><h4>${escapeHtml(p.numero_processo)} ${p.processo_principal?'<span class="badge badge-primary">Principal</span>':''}</h4><p><strong>Assunto:</strong> ${escapeHtml(valor(p.assunto,"Não informado"))}</p><p>${escapeHtml(valor(p.observacao,"Sem observação"))}</p><div class="process-card-meta"><span>Incluído em ${escapeHtml(dataHoraBR(p.incluido_em))}</span><span>Versão ${escapeHtml(p.versao)}</span></div></div>${podeAgir(d)&&d.permite_movimentacao?`<button class="btn btn-danger" data-inativar="${p.id_processo_sei}" type="button">Inativar</button>`:""}</article>`).join(""):'<div class="table-state"><strong>Nenhum processo SEI vinculado.</strong><span>Use o botão Vincular processo para adicionar o primeiro.</span></div>'}
-async function carregarHistorico(d){el.historicoLista.innerHTML='<div class="table-state"><strong>Carregando suas movimentações...</strong></div>';let q=supabase.schema("api").from("v_movimentacoes").select("*").eq("id_ciclo_tratamento",d.id_ciclo_tratamento).eq("id_usuario_executor",estado.contexto.id_usuario).order("realizada_em",{ascending:false});const{data,error}=await q;if(error){el.historicoLista.innerHTML='<div class="table-state"><strong>Não foi possível carregar o histórico.</strong></div>';return}el.historicoLista.innerHTML=(data||[]).length?data.map(m=>`<article class="timeline-item-v2"><time class="timeline-date">${escapeHtml(dataHoraBR(m.realizada_em))}</time><div class="timeline-marker"></div><div class="timeline-content"><strong>${escapeHtml(m.nome_movimentacao||tituloCodigo(m.codigo_movimentacao))}</strong><p>${escapeHtml(valor(m.descricao,"Sem descrição"))}</p></div></article>`).join(""):'<div class="table-state"><strong>Nenhuma movimentação realizada por você.</strong><span>As ações de outros usuários e os eventos automáticos não são exibidos nesta aba.</span></div>'}
-function trocarAba(nome){document.querySelectorAll("[data-panel]").forEach(p=>p.hidden=p.dataset.panel!==nome);document.querySelectorAll("[data-tab]").forEach(b=>{const a=b.dataset.tab===nome;b.classList.toggle("is-active",a);b.setAttribute("aria-selected",String(a))})}
-function fechar(){estado.detalheReq++;estado.selecionada=null;el.detalheOverlay.hidden=true;document.body.style.overflow=""}
-async function acao(fn){const id=estado.selecionada?.id_ciclo_tratamento;try{mostrar(el.modalAviso,"Processando...");await fn();await carregar();const nova=estado.demandas.find(d=>String(d.id_ciclo_tratamento)===String(id));if(nova){estado.selecionada=nova;cabecalho(nova);renderDetalhes(nova);renderTratamento(nova);renderProcessos(nova);await carregarHistorico(nova)}mostrar(el.modalAviso,"Operação concluída com sucesso.","success")}catch(e){console.error(e);mostrar(el.modalAviso,erroAmigavel(e),"error")}}
-async function iniciar(){const d=estado.selecionada;await acao(async()=>{const{error}=await supabase.rpc("iniciar_tratamento_individual",{p_id_ciclo_tratamento:d.id_ciclo_tratamento,p_versao_esperada:d.versao,p_id_data_inicio:idDataHoje()});if(error)throw error})}
-async function registrar(e,tipo){e.preventDefault();const d=estado.selecionada,descricao=e.currentTarget.querySelector("textarea").value.trim(),rpc=tipo==="OBSERVACAO"?"registrar_observacao_individual":"registrar_providencia_individual";await acao(async()=>{const{error}=await supabase.rpc(rpc,{p_id_ciclo_tratamento:d.id_ciclo_tratamento,p_versao_esperada:d.versao,p_id_data_movimentacao:idDataHoje(),p_descricao:descricao,p_dados_complementares:{origem:"PAGINA_OPERADOR"}});if(error)throw error})}
-async function concluir(e){e.preventDefault();const d=estado.selecionada,resultado=e.currentTarget.querySelector("textarea").value.trim();await acao(async()=>{const{error}=await supabase.rpc("encerrar_tratamento_individual",{p_id_ciclo_tratamento:d.id_ciclo_tratamento,p_versao_esperada:d.versao,p_id_data_encerramento:idDataHoje(),p_resultado_encerramento:resultado});if(error)throw error})}
-async function adicionarProcesso(e){e.preventDefault();const d=estado.selecionada;await acao(async()=>{const{error}=await supabase.rpc("adicionar_processo_sei_individual",{p_id_ciclo_tratamento:d.id_ciclo_tratamento,p_versao_esperada:d.versao,p_id_data_inclusao:idDataHoje(),p_numero_processo:el.numeroProcesso.value.trim(),p_assunto:el.assuntoProcesso.value.trim()||null,p_observacao:el.observacaoProcesso.value.trim()||null,p_processo_principal:el.processoPrincipal.checked});if(error)throw error;el.processoForm.reset()})}
-async function inativar(id){const d=estado.selecionada,p=d.processos.find(x=>String(x.id_processo_sei)===String(id)),motivo=prompt(`Justificativa para inativar ${p?.numero_processo||"o processo"}:`);if(!motivo?.trim())return;await acao(async()=>{const{error}=await supabase.rpc("inativar_processo_sei_individual",{p_id_processo_sei:Number(id),p_versao_processo_esperada:p.versao,p_versao_ciclo_esperada:d.versao,p_id_data_inativacao:idDataHoje(),p_motivo_inativacao:motivo.trim()});if(error)throw error})}
+const formatDate = (dateStr) => {
+  if (!dateStr) return "Não informado";
+  const parsedDate = new Date(dateStr);
+  return isNaN(parsedDate) ? String(dateStr) : parsedDate.toLocaleDateString("pt-BR");
+};
 
-function eventos(){el.sairBtn.addEventListener("click",async()=>{await supabase.auth.signOut();location.replace(CONFIG.LOGIN_URL)});el.temaBtn.addEventListener("click",()=>{const n=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=n;localStorage.setItem("tema",n)});el.atualizarBtn.addEventListener("click",carregar);el.alternarFiltrosBtn.addEventListener("click",()=>{const abrir=el.filtrosAvancados.hidden;el.filtrosAvancados.hidden=!abrir;el.alternarFiltrosBtn.setAttribute("aria-expanded",String(abrir));el.alternarFiltrosBtn.textContent=abrir?"Ocultar filtros avançados ▴":"Filtros avançados ▾"});el.aplicarFiltrosBtn.addEventListener("click",()=>{estado.pagina=1;renderizar()});el.limparFiltrosBtn.addEventListener("click",()=>{[el.buscaInput,el.tipoFiltro,el.statusFiltro,el.prioridadeFiltro,el.papelFiltro,el.prazoFiltro,el.processoFiltro].forEach(x=>x.value="");el.ordenacaoFiltro.value="PRAZO_ASC";estado.card="TODAS";document.querySelectorAll("[data-card]").forEach(b=>b.classList.toggle("is-active",b.dataset.card==="TODAS"));estado.pagina=1;renderizar()});[el.buscaInput].forEach(x=>x.addEventListener("input",()=>{estado.pagina=1;renderizar()}));document.querySelectorAll("[data-card]").forEach(b=>b.addEventListener("click",()=>{estado.card=b.dataset.card;document.querySelectorAll("[data-card]").forEach(x=>x.classList.toggle("is-active",x===b));estado.pagina=1;renderizar()}));el.tamanhoPagina.addEventListener("change",()=>{estado.tamanho=Number(el.tamanhoPagina.value);estado.pagina=1;renderizar()});el.paginaAnteriorBtn.addEventListener("click",()=>{estado.pagina--;renderizar()});el.proximaPaginaBtn.addEventListener("click",()=>{estado.pagina++;renderizar()});el.demandasTbody.addEventListener("click",e=>{const b=e.target.closest("[data-visualizar]");if(b)abrirDetalhe(b.dataset.visualizar)});[el.fecharDetalheBtn,el.fecharRodapeBtn].forEach(b=>b.addEventListener("click",fechar));el.detalheOverlay.addEventListener("click",e=>{if(e.target===el.detalheOverlay)fechar()});document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>trocarAba(b.dataset.tab)));el.abrirProcessoFormBtn.addEventListener("click",()=>el.processoForm.hidden=false);el.cancelarProcessoBtn.addEventListener("click",()=>{el.processoForm.reset();el.processoForm.hidden=true});el.processoForm.addEventListener("submit",adicionarProcesso);el.processosLista.addEventListener("click",e=>{const b=e.target.closest("[data-inativar]");if(b)inativar(b.dataset.inativar)})}
-async function init(){try{document.documentElement.dataset.theme=localStorage.getItem("tema")||"light";eventos();await contexto();await carregar()}catch(e){if(!["SESSAO_AUSENTE","PERFIL_NAO_AUTORIZADO"].includes(e.message)){console.error(e);mostrar(el.mensagemGlobal,erroAmigavel(e,"Não foi possível iniciar a página."),"error")}}}
-init();
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "Não informado";
+  const parsedDate = new Date(dateStr);
+  return isNaN(parsedDate) ? String(dateStr) : parsedDate.toLocaleString("pt-BR");
+};
+
+const getDaysToDeadline = (deadlineDateStr) => {
+  if (!deadlineDateStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const deadline = new Date(deadlineDateStr);
+  deadline.setHours(0, 0, 0, 0);
+
+  return Math.ceil((deadline - today) / 86400000);
+};
+
+const getDeadlineCode = (item) => {
+  const days = getDaysToDeadline(item.prazo_em);
+  if (days === null) return "SEM_PRAZO";
+  if (days < 0) return "ATRASADA";
+  if (days <= 7) return "PROXIMA";
+  return "NO_PRAZO";
+};
+
+const getDeadlineText = (item) => {
+  const days = getDaysToDeadline(item.prazo_em);
+  if (days === null) return "Sem prazo";
+  if (days < 0) return `Vencido há ${-days} dia(s)`;
+  if (days === 0) return "Vence hoje";
+  return `${days} dia(s) restantes`;
+};
+
+const getBadgeClass = (statusCode) => {
+  switch (statusCode) {
+    case STATUS_CODES.PENDENTE: return "badge-warning";
+    case STATUS_CODES.EM_TRATAMENTO: return "badge-success";
+    case STATUS_CODES.ENCERRADO: return "badge-neutral";
+    default: return "badge-primary";
+  }
+};
+
+const getTodayFormattedId = () =>
+  Number(new Date().toISOString().slice(0, 10).replaceAll("-", ""));
+
+const getFriendlyError = (err) => {
+  const msg = err?.message || err?.details || "Falha na operação.";
+  return ERROR_MESSAGES[msg] || msg;
+};
+
+// Mapeamento Centralizado do DOM
+const elements = [
+  "usuarioNome", "usuarioPerfil", "voltarGestaoBtn", "mensagem", "total",
+  "pendentes", "tratando", "atrasadas", "busca", "tipo", "status", "prioridade",
+  "papel", "prazo", "processo", "ordem", "avancados", "toggleFiltros", "limpar",
+  "aplicar", "porPagina", "resumoTabela", "tbody", "estadoTabela", "anterior",
+  "proxima", "paginaInfo", "modalOverlay", "mNumero", "mNome", "mCpf", "mTipo",
+  "mStatus", "mPrioridade", "mPrazo", "mPapel", "mProcessos", "modalMensagem",
+  "painelDetalhes", "painelTratamento", "painelHistorico", "novoProcesso",
+  "formProcesso", "numeroProcesso", "assuntoProcesso", "observacaoProcesso",
+  "processoPrincipal", "cancelarProcesso", "listaProcessos", "fecharModal",
+  "fecharRodape", "temaBtn", "sairBtn", "atualizarBtn"
+].reduce((acc, id) => {
+  acc[id] = getElement(id);
+  return acc;
+}, {});
+
+// Estado Global
+const state = {
+  ctx: null,
+  itens: [],
+  atual: null,
+  card: "TODAS",
+  pagina: 1,
+  tamanho: 20
+};
+
+const isReadOnlyUser = () => state.ctx?.codigo_perfil === "GESTOR_DADOS_SISTEMA";
+
+function showBannerMessage(containerElement, text, type = "") {
+  containerElement.hidden = !text;
+  containerElement.className = `status-banner ${type}`.trim();
+  containerElement.textContent = text || "";
+}
+
+function resolveFieldValue(item, ...keys) {
+  for (const key of keys) {
+    const val = item.det?.[key] ?? item[key];
+    if (val !== null && val !== undefined && val !== "") return val;
+  }
+  return null;
+}
+
+// Comunicação com Supabase
+async function fetchContext() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    location.replace("index.html");
+    throw new Error("SESSAO_AUSENTE");
+  }
+
+  const { data, error } = await supabase
+    .schema("api")
+    .from("v_meu_contexto")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) throw error || new Error("CONTEXTO_AUSENTE");
+
+  if (!["OPERADOR_SEGEP_CE", "GESTOR_DADOS_SISTEMA"].includes(data.codigo_perfil)) {
+    location.replace("inicio.html");
+    throw new Error("PERFIL_NAO_AUTORIZADO");
+  }
+
+  state.ctx = data;
+  elements.usuarioNome.textContent = data.nome_exibicao;
+  elements.usuarioPerfil.textContent = data.nome_perfil;
+  elements.voltarGestaoBtn.hidden = !isReadOnlyUser();
+}
+
+async function fetchTableData(viewName) {
+  const { data, error } = await supabase.schema("api").from(viewName).select("*");
+  if (error) throw error;
+  return data || [];
+}
+
+async function fetchDemandDetails(id) {
+  const { data, error } = await supabase.rpc("obter_detalhes_demanda_modo", {
+    p_id_indicio: Number(id)
+  });
+  if (error) throw error;
+  return data;
+}
+
+async function loadData() {
+  elements.estadoTabela.hidden = false;
+  elements.estadoTabela.innerHTML = "<strong>Carregando demandas...</strong>";
+
+  try {
+    const [ciclos, participacoes, processos] = await Promise.all([
+      fetchTableData("v_ciclos"),
+      fetchTableData("v_participacoes"),
+      fetchTableData("v_processos_sei")
+    ]);
+
+    const activeParticipantsMap = new Map();
+    participacoes
+      .filter((p) => p.participacao_ativa)
+      .forEach((p) => {
+        const key = String(p.id_ciclo_tratamento);
+        const existing = activeParticipantsMap.get(key);
+        if (!existing || p.papel_principal) {
+          activeParticipantsMap.set(key, p);
+        }
+      });
+
+    const baseItems = ciclos
+      .filter((c) => c.ciclo_ativo)
+      .map((c) => {
+        const key = String(c.id_ciclo_tratamento);
+        return {
+          ...c,
+          part: activeParticipantsMap.get(key),
+          procs: processos.filter(
+            (p) => p.processo_ativo && String(p.id_ciclo_tratamento) === key
+          )
+        };
+      })
+      .filter((item) => isReadOnlyUser() || item.part);
+
+    const detailsSettled = await Promise.allSettled(
+      baseItems.map((item) => fetchDemandDetails(item.id_indicio))
+    );
+
+    state.itens = baseItems.map((item, index) => ({
+      ...item,
+      det: detailsSettled[index].status === "fulfilled" ? detailsSettled[index].value : {}
+    }));
+
+    populateFilterDropdowns();
+    updateMetricCards();
+    state.pagina = 1;
+    renderTable();
+    showBannerMessage(elements.mensagem, "");
+  } catch (error) {
+    console.error(error);
+    showBannerMessage(elements.mensagem, getFriendlyError(error), "error");
+  }
+}
+
+function populateFilterDropdowns() {
+  const tipos = [...new Set(state.itens.map((x) => resolveFieldValue(x, "tipo_indicio")).filter(Boolean))].sort();
+  const prioridades = [...new Set(state.itens.map((x) => x.nome_prioridade).filter(Boolean))].sort();
+
+  elements.tipo.innerHTML =
+    '<option value="">Todos os tipos</option>' +
+    tipos.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+
+  elements.prioridade.innerHTML =
+    '<option value="">Todas</option>' +
+    prioridades.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
+}
+
+function updateMetricCards() {
+  elements.total.textContent = state.itens.length;
+  elements.pendentes.textContent = state.itens.filter(
+    (x) => x.codigo_status_ciclo === STATUS_CODES.PENDENTE
+  ).length;
+  elements.tratando.textContent = state.itens.filter(
+    (x) => x.codigo_status_ciclo === STATUS_CODES.EM_TRATAMENTO
+  ).length;
+  elements.atrasadas.textContent = state.itens.filter(
+    (x) => getDeadlineCode(x) === "ATRASADA"
+  ).length;
+}
+
+function getFilteredData() {
+  const query = elements.busca.value.trim().toLowerCase();
+
+  let filtered = state.itens.filter((item) => {
+    const fullText = [
+      resolveFieldValue(item, "identificador_do_indicio"),
+      resolveFieldValue(item, "nome_atual"),
+      resolveFieldValue(item, "cpf_mascarado", "cpf"),
+      resolveFieldValue(item, "tipo_indicio"),
+      ...item.procs.map((p) => p.numero_processo)
+    ].join(" ").toLowerCase();
+
+    const matchesCard =
+      state.card === "TODAS" ||
+      (state.card === "ATRASADAS"
+        ? getDeadlineCode(item) === "ATRASADA"
+        : item.codigo_status_ciclo === state.card);
+
+    const matchesQuery = !query || fullText.includes(query);
+    const matchesTipo = !elements.tipo.value || resolveFieldValue(item, "tipo_indicio") === elements.tipo.value;
+    const matchesStatus = !elements.status.value || item.codigo_status_ciclo === elements.status.value;
+    const matchesPrioridade = !elements.prioridade.value || item.nome_prioridade === elements.prioridade.value;
+    const matchesPapel = !elements.papel.value || item.part?.codigo_papel === elements.papel.value;
+    const matchesPrazo = !elements.prazo.value || getDeadlineCode(item) === elements.prazo.value;
+
+    const matchesProcesso =
+      !elements.processo.value ||
+      (elements.processo.value === "COM" && item.procs.length > 0) ||
+      (elements.processo.value === "SEM" && item.procs.length === 0) ||
+      (elements.processo.value === "MULTIPLOS" && item.procs.length > 1);
+
+    return (
+      matchesCard &&
+      matchesQuery &&
+      matchesTipo &&
+      matchesStatus &&
+      matchesPrioridade &&
+      matchesPapel &&
+      matchesPrazo &&
+      matchesProcesso
+    );
+  });
+
+  filtered.sort((a, b) => {
+    if (elements.ordem.value === "ESPERA") {
+      return Number(resolveFieldValue(b, "dias_de_espera") || 0) - Number(resolveFieldValue(a, "dias_de_espera") || 0);
+    }
+    if (elements.ordem.value === "RECENTE") {
+      return new Date(b.atualizado_em) - new Date(a.atualizado_em);
+    }
+    return (getDaysToDeadline(a.prazo_em) ?? 99999) - (getDaysToDeadline(b.prazo_em) ?? 99999);
+  });
+
+  return filtered;
+}
+
+function renderTable() {
+  const filtered = getFilteredData();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / state.tamanho));
+  state.pagina = Math.min(state.pagina, totalPages);
+
+  const pageItems = filtered.slice(
+    (state.pagina - 1) * state.tamanho,
+    state.pagina * state.tamanho
+  );
+
+  elements.resumoTabela.textContent = `${filtered.length} demanda(s) encontrada(s)`;
+  elements.paginaInfo.textContent = `Página ${state.pagina} de ${totalPages}`;
+  elements.anterior.disabled = state.pagina <= 1;
+  elements.proxima.disabled = state.pagina >= totalPages;
+
+  elements.estadoTabela.hidden = pageItems.length > 0;
+  if (!pageItems.length) {
+    elements.estadoTabela.innerHTML = "<strong>Nenhuma demanda encontrada.</strong>";
+  }
+
+  elements.tbody.innerHTML = pageItems.map((item) => {
+    const mainProc = item.procs.find((p) => p.processo_principal) || item.procs[0];
+    const numIndicio = resolveFieldValue(item, "identificador_do_indicio") || "Não informado";
+    const nome = resolveFieldValue(item, "nome_atual") || "Nome não disponível";
+    const cpf = resolveFieldValue(item, "cpf_mascarado", "cpf") || "CPF não disponível";
+    const tipo = resolveFieldValue(item, "tipo_indicio") || "Tipo não disponível";
+    const situacao = resolveFieldValue(item, "situacoes_funcionais_resumo", "situacao_funcional") || "Sem situação funcional";
+    const papelTexto = item.part?.nome_papel || (isReadOnlyUser() ? "Consulta" : "");
+
+    return `
+      <tr>
+        <td class="indicio-cell">
+          <strong>${escapeHtml(numIndicio)}</strong>
+          <small>${escapeHtml(resolveFieldValue(item, "base_de_dados") || "")}</small>
+        </td>
+        <td class="person-cell">
+          <strong>${escapeHtml(nome)}</strong>
+          <span>${escapeHtml(cpf)}</span>
+        </td>
+        <td><div class="clip2">${escapeHtml(tipo)}</div></td>
+        <td><div class="clip2">${escapeHtml(situacao)}</div></td>
+        <td class="process-cell">
+          ${
+            mainProc
+              ? `<span class="process-number">${escapeHtml(mainProc.numero_processo)}</span>
+                 <small>${item.procs.length > 1 ? `+${item.procs.length - 1} outro(s)` : ""}</small>`
+              : "Nenhum processo"
+          }
+        </td>
+        <td><span class="badge ${getBadgeClass(item.codigo_status_ciclo)}">${escapeHtml(item.nome_status_ciclo)}</span></td>
+        <td>${escapeHtml(item.nome_prioridade || "Não definida")}</td>
+        <td class="deadline-cell">
+          <strong>${formatDate(item.prazo_em)}</strong>
+          <small>${getDeadlineText(item)}</small>
+        </td>
+        <td>${escapeHtml(papelTexto)}</td>
+        <td>
+          <button class="btn btn-secondary" data-ver="${item.id_ciclo_tratamento}">Visualizar</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderDetailCard(label, value, extraClass = "") {
+  return `
+    <div class="detail-card ${extraClass}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value ?? "Não informado")}</strong>
+    </div>
+  `;
+}
+
+function renderSectionTitle(title, content) {
+  return `
+    <h3 class="section-title">${escapeHtml(title)}</h3>
+    <div class="detail-grid-v3">${content}</div>
+  `;
+}
+
+async function openModal(id) {
+  const item = state.itens.find((x) => String(x.id_ciclo_tratamento) === String(id));
+  if (!item) return;
+
+  state.atual = item;
+  elements.modalOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  switchModalTab("detalhes");
+
+  elements.mNumero.textContent = resolveFieldValue(item, "identificador_do_indicio");
+  elements.mNome.textContent = resolveFieldValue(item, "nome_atual");
+  elements.mCpf.textContent = resolveFieldValue(item, "cpf_mascarado", "cpf");
+  elements.mTipo.textContent = resolveFieldValue(item, "tipo_indicio");
+  elements.mStatus.textContent = item.nome_status_ciclo;
+  elements.mStatus.className = `badge ${getBadgeClass(item.codigo_status_ciclo)}`;
+  elements.mPrioridade.textContent = item.nome_prioridade;
+  elements.mPrazo.textContent = `${formatDate(item.prazo_em)} · ${getDeadlineText(item)}`;
+  elements.mPapel.textContent = item.part?.nome_papel || (isReadOnlyUser() ? "Consulta" : "");
+  elements.mProcessos.textContent = item.procs.length;
+
+  const det = item.det || {};
+
+  elements.painelDetalhes.innerHTML =
+    renderSectionTitle(
+      "Identificação do indício",
+      renderDetailCard("Número do indício", resolveFieldValue(item, "identificador_do_indicio")) +
+      renderDetailCard("Base de dados", resolveFieldValue(item, "base_de_dados")) +
+      renderDetailCard("Tipo de indício", resolveFieldValue(item, "tipo_indicio"), "wide") +
+      renderDetailCard("Descrição", resolveFieldValue(item, "descricao_indicio"), "full")
+    ) +
+    renderSectionTitle(
+      "Pessoa",
+      renderDetailCard("Nome", resolveFieldValue(item, "nome_atual"), "wide") +
+      renderDetailCard("CPF", resolveFieldValue(item, "cpf_mascarado", "cpf")) +
+      renderDetailCard("Situação funcional", resolveFieldValue(item, "situacoes_funcionais_resumo", "situacao_funcional"), "full")
+    ) +
+    renderSectionTitle(
+      "Informações operacionais",
+      renderDetailCard("Responsável principal", det.operador_principal?.nome_exibicao) +
+      renderDetailCard("Modo de trabalho", det.modo_trabalho?.nome) +
+      renderDetailCard("Data da atribuição", formatDateTime(det.operador_principal?.atribuido_em || item.part?.atribuido_em)) +
+      renderDetailCard("Prioridade", item.nome_prioridade) +
+      renderDetailCard("Prazo", formatDate(item.prazo_em)) +
+      renderDetailCard("Meu papel", item.part?.nome_papel)
+    );
+
+  renderTreatmentPanel(item);
+  renderProcessesPanel(item);
+  await loadHistoryTab(item);
+}
+
+function renderTreatmentPanel(item) {
+  const isPrincipal = item.part?.papel_principal;
+  let actionsHtml = "";
+
+  if (isReadOnlyUser()) {
+    actionsHtml = '<p class="readonly">Acesso de consulta.</p>';
+  } else if (item.codigo_status_ciclo === STATUS_CODES.PENDENTE && isPrincipal) {
+    actionsHtml = `
+      <article class="action-card">
+        <h3>Iniciar tratamento</h3>
+        <p>Libera as ações operacionais.</p>
+        <button class="btn btn-primary" id="btnIniciarTratamento">Iniciar tratamento</button>
+      </article>
+    `;
+  } else if (item.codigo_status_ciclo === STATUS_CODES.EM_TRATAMENTO) {
+    actionsHtml = `
+      <article class="action-card">
+        <h3>Registrar observação</h3>
+        <textarea class="control textarea" id="obsInput"></textarea>
+        <button class="btn btn-primary" data-reg="OBSERVACAO">Registrar</button>
+      </article>
+      <article class="action-card">
+        <h3>Registrar providência</h3>
+        <textarea class="control textarea" id="provInput"></textarea>
+        <button class="btn btn-primary" data-reg="PROVIDENCIA">Registrar</button>
+      </article>
+    `;
+  } else {
+    actionsHtml = '<p class="readonly">Sem ações disponíveis.</p>';
+  }
+
+  elements.painelTratamento.innerHTML =
+    renderSectionTitle(
+      "Andamento",
+      renderDetailCard("Situação", item.nome_status_ciclo) +
+      renderDetailCard("Iniciado em", formatDateTime(item.iniciado_em)) +
+      renderDetailCard("Prazo", formatDate(item.prazo_em))
+    ) + `<div class="treatment-grid">${actionsHtml}</div>`;
+}
+
+function renderProcessesPanel(item) {
+  elements.novoProcesso.hidden = isReadOnlyUser() || !item.permite_movimentacao;
+  elements.formProcesso.hidden = true;
+
+  if (!item.procs.length) {
+    elements.listaProcessos.innerHTML = '<div class="table-state"><strong>Nenhum processo vinculado.</strong></div>';
+    return;
+  }
+
+  elements.listaProcessos.innerHTML = item.procs.map((p) => `
+    <article class="process-card">
+      <div>
+        <h3>
+          ${escapeHtml(p.numero_processo)} 
+          ${p.processo_principal ? '<span class="badge badge-primary">Principal</span>' : ""}
+        </h3>
+        <p>${escapeHtml(p.assunto || "Sem assunto")}</p>
+        <small>Incluído em ${formatDateTime(p.incluido_em)}</small>
+      </div>
+      ${
+        !isReadOnlyUser() && item.permite_movimentacao
+          ? `<button class="btn btn-danger" data-inativar="${p.id_processo_sei}">Inativar</button>`
+          : ""
+      }
+    </article>
+  `).join("");
+}
+
+async function loadHistoryTab(item) {
+  elements.painelHistorico.innerHTML = '<div class="table-state"><strong>Carregando...</strong></div>';
+
+  const { data: rows, error } = await supabase
+    .schema("api")
+    .from("v_movimentacoes")
+    .select("*")
+    .eq("id_ciclo_tratamento", item.id_ciclo_tratamento)
+    .eq("id_usuario_executor", state.ctx.id_usuario)
+    .order("realizada_em", { ascending: false });
+
+  if (error) {
+    elements.painelHistorico.innerHTML = '<div class="table-state"><strong>Falha ao carregar.</strong></div>';
+    return;
+  }
+
+  if (!rows || !rows.length) {
+    elements.painelHistorico.innerHTML = '<div class="table-state"><strong>Nenhuma movimentação realizada por você.</strong></div>';
+    return;
+  }
+
+  elements.painelHistorico.innerHTML = `
+    <div class="timeline">
+      ${rows.map((m) => `
+        <article class="timeline-item">
+          <time>${formatDateTime(m.realizada_em)}</time>
+          <strong>${escapeHtml(m.nome_movimentacao)}</strong>
+          <p>${escapeHtml(m.descricao || "")}</p>
+        </article>
+      `).join("")}
+    </div>
+  `;
+}
+
+function switchModalTab(tabName) {
+  document.querySelectorAll("[data-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.panel !== tabName;
+  });
+
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabName);
+  });
+}
+
+function closeModal() {
+  elements.modalOverlay.hidden = true;
+  document.body.style.overflow = "";
+  state.atual = null;
+}
+
+// Manipulação de Ações e RPC
+async function handleAsyncAction(actionFn) {
+  const currentId = state.atual?.id_ciclo_tratamento;
+  try {
+    showBannerMessage(elements.modalMensagem, "Processando...");
+    await actionFn();
+    await loadData();
+    if (currentId) await openModal(currentId);
+    showBannerMessage(elements.modalMensagem, "Operação concluída com sucesso.", "success");
+  } catch (error) {
+    showBannerMessage(elements.modalMensagem, getFriendlyError(error), "error");
+  }
+}
+
+async function startTreatment() {
+  const item = state.atual;
+  await handleAsyncAction(async () => {
+    const { error } = await supabase.rpc("iniciar_tratamento_individual", {
+      p_id_ciclo_tratamento: item.id_ciclo_tratamento,
+      p_versao_esperada: item.versao,
+      p_id_data_inicio: getTodayFormattedId()
+    });
+    if (error) throw error;
+  });
+}
+
+async function registerAction(type) {
+  const item = state.atual;
+  const inputId = type === "OBSERVACAO" ? "obsInput" : "provInput";
+  const description = getElement(inputId)?.value.trim() || "";
+
+  const rpcName =
+    type === "OBSERVACAO"
+      ? "registrar_observacao_individual"
+      : "registrar_providencia_individual";
+
+  await handleAsyncAction(async () => {
+    const { error } = await supabase.rpc(rpcName, {
+      p_id_ciclo_tratamento: item.id_ciclo_tratamento,
+      p_versao_esperada: item.versao,
+      p_id_data_movimentacao: getTodayFormattedId(),
+      p_descricao: description,
+      p_dados_complementares: { origem: "PAGINA_OPERADOR" }
+    });
+    if (error) throw error;
+  });
+}
+
+async function addProcess(event) {
+  event.preventDefault();
+  const item = state.atual;
+
+  await handleAsyncAction(async () => {
+    const { error } = await supabase.rpc("adicionar_processo_sei_individual", {
+      p_id_ciclo_tratamento: item.id_ciclo_tratamento,
+      p_versao_esperada: item.versao,
+      p_id_data_inclusao: getTodayFormattedId(),
+      p_numero_processo: elements.numeroProcesso.value,
+      p_assunto: elements.assuntoProcesso.value || null,
+      p_observacao: elements.observacaoProcesso.value || null,
+      p_processo_principal: elements.processoPrincipal.checked
+    });
+    if (error) throw error;
+  });
+}
+
+async function inactivateProcess(processId) {
+  const item = state.atual;
+  const process = item.procs.find((x) => String(x.id_processo_sei) === String(processId));
+  const reason = prompt("Justificativa da inativação:");
+
+  if (!reason?.trim()) return;
+
+  await handleAsyncAction(async () => {
+    const { error } = await supabase.rpc("inativar_processo_sei_individual", {
+      p_id_processo_sei: Number(processId),
+      p_versao_processo_esperada: process.versao,
+      p_versao_ciclo_esperada: item.versao,
+      p_id_data_inativacao: getTodayFormattedId(),
+      p_motivo_inativacao: reason.trim()
+    });
+    if (error) throw error;
+  });
+}
+
+// Configuração de Eventos
+function setupEventListeners() {
+  elements.sairBtn.onclick = async () => {
+    await supabase.auth.signOut();
+    location.replace("index.html");
+  };
+
+  elements.temaBtn.onclick = () => {
+    const currentTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = currentTheme;
+    localStorage.setItem("tema", currentTheme);
+  };
+
+  elements.atualizarBtn.onclick = loadData;
+
+  elements.toggleFiltros.onclick = () => {
+    elements.avancados.hidden = !elements.avancados.hidden;
+  };
+
+  elements.aplicar.onclick = () => {
+    state.pagina = 1;
+    renderTable();
+  };
+
+  elements.limpar.onclick = () => {
+    [
+      elements.busca, elements.tipo, elements.status,
+      elements.prioridade, elements.papel, elements.prazo, elements.processo
+    ].forEach((control) => (control.value = ""));
+    state.card = "TODAS";
+    renderTable();
+  };
+
+  elements.busca.oninput = renderTable;
+
+  document.querySelectorAll("[data-card]").forEach((button) => {
+    button.onclick = () => {
+      state.card = button.dataset.card;
+      document.querySelectorAll("[data-card]").forEach((b) => b.classList.toggle("active", b === button));
+      renderTable();
+    };
+  });
+
+  elements.porPagina.onchange = () => {
+    state.tamanho = Number(elements.porPagina.value);
+    renderTable();
+  };
+
+  elements.anterior.onclick = () => {
+    state.pagina--;
+    renderTable();
+  };
+
+  elements.proxima.onclick = () => {
+    state.pagina++;
+    renderTable();
+  };
+
+  // Delegação de Eventos na Tabela
+  elements.tbody.onclick = (event) => {
+    const viewBtn = event.target.closest("[data-ver]");
+    if (viewBtn) openModal(viewBtn.dataset.ver);
+  };
+
+  // NAVEGAÇÃO POR ABAS NO MODAL
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
+    btn.onclick = () => switchModalTab(btn.dataset.tab);
+  });
+
+  // Delegação de Ações do Painel de Tratamento
+  elements.painelTratamento.onclick = (event) => {
+    if (event.target.id === "btnIniciarTratamento") {
+      startTreatment();
+    } else {
+      const regBtn = event.target.closest("[data-reg]");
+      if (regBtn) registerAction(regBtn.dataset.reg);
+    }
+  };
+
+  // Fechamento e Formulários do Modal
+  elements.fecharModal.onclick = closeModal;
+  elements.fecharRodape.onclick = closeModal;
+  elements.modalOverlay.onclick = (e) => {
+    if (e.target === elements.modalOverlay) closeModal();
+  };
+
+  elements.novoProcesso.onclick = () => (elements.formProcesso.hidden = false);
+  elements.cancelarProcesso.onclick = () => (elements.formProcesso.hidden = true);
+  elements.formProcesso.onsubmit = addProcess;
+
+  elements.listaProcessos.onclick = (event) => {
+    const inactivateBtn = event.target.closest("[data-inativar]");
+    if (inactivateBtn) inactivateProcess(inactivateBtn.dataset.inativar);
+  };
+}
+
+// Inicialização da Aplicação
+(async function init() {
+  try {
+    document.documentElement.dataset.theme = localStorage.getItem("tema") || "light";
+    setupEventListeners();
+    await fetchContext();
+    await loadData();
+  } catch (error) {
+    if (error.message !== "SESSAO_AUSENTE") {
+      showBannerMessage(elements.mensagem, getFriendlyError(error), "error");
+    }
+  }
+})();
