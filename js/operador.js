@@ -446,27 +446,42 @@ function renderTreatmentPanel(item) {
     actionsHtml = '<p class="readonly">Acesso de consulta.</p>';
   } else if (item.codigo_status_ciclo === STATUS_CODES.PENDENTE && isPrincipal) {
     actionsHtml = `
-      <article class="action-card">
-        <h3>Iniciar tratamento</h3>
-        <p>Libera as ações operacionais.</p>
-        <button class="btn btn-primary" id="btnIniciarTratamento">Iniciar tratamento</button>
-      </article>
+      <div class="treatment-grid">
+        <article class="action-card">
+          <h3>Iniciar tratamento</h3>
+          <p>Libera as ações operacionais para este indício.</p>
+          <button class="btn btn-primary" id="btnIniciarTratamento">Iniciar tratamento</button>
+        </article>
+      </div>
     `;
   } else if (item.codigo_status_ciclo === STATUS_CODES.EM_TRATAMENTO) {
-    actionsHtml = `
-      <article class="action-card">
-        <h3>Registrar observação</h3>
-        <textarea class="control textarea" id="obsInput"></textarea>
-        <button class="btn btn-primary" data-reg="OBSERVACAO">Registrar</button>
-      </article>
-      <article class="action-card">
-        <h3>Registrar providência</h3>
-        <textarea class="control textarea" id="provInput"></textarea>
-        <button class="btn btn-primary" data-reg="PROVIDENCIA">Registrar</button>
-      </article>
+    const helpBanner = `
+      <div class="treatment-help">
+        <span aria-hidden="true">i</span>
+        <div><strong>Observação x providência:</strong> observação registra o que foi analisado ou constatado; providência registra o que foi feito. Somente a ação Concluir tratamento realiza o encerramento interno.</div>
+      </div>
     `;
+
+    const cards = `
+      <div class="treatment-grid">
+        <article class="action-card action-observation">
+          <h3>Registrar observação</h3>
+          <p>Registre análises, constatações ou informações relevantes sobre o indício.</p>
+          <textarea class="control textarea" id="obsInput" placeholder="Descreva a observação..."></textarea>
+          <button class="btn btn-primary" data-reg="OBSERVACAO">Registrar observação</button>
+        </article>
+        <article class="action-card action-providence">
+          <h3>Registrar providência adotada</h3>
+          <p>Registre uma ação realizada durante o tratamento, como consulta, diligência, comunicação ou encaminhamento. Esta ação não encerra o tratamento.</p>
+          <textarea class="control textarea" id="provInput" placeholder="Descreva a providência..."></textarea>
+          <button class="btn btn-primary" data-reg="PROVIDENCIA">Registrar providência</button>
+        </article>
+      </div>
+    `;
+
+    actionsHtml = helpBanner + cards;
   } else {
-    actionsHtml = '<p class="readonly">Sem ações disponíveis.</p>';
+    actionsHtml = '<p class="readonly">Sem ações disponíveis para o estado atual.</p>';
   }
 
   elements.painelTratamento.innerHTML =
@@ -475,7 +490,7 @@ function renderTreatmentPanel(item) {
       renderDetailCard("Situação", item.nome_status_ciclo) +
       renderDetailCard("Iniciado em", formatDateTime(item.iniciado_em)) +
       renderDetailCard("Prazo", formatDate(item.prazo_em))
-    ) + `<div class="treatment-grid">${actionsHtml}</div>`;
+    ) + actionsHtml;
 }
 
 function renderProcessesPanel(item) {
