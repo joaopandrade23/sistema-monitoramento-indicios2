@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Minhas demandas | Monitoramento de Indícios</title>
+  <meta name="description" content="Tratamento das demandas atribuídas aos operadores da SEGEP/CE.">
+  <link rel="stylesheet" href="operador.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">MI</div><div class="brand-text"><strong>Monitoramento de Indícios</strong><span>Operação SEGEP/CE</span></div></div>
+    <div class="header-actions"><div class="user-box"><strong id="usuarioNome">Carregando...</strong><span id="usuarioPerfil"></span></div><button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema">◐</button><button class="btn btn-danger" id="sairBtn" type="button">Sair</button></div>
+  </header>
+
+  <main class="container">
+    <section class="page-heading"><div><h1>Minhas demandas</h1><p>Acompanhe o tratamento, registre providências e vincule processos SEI.</p></div><div class="heading-actions"><a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a><button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button></div></section>
+    <div class="status-banner" id="mensagemGlobal" hidden></div>
+
+    <section class="summary-grid" aria-label="Resumo das demandas">
+      <button class="summary-card is-active" data-status="TODAS" type="button"><span>Total visível</span><strong id="cardTotal">0</strong></button>
+      <button class="summary-card" data-status="PENDENTE_DE_TRATAMENTO" type="button"><span>Pendentes</span><strong id="cardPendentes">0</strong></button>
+      <button class="summary-card" data-status="EM_TRATAMENTO" type="button"><span>Em tratamento</span><strong id="cardEmTratamento">0</strong></button>
+      <button class="summary-card" data-status="ATRASADAS" type="button"><span>Atrasadas</span><strong id="cardAtrasadas">0</strong></button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><div><h2>Demandas atribuídas</h2><p id="resultadoResumo">Carregando...</p></div></div>
+      <div class="panel-body">
+        <div class="operator-toolbar">
+          <div class="field search"><label for="buscaInput">Buscar</label><input class="control" id="buscaInput" placeholder="ID, processo SEI ou status"></div>
+          <div class="field"><label for="papelFiltro">Papel</label><select class="control" id="papelFiltro"><option value="">Todos</option><option value="PRINCIPAL">Principal</option><option value="COLABORADOR">Colaborador</option></select></div>
+          <div class="field"><label for="statusFiltro">Status</label><select class="control" id="statusFiltro"><option value="">Todos</option><option value="PENDENTE_DE_TRATAMENTO">Pendente</option><option value="EM_TRATAMENTO">Em tratamento</option><option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option><option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação</option><option value="VALIDADO_TCU">Validado pelo TCU</option></select></div>
+        </div>
+        <div class="table-wrap">
+          <table class="operator-table"><thead><tr><th>Indício</th><th>Ciclo</th><th>Processos SEI</th><th>Papel</th><th>Status</th><th>Prioridade</th><th>Prazo</th><th>Ações</th></tr></thead><tbody id="demandasTbody"></tbody></table>
+          <div class="empty-state" id="estadoTabela">Carregando demandas...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="detalheOverlay" hidden>
+    <section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="detalheTitulo">
+      <header class="modal-header"><div><h2 id="detalheTitulo">Detalhes da demanda</h2><p id="detalheSubtitulo"></p></div><button class="btn icon-btn btn-ghost" id="fecharDetalheBtn" type="button" aria-label="Fechar">×</button></header>
+      <div class="tab-list" role="tablist"><button class="tab-btn" data-tab="resumo" role="tab" aria-selected="true">Resumo</button><button class="tab-btn" data-tab="tratamento" role="tab" aria-selected="false">Tratamento</button><button class="tab-btn" data-tab="processos" role="tab" aria-selected="false">Processos SEI</button><button class="tab-btn" data-tab="historico" role="tab" aria-selected="false">Histórico</button></div>
+      <div class="status-banner" id="modalAviso" hidden></div>
+      <section class="tab-panel" id="painelResumo" data-panel="resumo"><div class="detail-grid" id="resumoConteudo"></div></section>
+      <section class="tab-panel" id="painelTratamento" data-panel="tratamento" hidden>
+        <div id="tratamentoAcoes"></div>
+        <form id="registroForm" hidden><div class="field"><label for="tipoRegistro">Tipo de registro</label><select class="control" id="tipoRegistro"><option value="OBSERVACAO">Observação</option><option value="PROVIDENCIA">Providência</option></select></div><div class="field"><label for="descricaoRegistro">Descrição</label><textarea class="control textarea" id="descricaoRegistro" minlength="3" required></textarea></div><div class="modal-actions"><button class="btn btn-primary" type="submit">Registrar</button></div></form>
+        <form id="encerramentoForm" hidden><div class="field"><label for="resultadoEncerramento">Resultado do tratamento</label><textarea class="control textarea" id="resultadoEncerramento" minlength="3" required></textarea></div><div class="modal-actions"><button class="btn btn-danger" type="submit">Concluir tratamento</button></div></form>
+      </section>
+      <section class="tab-panel" id="painelProcessos" data-panel="processos" hidden>
+        <form id="processoForm" class="form-grid"><div class="field"><label for="numeroProcesso">Número do processo *</label><input class="control" id="numeroProcesso" placeholder="00000.000000/0000-00" maxlength="25" required></div><div class="field"><label for="assuntoProcesso">Assunto</label><input class="control" id="assuntoProcesso" maxlength="250"></div><div class="field wide"><label for="observacaoProcesso">Observação</label><textarea class="control textarea" id="observacaoProcesso" maxlength="1000"></textarea></div><label class="inline-check wide"><input id="processoPrincipal" type="checkbox"> Definir como processo principal deste ciclo</label><div class="modal-actions wide"><button class="btn btn-primary" type="submit">Adicionar processo</button></div></form>
+        <div class="process-list" id="processosLista"></div>
+      </section>
+      <section class="tab-panel" id="painelHistorico" data-panel="historico" hidden><div class="timeline" id="historicoLista"></div></section>
+      <footer class="modal-footer"><button class="btn" id="fecharRodapeBtn" type="button">Fechar</button></footer>
+    </section>
+  </div>
+
+  <script type="module" src="operador.js"></script>
+</body>
+</html>
