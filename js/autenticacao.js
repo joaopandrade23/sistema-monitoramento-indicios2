@@ -10,9 +10,13 @@ const LOGIN_DEFAULT_TEXT = "Entrar";
 const LOGIN_LOADING_TEXT = "Entrando...";
 
 const PERFIL_GESTOR_DADOS_SISTEMA = "GESTOR_DADOS_SISTEMA";
+const PERFIL_GESTOR_SEGEP_CE = "GESTOR_SEGEP_CE";
+const PERFIL_OPERADOR_SEGEP_CE = "OPERADOR_SEGEP_CE";
 
 const PAGINA_INICIAL_PADRAO = "./inicio.html";
 const PAGINA_SOLICITACOES = "./solicitacoes.html";
+const PAGINA_DEMANDAS = "./demandas.html";
+const PAGINA_OPERADOR = "./operador.html";
 
 /**
  * Verifica se todos os elementos necessários existem no index.html.
@@ -91,11 +95,19 @@ function obterCodigoPerfil(contexto) {
 function obterPaginaInicialDoPerfil(contexto) {
   const codigoPerfil = obterCodigoPerfil(contexto);
 
-  if (codigoPerfil === PERFIL_GESTOR_DADOS_SISTEMA) {
-    return PAGINA_SOLICITACOES;
-  }
+  switch (codigoPerfil) {
+    case PERFIL_GESTOR_DADOS_SISTEMA:
+      return PAGINA_SOLICITACOES;
 
-  return PAGINA_INICIAL_PADRAO;
+    case PERFIL_GESTOR_SEGEP_CE:
+      return PAGINA_DEMANDAS;
+
+    case PERFIL_OPERADOR_SEGEP_CE:
+      return PAGINA_OPERADOR;
+
+    default:
+      return PAGINA_INICIAL_PADRAO;
+  }
 }
 
 /**
