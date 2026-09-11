@@ -5,62 +5,62 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Minhas demandas | Monitoramento de Indícios</title>
-  <meta name="description" content="Tratamento das demandas atribuídas aos operadores da SEGEP/CE.">
   <link rel="stylesheet" href="operador.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand"><div class="brand-mark" aria-hidden="true">MI</div><div class="brand-text"><strong>Monitoramento de Indícios</strong><span>Operação SEGEP/CE</span></div></div>
-    <div class="header-actions"><div class="user-box"><strong id="usuarioNome">Carregando...</strong><span id="usuarioPerfil"></span></div><button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema">◐</button><button class="btn btn-danger" id="sairBtn" type="button">Sair</button></div>
-  </header>
+<header class="app-header">
+  <div class="brand"><div class="brand-mark" aria-hidden="true">MI</div><div class="brand-text"><strong>Monitoramento de Indícios</strong><span>Operação SEGEP/CE</span></div></div>
+  <div class="header-actions"><div class="user-box"><strong id="usuarioNome">Carregando...</strong><span id="usuarioPerfil"></span></div><button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema">◐</button><button class="btn btn-danger" id="sairBtn" type="button">Sair</button></div>
+</header>
+<main class="container operator-page">
+  <section class="page-heading"><div><h1>Minhas demandas</h1><p>Consulte os indícios atribuídos, acompanhe prazos e registre o tratamento.</p></div><div class="heading-actions"><a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a><button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button></div></section>
+  <div class="status-banner" id="mensagemGlobal" hidden></div>
 
-  <main class="container">
-    <section class="page-heading"><div><h1>Minhas demandas</h1><p>Acompanhe o tratamento, registre providências e vincule processos SEI.</p></div><div class="heading-actions"><a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a><button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button></div></section>
-    <div class="status-banner" id="mensagemGlobal" hidden></div>
+  <section class="metrics-grid" aria-label="Resumo das demandas">
+    <button class="metric-card is-active" data-card="TODAS" type="button"><span class="metric-label">Total</span><strong id="cardTotal">0</strong><small>Demandas visíveis</small></button>
+    <button class="metric-card" data-card="PENDENTE_DE_TRATAMENTO" type="button"><span class="metric-label">Pendentes</span><strong id="cardPendentes">0</strong><small>Aguardando início</small></button>
+    <button class="metric-card" data-card="EM_TRATAMENTO" type="button"><span class="metric-label">Em tratamento</span><strong id="cardEmTratamento">0</strong><small>Em andamento</small></button>
+    <button class="metric-card" data-card="ATRASADAS" type="button"><span class="metric-label">Atrasadas</span><strong id="cardAtrasadas">0</strong><small>Prazo vencido</small></button>
+  </section>
 
-    <section class="summary-grid" aria-label="Resumo das demandas">
-      <button class="summary-card is-active" data-status="TODAS" type="button"><span>Total visível</span><strong id="cardTotal">0</strong></button>
-      <button class="summary-card" data-status="PENDENTE_DE_TRATAMENTO" type="button"><span>Pendentes</span><strong id="cardPendentes">0</strong></button>
-      <button class="summary-card" data-status="EM_TRATAMENTO" type="button"><span>Em tratamento</span><strong id="cardEmTratamento">0</strong></button>
-      <button class="summary-card" data-status="ATRASADAS" type="button"><span>Atrasadas</span><strong id="cardAtrasadas">0</strong></button>
-    </section>
+  <section class="panel filter-panel">
+    <div class="filter-grid operator-filter-grid">
+      <div class="field search-field"><label for="buscaInput">Buscar</label><input class="control" id="buscaInput" placeholder="Nome, CPF, indício ou processo SEI"></div>
+      <div class="field"><label for="tipoFiltro">Tipo de indício</label><select class="control" id="tipoFiltro"><option value="">Todos os tipos</option></select></div>
+      <div class="field"><label for="statusFiltro">Situação</label><select class="control" id="statusFiltro"><option value="">Todas</option><option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option><option value="EM_TRATAMENTO">Em tratamento</option><option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option><option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação</option><option value="VALIDADO_TCU">Validado pelo TCU</option></select></div>
+      <div class="field"><label for="prioridadeFiltro">Prioridade</label><select class="control" id="prioridadeFiltro"><option value="">Todas</option></select></div>
+    </div>
+    <div class="advanced-filters" id="filtrosAvancados" hidden>
+      <div class="field"><label for="papelFiltro">Meu papel</label><select class="control" id="papelFiltro"><option value="">Todos</option><option value="PRINCIPAL">Principal</option><option value="COLABORADOR">Colaborador</option></select></div>
+      <div class="field"><label for="prazoFiltro">Situação do prazo</label><select class="control" id="prazoFiltro"><option value="">Todas</option><option value="ATRASADA">Atrasadas</option><option value="PROXIMA">Vence em até 7 dias</option><option value="NO_PRAZO">No prazo</option><option value="SEM_PRAZO">Sem prazo</option></select></div>
+      <div class="field"><label for="processoFiltro">Processos SEI</label><select class="control" id="processoFiltro"><option value="">Todos</option><option value="COM">Com processo</option><option value="SEM">Sem processo</option><option value="MULTIPLOS">Com múltiplos processos</option></select></div>
+      <div class="field"><label for="ordenacaoFiltro">Ordenar por</label><select class="control" id="ordenacaoFiltro"><option value="PRAZO_ASC">Prazo mais próximo</option><option value="ATRASO_DESC">Mais atrasadas</option><option value="ESPERA_DESC">Maior tempo de espera</option><option value="PRIORIDADE">Prioridade</option><option value="RECENTE">Atualização mais recente</option></select></div>
+    </div>
+    <div class="filter-footer"><button class="btn btn-ghost" id="alternarFiltrosBtn" type="button" aria-expanded="false">Filtros avançados ▾</button><div class="filter-actions"><button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button><button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar filtros</button></div></div>
+  </section>
 
-    <section class="panel">
-      <div class="panel-header"><div><h2>Demandas atribuídas</h2><p id="resultadoResumo">Carregando...</p></div></div>
-      <div class="panel-body">
-        <div class="operator-toolbar">
-          <div class="field search"><label for="buscaInput">Buscar</label><input class="control" id="buscaInput" placeholder="ID, processo SEI ou status"></div>
-          <div class="field"><label for="papelFiltro">Papel</label><select class="control" id="papelFiltro"><option value="">Todos</option><option value="PRINCIPAL">Principal</option><option value="COLABORADOR">Colaborador</option></select></div>
-          <div class="field"><label for="statusFiltro">Status</label><select class="control" id="statusFiltro"><option value="">Todos</option><option value="PENDENTE_DE_TRATAMENTO">Pendente</option><option value="EM_TRATAMENTO">Em tratamento</option><option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option><option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação</option><option value="VALIDADO_TCU">Validado pelo TCU</option></select></div>
-        </div>
-        <div class="table-wrap">
-          <table class="operator-table"><thead><tr><th>Indício</th><th>Ciclo</th><th>Processos SEI</th><th>Papel</th><th>Status</th><th>Prioridade</th><th>Prazo</th><th>Ações</th></tr></thead><tbody id="demandasTbody"></tbody></table>
-          <div class="empty-state" id="estadoTabela">Carregando demandas...</div>
-        </div>
-      </div>
-    </section>
-  </main>
+  <section class="panel table-panel">
+    <div class="table-toolbar"><span id="resultadoResumo">Nenhuma demanda carregada</span><label class="table-page-size"><span>Por página</span><select class="control" id="tamanhoPagina"><option>10</option><option selected>20</option><option>50</option></select></label></div>
+    <div class="table-wrap"><table class="data-table operator-data-table"><thead><tr><th>Indício</th><th>Pessoa</th><th>Tipo</th><th>Vínculos</th><th>Processo SEI</th><th>Situação</th><th>Prioridade</th><th>Prazo</th><th>Papel</th><th>Ações</th></tr></thead><tbody id="demandasTbody"></tbody></table><div class="table-state" id="estadoTabela"><strong>Carregando demandas...</strong><span>Aguarde um momento.</span></div></div>
+    <div class="pagination" id="paginacao"><button class="btn" id="paginaAnteriorBtn" type="button">Anterior</button><span id="paginaInfo">Página 1 de 1</span><button class="btn" id="proximaPaginaBtn" type="button">Próxima</button></div>
+  </section>
+</main>
 
-  <div class="modal-overlay" id="detalheOverlay" hidden>
-    <section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="detalheTitulo">
-      <header class="modal-header"><div><h2 id="detalheTitulo">Detalhes da demanda</h2><p id="detalheSubtitulo"></p></div><button class="btn icon-btn btn-ghost" id="fecharDetalheBtn" type="button" aria-label="Fechar">×</button></header>
-      <div class="tab-list" role="tablist"><button class="tab-btn" data-tab="resumo" role="tab" aria-selected="true">Resumo</button><button class="tab-btn" data-tab="tratamento" role="tab" aria-selected="false">Tratamento</button><button class="tab-btn" data-tab="processos" role="tab" aria-selected="false">Processos SEI</button><button class="tab-btn" data-tab="historico" role="tab" aria-selected="false">Histórico</button></div>
-      <div class="status-banner" id="modalAviso" hidden></div>
-      <section class="tab-panel" id="painelResumo" data-panel="resumo"><div class="detail-grid" id="resumoConteudo"></div></section>
-      <section class="tab-panel" id="painelTratamento" data-panel="tratamento" hidden>
-        <div id="tratamentoAcoes"></div>
-        <form id="registroForm" hidden><div class="field"><label for="tipoRegistro">Tipo de registro</label><select class="control" id="tipoRegistro"><option value="OBSERVACAO">Observação</option><option value="PROVIDENCIA">Providência</option></select></div><div class="field"><label for="descricaoRegistro">Descrição</label><textarea class="control textarea" id="descricaoRegistro" minlength="3" required></textarea></div><div class="modal-actions"><button class="btn btn-primary" type="submit">Registrar</button></div></form>
-        <form id="encerramentoForm" hidden><div class="field"><label for="resultadoEncerramento">Resultado do tratamento</label><textarea class="control textarea" id="resultadoEncerramento" minlength="3" required></textarea></div><div class="modal-actions"><button class="btn btn-danger" type="submit">Concluir tratamento</button></div></form>
-      </section>
-      <section class="tab-panel" id="painelProcessos" data-panel="processos" hidden>
-        <form id="processoForm" class="form-grid"><div class="field"><label for="numeroProcesso">Número do processo *</label><input class="control" id="numeroProcesso" placeholder="00000.000000/0000-00" maxlength="25" required></div><div class="field"><label for="assuntoProcesso">Assunto</label><input class="control" id="assuntoProcesso" maxlength="250"></div><div class="field wide"><label for="observacaoProcesso">Observação</label><textarea class="control textarea" id="observacaoProcesso" maxlength="1000"></textarea></div><label class="inline-check wide"><input id="processoPrincipal" type="checkbox"> Definir como processo principal deste ciclo</label><div class="modal-actions wide"><button class="btn btn-primary" type="submit">Adicionar processo</button></div></form>
-        <div class="process-list" id="processosLista"></div>
-      </section>
-      <section class="tab-panel" id="painelHistorico" data-panel="historico" hidden><div class="timeline" id="historicoLista"></div></section>
-      <footer class="modal-footer"><button class="btn" id="fecharRodapeBtn" type="button">Fechar</button></footer>
-    </section>
-  </div>
-
-  <script type="module" src="./js/operador.js"></script>
+<div class="modal-overlay" id="detalheOverlay" hidden>
+  <section class="modal operator-modal-v2" role="dialog" aria-modal="true" aria-labelledby="detalheTitulo">
+    <header class="operator-modal-header"><div class="modal-heading-main"><span class="eyebrow">Indício <strong id="headerIdentificador">Não informado</strong></span><h2 id="detalheTitulo">Detalhes da demanda</h2><div class="modal-meta"><span id="headerCpf">CPF não informado</span><span>•</span><span id="headerTipo">Tipo não informado</span></div></div><div class="modal-heading-side"><span class="badge" id="headerStatus">Situação</span><button class="btn icon-btn btn-ghost" id="fecharDetalheBtn" type="button" aria-label="Fechar">×</button></div></header>
+    <div class="modal-context-bar"><div><span>Prioridade</span><strong id="headerPrioridade">Não informada</strong></div><div><span>Prazo</span><strong id="headerPrazo">Sem prazo</strong></div><div><span>Meu papel</span><strong id="headerPapel">Não identificado</strong></div><div><span>Processos SEI</span><strong id="headerProcessos">0</strong></div></div>
+    <nav class="operator-tabs" role="tablist"><button class="operator-tab is-active" data-tab="detalhes" role="tab" aria-selected="true">Detalhes</button><button class="operator-tab" data-tab="tratamento" role="tab" aria-selected="false">Tratamento</button><button class="operator-tab" data-tab="processos" role="tab" aria-selected="false">Processos SEI</button><button class="operator-tab" data-tab="historico" role="tab" aria-selected="false">Meu histórico</button></nav>
+    <div class="status-banner modal-alert" id="modalAviso" hidden></div>
+    <div class="operator-modal-body">
+      <section class="operator-tab-panel" data-panel="detalhes"><div id="detalhesConteudo"><div class="table-state"><strong>Carregando detalhes...</strong></div></div></section>
+      <section class="operator-tab-panel" data-panel="tratamento" hidden><div id="tratamentoConteudo"></div></section>
+      <section class="operator-tab-panel" data-panel="processos" hidden><div class="section-heading"><div><h3>Processos vinculados</h3><p>Registre os processos SEI relacionados ao tratamento deste indício.</p></div><button class="btn btn-primary" id="abrirProcessoFormBtn" type="button">+ Vincular processo</button></div><form id="processoForm" class="embedded-form" hidden><div class="form-grid"><div class="field"><label for="numeroProcesso">Número do processo *</label><input class="control" id="numeroProcesso" placeholder="00000.000000/0000-00" required></div><div class="field"><label for="assuntoProcesso">Assunto</label><input class="control" id="assuntoProcesso" maxlength="250"></div><div class="field wide"><label for="observacaoProcesso">Observação</label><textarea class="control textarea" id="observacaoProcesso" maxlength="1000"></textarea></div><label class="check-option wide"><input id="processoPrincipal" type="checkbox"><span>Definir como processo principal deste ciclo</span></label></div><div class="form-actions"><button class="btn" id="cancelarProcessoBtn" type="button">Cancelar</button><button class="btn btn-primary" type="submit">Salvar vínculo</button></div></form><div class="process-summary" id="processoResumo"></div><div class="process-list-v2" id="processosLista"></div></section>
+      <section class="operator-tab-panel" data-panel="historico" hidden><div class="section-heading"><div><h3>Minhas movimentações</h3><p>Somente as ações realizadas por você nesta demanda.</p></div></div><div class="timeline-v2" id="historicoLista"></div></section>
+    </div>
+    <footer class="modal-footer"><button class="btn" id="fecharRodapeBtn" type="button">Fechar</button></footer>
+  </section>
+</div>
+<script type="module" src="./js/operador.js"></script>
 </body>
 </html>
