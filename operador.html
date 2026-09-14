@@ -2,263 +2,58 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Minhas Demandas - SEGEP/CE</title>
+  <title>Operador SEGEP/CE | Monitoramento de Indícios</title>
   <link rel="stylesheet" href="operador.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand">
-      <div class="brand-mark">MI</div>
-      <div class="brand-text">
-        <strong>Monitoramento de Indícios</strong>
-        <span>Operação SEGEP/CE</span>
-      </div>
-    </div>
-    <div class="header-actions">
-      <div class="user-box">
-        <strong id="usuarioNome">Carregando...</strong>
-        <span id="usuarioPerfil"></span>
-      </div>
-      <button type="button" class="btn icon-btn btn-ghost" id="temaBtn" title="Alternar tema" aria-label="Alternar tema">◐</button>
-      <button type="button" class="btn btn-danger" id="sairBtn">Sair</button>
-    </div>
-  </header>
+<a class="skip-link" href="#conteudoPrincipal">Ir para o conteúdo</a>
+<header class="app-header">
+  <div class="brand"><div class="brand-mark" aria-hidden="true">MI</div><div class="brand-text"><strong>Monitoramento de Indícios</strong><span>Operação SEGEP/CE</span></div></div>
+  <div class="header-actions"><div class="user-box"><strong id="usuarioNome">Carregando...</strong><span id="usuarioPerfil"></span></div><button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema">◐</button><button class="btn btn-danger" id="sairBtn" type="button">Sair</button></div>
+</header>
+<main class="container" id="conteudoPrincipal">
+  <section class="page-heading"><div><h1>Área do Operador</h1><p>Acompanhe a carteira, trate os indícios e consulte suas entregas.</p></div><div class="heading-actions"><a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a><button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button></div></section>
+  <div class="status-banner" id="mensagem" hidden role="status" aria-live="polite"></div>
+  <nav class="main-tabs" aria-label="Seções do Operador">
+    <button class="main-tab active" data-main-tab="painel" type="button" aria-selected="true">Painel</button>
+    <button class="main-tab" data-main-tab="ATIVAS" type="button" aria-selected="false">Demandas ativas</button>
+    <button class="main-tab" data-main-tab="CONCLUIDAS" type="button" aria-selected="false">Concluídas</button>
+    <button class="main-tab" data-main-tab="HISTORICAS" type="button" aria-selected="false">Participações anteriores</button>
+  </nav>
 
-  <main class="container">
-    <section class="page-heading">
-      <div>
-        <h1>Minhas demandas</h1>
-        <p>Consulte os indícios atribuídos, acompanhe prazos e registre o tratamento.</p>
-      </div>
-      <div class="heading-actions">
-        <a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a>
-        <button type="button" class="btn" id="atualizarBtn">↻ Atualizar</button>
-      </div>
+  <section id="secaoPainel" class="main-section">
+    <div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" type="date" id="painelInicio"></div><div class="field"><label for="painelFim">Período final</label><input class="control" type="date" id="painelFim"></div><button class="btn btn-primary" id="aplicarPainel" type="button">Atualizar painel</button></div>
+    <section class="metric-grid metric-grid-6" id="metricasPainel" aria-label="Indicadores do painel"></section>
+    <section class="dashboard-grid">
+      <article class="panel chart-card"><div class="chart-heading"><h2>Situação da carga atual</h2><p>Somente participações ativas.</p></div><div id="graficoStatus" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Situação dos prazos</h2><p>Distribuição das demandas ativas.</p></div><div id="graficoPrazos" class="chart-area"></div></article>
+      <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Evolução diária das entregas.</p></div><div id="graficoConclusoes" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Tipos de indício</h2><p>Tipos presentes na carga atual.</p></div><div id="graficoTipos" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Atividades realizadas</h2><p>Movimentações efetuadas no período.</p></div><div id="graficoAtividades" class="chart-area"></div></article>
     </section>
+  </section>
 
-    <div class="status-banner" id="mensagem" hidden role="alert"></div>
-
-    <section class="metric-grid">
-      <button class="metric active" data-card="TODAS">
-        <span>Total</span>
-        <strong id="total">0</strong>
-        <small>Demandas visíveis</small>
-      </button>
-      <button class="metric" data-card="PENDENTE_DE_TRATAMENTO">
-        <span>Pendentes</span>
-        <strong id="pendentes">0</strong>
-        <small>Aguardando início</small>
-      </button>
-      <button class="metric" data-card="EM_TRATAMENTO">
-        <span>Em tratamento</span>
-        <strong id="tratando">0</strong>
-        <small>Em andamento</small>
-      </button>
-      <button class="metric" data-card="ATRASADAS">
-        <span>Atrasadas</span>
-        <strong id="atrasadas">0</strong>
-        <small>Prazo vencido</small>
-      </button>
+  <section id="secaoDemandas" class="main-section" hidden>
+    <section class="metric-grid" aria-label="Resumo da listagem">
+      <button class="metric active" data-card="TODAS" type="button"><span>Total no escopo</span><strong id="total">0</strong><small>Resultados encontrados</small></button>
+      <button class="metric" data-card="PENDENTE_DE_TRATAMENTO" type="button"><span>Pendentes</span><strong id="pendentes">0</strong><small>Aguardando início</small></button>
+      <button class="metric" data-card="EM_TRATAMENTO" type="button"><span>Em tratamento</span><strong id="tratando">0</strong><small>Em andamento</small></button>
+      <button class="metric" data-card="ATRASADAS" type="button"><span>Atrasadas</span><strong id="atrasadas">0</strong><small>Prazo vencido</small></button>
     </section>
-
     <section class="panel filter-panel">
-      <div class="filter-grid">
-        <div class="field">
-          <label for="busca">Buscar</label>
-          <input class="control" id="busca" placeholder="Nome, CPF, indício ou processo SEI">
-        </div>
-        <div class="field">
-          <label for="tipo">Tipo de indício</label>
-          <select class="control" id="tipo">
-            <option value="">Todos os tipos</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="status">Situação</label>
-          <select class="control" id="status">
-            <option value="">Todas</option>
-            <option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
-            <option value="EM_TRATAMENTO">Em tratamento</option>
-            <option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="prioridade">Prioridade</label>
-          <select class="control" id="prioridade">
-            <option value="">Todas</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="advanced-grid" id="avancados" hidden>
-        <div class="field">
-          <label for="papel">Meu papel</label>
-          <select class="control" id="papel">
-            <option value="">Todos</option>
-            <option value="PRINCIPAL">Principal</option>
-            <option value="COLABORADOR">Colaborador</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="prazo">Prazo</label>
-          <select class="control" id="prazo">
-            <option value="">Todos</option>
-            <option value="ATRASADA">Atrasadas</option>
-            <option value="PROXIMA">Até 7 dias</option>
-            <option value="NO_PRAZO">No prazo</option>
-            <option value="SEM_PRAZO">Sem prazo</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="processo">Processos SEI</label>
-          <select class="control" id="processo">
-            <option value="">Todos</option>
-            <option value="COM">Com processo</option>
-            <option value="SEM">Sem processo</option>
-            <option value="MULTIPLOS">Múltiplos</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="ordem">Ordenar</label>
-          <select class="control" id="ordem">
-            <option value="PRAZO">Prazo mais próximo</option>
-            <option value="ESPERA">Maior espera</option>
-            <option value="RECENTE">Atualização recente</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="filter-footer">
-        <button class="btn btn-ghost" id="toggleFiltros">Filtros avançados ▾</button>
-        <div>
-          <button class="btn btn-ghost" id="limpar">Limpar filtros</button>
-          <button class="btn btn-primary" id="aplicar">Aplicar filtros</button>
-        </div>
-      </div>
+      <div class="filter-grid"><div class="field"><label for="busca">Buscar</label><input class="control" id="busca" placeholder="Nome, CPF, indício ou processo SEI"></div><div class="field"><label for="status">Situação</label><select class="control" id="status"><option value="">Todas</option><option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option><option value="EM_TRATAMENTO">Em tratamento</option><option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option></select></div><div class="field"><label for="prioridade">Prioridade</label><select class="control" id="prioridade"><option value="">Todas</option></select></div><div class="field"><label for="papel">Meu papel</label><select class="control" id="papel"><option value="">Todos</option><option value="PRINCIPAL">Principal</option><option value="COLABORADOR">Colaborador</option></select></div></div>
+      <div class="advanced-grid" id="avancados" hidden><div class="field"><label for="prazo">Prazo</label><select class="control" id="prazo"><option value="">Todos</option><option value="ATRASADA">Atrasada</option><option value="VENCE_HOJE">Vence hoje</option><option value="ATE_3_DIAS">Até 3 dias</option><option value="ATE_7_DIAS">Até 7 dias</option><option value="NO_PRAZO">No prazo</option><option value="SEM_PRAZO">Sem prazo</option></select></div><div class="field"><label for="processo">Processos SEI</label><select class="control" id="processo"><option value="">Todos</option><option value="COM">Com processo</option><option value="SEM">Sem processo</option><option value="MULTIPLOS">Múltiplos</option></select></div><div class="field"><label for="ordem">Ordenar</label><select class="control" id="ordem"><option value="PRAZO_ASC">Prazo mais próximo</option><option value="ATRASO_DESC">Mais atrasadas</option><option value="ESPERA_DESC">Maior espera</option><option value="PRIORIDADE">Prioridade</option><option value="RECENTE">Atualização recente</option></select></div></div>
+      <div class="filter-footer"><button class="btn btn-ghost" id="toggleFiltros" type="button" aria-expanded="false">Filtros avançados ▾</button><div class="filter-actions"><button class="btn btn-ghost" id="limpar" type="button">Limpar</button><button class="btn btn-primary" id="aplicar" type="button">Aplicar</button></div></div>
     </section>
+    <section class="panel"><div class="table-toolbar"><div><strong id="tituloTabela">Demandas ativas</strong><br><small id="resumoTabela"></small></div><div class="toolbar-actions"><button class="btn" id="exportarCsv" type="button">Exportar CSV</button><label class="table-page-size" for="porPagina"><span>Por página</span><select class="control" id="porPagina"><option>10</option><option selected>20</option><option>50</option></select></label></div></div><div class="table-wrap"><table class="operator-table"><thead><tr><th>Indício</th><th>Pessoa</th><th>Tipo</th><th>Vínculos</th><th>Processo SEI</th><th>Situação</th><th>Prioridade</th><th>Prazo</th><th>Papel</th><th>Ações</th></tr></thead><tbody id="tbody"></tbody></table><div class="table-state" id="estadoTabela"><strong>Carregando...</strong></div></div><div class="pagination"><button class="btn" id="anterior" type="button">Anterior</button><span id="paginaInfo">Página 1 de 1</span><button class="btn" id="proxima" type="button">Próxima</button></div></section>
+  </section>
+</main>
 
-    <section class="panel">
-      <div class="table-toolbar">
-        <span id="resumoTabela"></span>
-        <label class="table-page-size" for="porPagina">
-          <span>Por página</span>
-          <select class="control" id="porPagina">
-            <option>10</option>
-            <option selected>20</option>
-            <option>50</option>
-          </select>
-        </label>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table operator-table">
-          <thead>
-            <tr>
-              <th>Indício</th>
-              <th>Pessoa</th>
-              <th>Tipo</th>
-              <th>Vínculos</th>
-              <th>Processo SEI</th>
-              <th>Situação</th>
-              <th>Prioridade</th>
-              <th>Prazo</th>
-              <th>Papel</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-        <div class="table-state" id="estadoTabela"><strong>Carregando...</strong></div>
-      </div>
-      <div class="pagination">
-        <button class="btn" id="anterior">Anterior</button>
-        <span id="paginaInfo">Página 1 de 1</span>
-        <button class="btn" id="proxima">Próxima</button>
-      </div>
-    </section>
-  </main>
+<div class="overlay" id="modalOverlay" hidden><section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="mNome" tabindex="-1"><header class="operator-head"><div><span class="eyebrow">Indício <strong id="mNumero"></strong></span><h2 id="mNome"></h2><div class="head-meta"><span id="mCpf"></span><span>•</span><span id="mTipo"></span></div></div><div><span class="badge" id="mStatus"></span><button class="btn icon-btn btn-ghost" id="fecharModal" type="button" aria-label="Fechar">×</button></div></header><div class="context-strip"><div><span>Prioridade</span><strong id="mPrioridade"></strong></div><div><span>Prazo</span><strong id="mPrazo"></strong></div><div><span>Meu papel</span><strong id="mPapel"></strong></div><div><span>Processos SEI</span><strong id="mProcessos"></strong></div></div>
+<nav class="tabs" aria-label="Detalhes da demanda"><button class="tab active" data-tab="detalhes" type="button">Detalhes</button><button class="tab" data-tab="tratamento" type="button">Tratamento</button><button class="tab" data-tab="processos" type="button">Processos SEI</button><button class="tab" data-tab="historico" type="button">Meu histórico</button></nav><div class="status-banner modal-message" id="modalMensagem" hidden role="status" aria-live="polite"></div><div class="tab-panel" data-panel="detalhes" id="painelDetalhes"></div><div class="tab-panel" data-panel="tratamento" id="painelTratamento" hidden></div><div class="tab-panel" data-panel="processos" id="painelProcessos" hidden></div><div class="tab-panel" data-panel="historico" id="painelHistorico" hidden></div><footer class="modal-footer"><button class="btn" id="fecharRodape" type="button">Fechar</button></footer></section></div>
 
-  <div class="overlay" id="modalOverlay" hidden>
-    <section class="modal operator-modal" role="dialog" aria-modal="true">
-      <header class="operator-head">
-        <div>
-          <span class="eyebrow">Indício <strong id="mNumero"></strong></span>
-          <h2 id="mNome"></h2>
-          <div class="head-meta">
-            <span id="mCpf"></span>
-            <span>•</span>
-            <span id="mTipo"></span>
-          </div>
-        </div>
-        <div>
-          <span class="badge" id="mStatus"></span>
-          <button type="button" class="btn icon-btn btn-ghost" id="fecharModal" aria-label="Fechar modal">×</button>
-        </div>
-      </header>
-
-      <div class="context-strip">
-        <div><span>Prioridade</span><strong id="mPrioridade"></strong></div>
-        <div><span>Prazo</span><strong id="mPrazo"></strong></div>
-        <div><span>Meu papel</span><strong id="mPapel"></strong></div>
-        <div><span>Processos SEI</span><strong id="mProcessos"></strong></div>
-      </div>
-
-      <nav class="tabs">
-        <button class="tab active" data-tab="detalhes">Detalhes</button>
-        <button class="tab" data-tab="tratamento">Tratamento</button>
-        <button class="tab" data-tab="processos">Processos SEI</button>
-        <button class="tab" data-tab="historico">Meu histórico</button>
-      </nav>
-
-      <div class="status-banner modal-message" id="modalMensagem" hidden role="alert"></div>
-
-      <div class="tab-panel" data-panel="detalhes" id="painelDetalhes"></div>
-      <div class="tab-panel" data-panel="tratamento" id="painelTratamento" hidden></div>
-
-      <div class="tab-panel" data-panel="processos" id="painelProcessos" hidden>
-        <div class="table-toolbar">
-          <div>
-            <strong>Processos vinculados</strong><br>
-            <small>Vincule os processos referentes ao tratamento.</small>
-          </div>
-          <button class="btn btn-primary" id="novoProcesso">+ Vincular processo</button>
-        </div>
-        <form class="embedded" id="formProcesso" hidden>
-          <div class="form-grid-v3">
-            <div class="field">
-              <label for="numeroProcesso">Número *</label>
-              <input class="control" id="numeroProcesso" required placeholder="00000.000000/0000-00">
-            </div>
-            <div class="field">
-              <label for="assuntoProcesso">Assunto</label>
-              <input class="control" id="assuntoProcesso">
-            </div>
-            <div class="field wide">
-              <label for="observacaoProcesso">Observação</label>
-              <textarea class="control textarea" id="observacaoProcesso"></textarea>
-            </div>
-            <label class="check-option wide">
-              <input type="checkbox" id="processoPrincipal">
-              <span>Definir como principal</span>
-            </label>
-          </div>
-          <div class="form-actions">
-            <button class="btn" type="button" id="cancelarProcesso">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Salvar vínculo</button>
-          </div>
-        </form>
-        <div class="process-list" id="listaProcessos"></div>
-      </div>
-
-      <div class="tab-panel" data-panel="historico" id="painelHistorico" hidden></div>
-
-      <footer class="modal-footer">
-        <button type="button" class="btn" id="fecharRodape">Fechar</button>
-      </footer>
-    </section>
-  </div>
-
-  <script type="module" src="./js/operador.js"></script>
-</body>
-</html>
+<div class="overlay" id="confirmOverlay" hidden><section class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitulo"><header class="confirm-head"><h2 id="confirmTitulo">Confirmar ação</h2></header><div class="confirm-body" id="confirmCorpo"></div><footer class="modal-footer"><button class="btn" id="confirmCancelar" type="button">Cancelar</button><button class="btn btn-danger" id="confirmOk" type="button">Confirmar</button></footer></section></div>
+<script type="module" src="./js/operador.js"></script>
+</body></html>
