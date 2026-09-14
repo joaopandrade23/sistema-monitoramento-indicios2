@@ -1,332 +1,40 @@
 "use strict";
-
-import { supabase } from "supabase.js";
-/* ==========================================================================
-   Painel do Operador - Sistema de Monitoramento de Indícios
-   Código Principal Integrado com Melhorias v11
-   ========================================================================== */
-
-// Mapeamentos Amigáveis de Códigos para Rótulos no Painel
-const prazoLabels = {
-  ATRASADA: "Prazo vencido",
-  ATRASADAS: "Prazo vencido",
-  VENCE_HOJE: "Vence hoje",
-  VENCEM_HOJE: "Vence hoje",
-  ATE_3_DIAS: "Vence em até 3 dias",
-  ATE_7_DIAS: "Vence em até 7 dias",
-  NO_PRAZO: "Prazo confortável",
-  ACIMA_7_DIAS: "Vence após 7 dias",
-  SEM_PRAZO: "Sem prazo definido"
-};
-
-const statusLabels = {
-  PENDENTE_DE_TRATAMENTO: "Aguardando início",
-  EM_TRATAMENTO: "Em tratamento",
-  ENCERRADO_INTERNAMENTE: "Tratamento encerrado",
-  AGUARDANDO_VALIDACAO_TCU: "Aguardando validação do TCU",
-  VALIDADO_TCU: "Validado pelo TCU"
-};
-
-const activityLabels = {
-  INICIO_TRATAMENTO: "Tratamentos iniciados",
-  OBSERVACAO: "Observações registradas",
-  PROVIDENCIA: "Providências adotadas",
-  VINCULO_PROCESSO_SEI: "Processos SEI vinculados",
-  INATIVACAO_PROCESSO_SEI: "Processos SEI inativados",
-  ALTERACAO_PROCESSO_SEI_PRINCIPAL: "Alterações de processo principal",
-  ENCERRAMENTO_INTERNO: "Tratamentos encerrados"
-};
-
-const normalize = s => String(s || "").trim().toUpperCase().replaceAll(" ", "_");
-function friendly(raw, map) {
-  const key = normalize(raw);
-  return map[key] || raw;
-}
-
-// Estado Global da Aplicação
-const appState = {
-  usuario: null,
-  demandas: [],
-  demandasFiltradas: [],
-  demandaSelecionada: null,
-  paginacao: { pagina: 1, limite: 10 },
-  filtros: { busca: '', status: '', prazo: '', tipo: '' },
-  periodoPainel: { inicio: '', fim: '' }
-};
-
-// Configurações de datas padrão no Painel
-function setupDefaultDates() {
-  const hoje = new Date();
-  const trintaDiasAtras = new Date();
-  trintaDiasAtras.setDate(hoje.getDate() - 30);
-
-  const fmt = d => d.toISOString().split('T')[0];
-  const inpStart = document.getElementById('painelInicio');
-  const inpEnd = document.getElementById('painelFim');
-
-  if (inpStart && !inpStart.value) inpStart.value = fmt(trintaDiasAtras);
-  if (inpEnd && !inpEnd.value) inpEnd.value = fmt(hoje);
-
-  appState.periodoPainel.inicio = inpStart?.value || fmt(trintaDiasAtras);
-  appState.periodoPainel.fim = inpEnd?.value || fmt(hoje);
-}
-
-// Funções de Refinamento e Formatação visual
-function refineText() {
-  document.querySelectorAll('[data-view]').forEach(btn => {
-    btn.innerHTML = '<span class="action-icon-slot" aria-hidden="true"></span><span>Detalhes</span>';
-    btn.setAttribute('aria-label', 'Abrir detalhes da demanda');
-  });
-  document.querySelectorAll('.deadline-cell small').forEach(el => {
-    el.textContent = friendly(el.textContent, prazoLabels);
-  });
-  document.querySelectorAll('#graficoPrazos .bar-label').forEach(el => {
-    el.textContent = friendly(el.textContent, prazoLabels);
-  });
-  document.querySelectorAll('#graficoStatus .bar-label').forEach(el => {
-    el.textContent = friendly(el.textContent, statusLabels);
-  });
-  document.querySelectorAll('#graficoAtividades .bar-label').forEach(el => {
-    el.textContent = friendly(el.textContent, activityLabels);
-  });
-}
-
-function refineHeadings() {
-  const replacements = new Map([
-    ['Situação da carga atual', 'Situação das minhas demandas'],
-    ['Somente participações ativas.', 'Demandas atualmente atribuídas a você.'],
-    ['Situação dos prazos', 'Atenção aos prazos'],
-    ['Distribuição das demandas ativas.', 'Organização das demandas por vencimento.'],
-    ['Conclusões no período', 'Demandas concluídas no período'],
-    ['Evolução diária das entregas.', 'Quantidade de tratamentos encerrados por dia.'],
-    ['Tipos de indício', 'Principais tipos de indício'],
-    ['Tipos presentes na carga atual.', 'Composição das demandas atualmente atribuídas.'],
-    ['Atividades realizadas', 'Registros realizados no período'],
-    ['Movimentações efetuadas no período.', 'Observações, providências e demais ações registradas.'],
-    ['Total no escopo', 'Total de demandas'],
-    ['Resultados encontrados', 'No grupo selecionado'],
-    ['Participações anteriores', 'Histórico de participações']
-  ]);
-  document.querySelectorAll('h2,p,span,small,strong,.main-tab').forEach(el => {
-    const next = replacements.get(el.textContent.trim());
-    if (next) el.textContent = next;
-  });
-  const metrics = document.querySelectorAll('#metricasPainel .metric span');
-  ['Aguardando início', 'Em análise', 'Prazo próximo', 'Prazo vencido', 'Concluídas no período', 'Tempo médio de tratamento'].forEach((t, i) => {
-    if (metrics[i]) metrics[i].textContent = t;
-  });
-}
-
-function addDateAxis() {
-  const area = document.getElementById('graficoConclusoes');
-  if (!area) return;
-  const chart = area.querySelector('.line-chart');
-  if (!chart || chart.dataset.datesAdded) return;
-  const periodStart = document.getElementById('painelInicio')?.value;
-  const periodEnd = document.getElementById('painelFim')?.value;
-  const cols = [...chart.children];
-  if (!cols.length || !periodStart || !periodEnd) return;
-
-  chart.dataset.datesAdded = 'true';
-  chart.classList.add('daily-axis');
-  const start = new Date(periodStart + 'T12:00:00');
-  const end = new Date(periodEnd + 'T12:00:00');
-  const step = Math.max(1, Math.ceil(cols.length / 7));
-
-  cols.forEach((col, i) => {
-    col.classList.add('daily-column-wrap');
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    if (i % step === 0 || i === cols.length - 1) {
-      const time = document.createElement('time');
-      time.textContent = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-      col.appendChild(time);
-    }
-  });
-}
-
-// Geração de Relatório PDF para Impressão
-function buildPrintableReport() {
-  const number = document.getElementById('mNumero')?.textContent || '';
-  const name = document.getElementById('mNome')?.textContent || '';
-  const cpf = document.getElementById('mCpf')?.textContent || '';
-  const status = document.getElementById('mStatus')?.textContent || '';
-
-  const rows = [...document.querySelectorAll('#historyList .timeline-item')].map(x => ({
-    title: x.querySelector('strong')?.textContent || 'Movimentação',
-    date: x.querySelector('time')?.textContent || '',
-    description: x.querySelector('p')?.textContent || 'Sem descrição.'
-  }));
-
-  if (!rows.length) return null;
-
-  return `<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <title>Relatório do histórico - ${number}</title>
-  <style>
-    @page { size: A4; margin: 18mm; }
-    * { box-sizing: border-box; }
-    body { font: 11pt Arial, sans-serif; color: #172033; margin: 0; }
-    h1 { font-size: 20pt; color: #155eef; margin: 0 0 4px; }
-    .sub { color: #667085; margin-bottom: 18px; }
-    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; background: #f5f7fb; border: 1px solid #d0d5dd; border-radius: 8px; }
-    .meta span { display: block; font-size: 8pt; color: #667085; text-transform: uppercase; }
-    .count { margin: 18px 0 10px; font-weight: bold; }
-    article { padding: 12px 14px; margin: 8px 0; border: 1px solid #d0d5dd; border-left: 5px solid #155eef; border-radius: 6px; page-break-inside: avoid; }
-    header { display: flex; justify-content: space-between; gap: 12px; }
-    time { font-size: 9pt; color: #667085; }
-    p { line-height: 1.45; }
-    .foot { margin-top: 18px; padding-top: 8px; border-top: 1px solid #d0d5dd; color: #667085; font-size: 8pt; }
-  </style>
-</head>
-<body>
-  <h1>Relatório breve do histórico</h1>
-  <div class="sub">Registros exibidos no histórico da demanda</div>
-  <section class="meta">
-    <div><span>Indício</span><b>${number}</b></div>
-    <div><span>Situação</span><b>${status}</b></div>
-    <div><span>Pessoa</span><b>${name}</b></div>
-    <div><span>CPF</span><b>${cpf}</b></div>
-    <div><span>Gerado em</span><b>${new Date().toLocaleString('pt-BR')}</b></div>
-  </section>
-  <div class="count">${rows.length} registro(s)</div>
-  ${rows.map(r => `<article><header><b>${r.title}</b><time>${r.date}</time></header><p>${r.description}</p></article>`).join('')}
-  <div class="foot">Documento gerado pelo Sistema de Monitoramento de Indícios. Na caixa de impressão, selecione "Salvar como PDF".</div>
-</body>
-</html>`;
-}
-
-// Interceptação e Impressão de PDF via iframe Oculto
-document.addEventListener('click', e => {
-  const btn = e.target.closest('#exportPdf');
-  if (!btn) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-
-  const html = buildPrintableReport();
-  if (!html) return;
-
-  const frame = document.createElement('iframe');
-  frame.setAttribute('aria-hidden', 'true');
-  frame.style.cssText = 'position:fixed;width:1px;height:1px;border:0;right:0;bottom:0';
-  document.body.appendChild(frame);
-
-  frame.contentDocument.open();
-  frame.contentDocument.write(html);
-  frame.contentDocument.close();
-
-  setTimeout(() => {
-    frame.contentWindow.focus();
-    frame.contentWindow.print();
-    setTimeout(() => frame.remove(), 2000);
-  }, 400);
-}, true);
-
-// Renderização da Tabela de Demandas
-function renderTable() {
-  const tbody = document.getElementById('corpoTabela');
-  if (!tbody) return;
-
-  const { pagina, limite } = appState.paginacao;
-  const inicio = (pagina - 1) * limite;
-  const items = appState.demandasFiltradas.slice(inicio, inicio + limite);
-
-  if (items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Nenhuma demanda encontrada.</td></tr>';
-    document.getElementById('contagemResultados').textContent = 'Exibindo 0 demandas';
-    return;
-  }
-
-  tbody.innerHTML = items.map(d => {
-    const statusTxt = friendly(d.status || '', statusLabels);
-    const prazoTxt = friendly(d.prazoStatus || '', prazoLabels);
-    let badgeClass = 'badge-pending';
-    if (d.status === 'EM_TRATAMENTO') badgeClass = 'badge-in-progress';
-    if (d.status === 'ENCERRADO_INTERNAMENTE' || d.status === 'VALIDADO_TCU') badgeClass = 'badge-done';
-
-    return `
-      <tr>
-        <td><strong>${d.numero || d.id || '-'}</strong></td>
-        <td>
-          <div>${d.nomePessoa || '-'}</div>
-          <small class="text-muted">${d.cpfPessoa || '-'}</small>
-        </td>
-        <td>${d.tipoIndicio || '-'}</td>
-        <td><span class="badge ${badgeClass}">${statusTxt}</span></td>
-        <td class="deadline-cell">
-          <div>${d.prazoLimite ? new Date(d.prazoLimite).toLocaleDateString('pt-BR') : '-'}</div>
-          <small>${prazoTxt}</small>
-        </td>
-        <td class="text-right">
-          <button type="button" class="btn btn-secondary btn-sm" data-view="${d.id}">
-            <span class="action-icon-slot" aria-hidden="true"></span>
-            <span>Detalhes</span>
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  document.getElementById('contagemResultados').textContent = `Exibindo ${items.length} de ${appState.demandasFiltradas.length} demandas`;
-}
-
-// Event Handler do Formulário de Ação
-const formAcao = document.getElementById('formAcao');
-if (formAcao) {
-  const selectTipo = document.getElementById('tipoAcao');
-  const groupSei = document.getElementById('groupProcessoSei');
-
-  selectTipo?.addEventListener('change', e => {
-    if (e.target.value === 'VINCULO_PROCESSO_SEI' || e.target.value === 'ALTERACAO_PROCESSO_SEI_PRINCIPAL') {
-      groupSei?.classList.remove('hidden');
-    } else {
-      groupSei?.classList.add('hidden');
-    }
-  });
-}
-
-// Gerenciamento de Abas Principais
-document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-
-    btn.classList.add('active');
-    const tabId = btn.getAttribute('data-tab');
-    document.getElementById(tabId)?.classList.add('active');
-  });
-});
-
-// Gerenciamento do Tema Claro/Escuro
-const themeToggle = document.getElementById('themeToggle');
-if (themeToggle) {
-  themeToggle.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-  });
-
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) {
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  }
-}
-
-// Observer Dinâmico para Refinamento Automático
-const observer = new MutationObserver(() => {
-  refineText();
-  refineHeadings();
-  addDateAxis();
-});
-observer.observe(document.body, { childList: true, subtree: true });
-
-// Inicialização Geral
-document.addEventListener('DOMContentLoaded', () => {
-  setupDefaultDates();
-  refineText();
-  refineHeadings();
-  addDateAxis();
-});
+import { supabase } from "./supabase.js";
+const $=id=>document.getElementById(id), esc=v=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
+const E={};document.querySelectorAll("[id]").forEach(x=>E[x.id]=x);
+const S={ctx:null,escopo:"ATIVAS",itens:[],pagina:1,tamanho:20,total:0,atual:null,detalhe:null,historico:[],ultimoFoco:null,confirmar:null};
+const errors={VERSAO_DESATUALIZADA:"A demanda foi atualizada. Recarregue e tente novamente.",CICLO_NAO_PERMITE_MOVIMENTACAO:"Esta demanda não permite movimentação.",PROCESSO_SEI_JA_VINCULADO_AO_CICLO:"Este processo já está vinculado.",NUMERO_PROCESSO_SEI_INVALIDO:"Número de processo inválido.",USUARIO_SEM_PARTICIPACAO_ATIVA:"Você não possui participação ativa neste ciclo."};
+const fmtDate=v=>v?new Date(v).toLocaleDateString("pt-BR"):"Não informado",fmtDT=v=>v?new Date(v).toLocaleString("pt-BR"):"Não informado",todayId=()=>Number(new Date().toISOString().slice(0,10).replaceAll("-",""));
+const msg=(el,text,type="")=>{el.hidden=!text;el.className=`status-banner ${type}`;el.textContent=text||""}, friendly=e=>errors[e?.message]||e?.message||"Não foi possível concluir a operação.";
+const badge=c=>c==="PENDENTE_DE_TRATAMENTO"?"badge-warning":c==="EM_TRATAMENTO"?"badge-success":c==="ENCERRADO_INTERNAMENTE"?"badge-neutral":"badge-primary";
+const draftKey=t=>`operador:rascunho:${S.atual?.id_ciclo_tratamento}:${t}`;
+async function rpc(name,args={}){const{data,error}=await supabase.rpc(name,args);if(error)throw error;return data}
+async function context(){const{data:{session}}=await supabase.auth.getSession();if(!session){location.replace("index.html");throw Error("SESSAO_AUSENTE")};const{data,error}=await supabase.schema("api").from("v_meu_contexto").select("*").limit(1).maybeSingle();if(error||!data)throw error||Error("CONTEXTO_AUSENTE");if(!["OPERADOR_SEGEP_CE","GESTOR_DADOS_SISTEMA"].includes(data.codigo_perfil)){location.replace("inicio.html");throw Error("PERFIL_NAO_AUTORIZADO")};S.ctx=data;E.usuarioNome.textContent=data.nome_exibicao;E.usuarioPerfil.textContent=data.nome_perfil;E.voltarGestaoBtn.hidden=data.codigo_perfil!=="GESTOR_DADOS_SISTEMA"}
+function params(){return{p_escopo:S.escopo,p_busca:E.busca.value||null,p_situacao:E.status.value||null,p_codigo_prioridade:E.prioridade.value||null,p_codigo_papel:E.papel.value||null,p_situacao_prazo:E.prazo.value||null,p_situacao_processo_sei:E.processo.value||null,p_ordenacao:E.ordem.value,p_pagina:S.pagina,p_tamanho_pagina:S.tamanho}}
+async function loadList(){E.estadoTabela.hidden=false;E.estadoTabela.innerHTML="<strong>Carregando demandas...</strong>";try{const d=await rpc("listar_minhas_demandas",params());S.itens=d.itens||[];S.total=d.paginacao?.total_registros||0;renderTable(d.paginacao);fillFilters();msg(E.mensagem,"")}catch(e){msg(E.mensagem,friendly(e),"error")}}
+function fillFilters(){const current=E.prioridade.value,values=[...new Map(S.itens.filter(x=>x.codigo_prioridade).map(x=>[x.codigo_prioridade,x.nome_prioridade])).entries()];E.prioridade.innerHTML='<option value="">Todas</option>'+values.map(([v,n])=>`<option value="${esc(v)}">${esc(n)}</option>`).join("");E.prioridade.value=current}
+function renderTable(pg={}){E.total.textContent=S.total;E.pendentes.textContent=S.itens.filter(x=>x.codigo_status_ciclo==="PENDENTE_DE_TRATAMENTO").length;E.tratando.textContent=S.itens.filter(x=>x.codigo_status_ciclo==="EM_TRATAMENTO").length;E.atrasadas.textContent=S.itens.filter(x=>x.situacao_prazo==="ATRASADA").length;E.resumoTabela.textContent=`${S.total} demanda(s) encontrada(s)`;E.paginaInfo.textContent=`Página ${pg.pagina||1} de ${Math.max(pg.total_paginas||1,1)}`;E.anterior.disabled=(pg.pagina||1)<=1;E.proxima.disabled=(pg.pagina||1)>=Math.max(pg.total_paginas||1,1);E.estadoTabela.hidden=S.itens.length>0;if(!S.itens.length)E.estadoTabela.innerHTML="<strong>Nenhuma demanda encontrada.</strong>";E.tbody.innerHTML=S.itens.map(x=>`<tr><td class="indicio-cell"><strong>${esc(x.identificador_do_indicio)}</strong><small>${esc(x.base_de_dados||"")}</small></td><td class="person-cell"><strong>${esc(x.nome_atual||"Nome não disponível")}</strong><span>${esc(x.cpf_mascarado||"")}</span></td><td><div class="clip2">${esc(x.tipo_indicio||"")}</div></td><td><div class="clip2">${esc(x.situacoes_funcionais_resumo||"")}</div></td><td class="process-cell">${x.processo_sei_principal?`<span class="process-number">${esc(x.processo_sei_principal)}</span><small>${x.quantidade_processos_sei_ativos>1?`+${x.quantidade_processos_sei_ativos-1} outro(s)`:""}</small>`:"Nenhum processo"}</td><td><span class="badge ${badge(x.codigo_status_ciclo)}">${esc(x.nome_status_ciclo)}</span></td><td>${esc(x.nome_prioridade||"Não definida")}</td><td class="deadline-cell"><strong>${fmtDate(x.prazo_em)}</strong><small>${esc(x.situacao_prazo||"")}</small></td><td>${esc(x.nome_papel||"")}</td><td><button class="btn btn-secondary" data-view="${x.id_ciclo_tratamento}" type="button">Visualizar</button></td></tr>`).join("")}
+async function loadPanel(){try{const d=await rpc("resumo_painel_operador",{p_data_inicial:E.painelInicio.value,p_data_final:E.painelFim.value,p_codigo_papel:null,p_id_tipo_indicio:null,p_codigo_prioridade:null});const c=d.cards||{};E.metricasPainel.innerHTML=[["Pendentes",c.pendentes,"var(--warning)"],["Em tratamento",c.em_tratamento,"var(--success)"],["Próximas do prazo",c.proximas_prazo,"var(--primary)"],["Atrasadas",c.atrasadas,"var(--danger)"],["Concluídas",c.concluidas_periodo,"#7c3aed"],["Tempo médio",c.tempo_medio_tratamento_dias==null?"-":`${c.tempo_medio_tratamento_dias} d`,"#475467"]].map(([l,v,color])=>`<article class="metric" style="--accent:${color};--soft:var(--surface-2)"><span>${l}</span><strong>${v??0}</strong><small>Período selecionado</small></article>`).join("");bars(E.graficoStatus,d.por_status,"nome_status");bars(E.graficoPrazos,d.por_prazo,"faixa");bars(E.graficoTipos,d.por_tipo_indicio,"tipo_indicio");bars(E.graficoAtividades,d.atividades_por_tipo,"nome_movimentacao");columns(E.graficoConclusoes,d.concluidas_por_dia)}catch(e){msg(E.mensagem,friendly(e),"error")}}
+function bars(el,data,label){if(!data?.length){el.innerHTML='<div class="empty-chart">Sem dados no período.</div>';return}const max=Math.max(...data.map(x=>+x.quantidade),1);el.innerHTML='<div class="bar-chart" role="img" aria-label="Gráfico de barras">'+data.map(x=>`<div class="bar-row"><span class="bar-label" title="${esc(x[label])}">${esc(x[label]||"Não informado")}</span><span class="bar-track"><span class="bar-fill" style="width:${(+x.quantidade/max)*100}%"></span></span><span class="bar-value">${x.quantidade}</span></div>`).join("")+"</div>"}
+function columns(el,data){if(!data?.length){el.innerHTML='<div class="empty-chart">Sem dados.</div>';return}const max=Math.max(...data.map(x=>+x.quantidade),1);el.innerHTML='<div class="line-chart" role="img" aria-label="Conclusões por dia">'+data.map(x=>`<div class="line-column" title="${fmtDate(x.data)}: ${x.quantidade}" style="height:${Math.max((+x.quantidade/max)*100,2)}%"><span>${x.quantidade||""}</span></div>`).join("")+"</div>"}
+function section(title,html){return`<h3 class="section-title">${esc(title)}</h3><div class="detail-grid-v3">${html}</div>`}function card(l,v,c=""){return`<div class="detail-card ${c}"><span>${esc(l)}</span><strong>${esc(v??"Não informado")}</strong></div>`}
+async function openModal(id){const item=S.itens.find(x=>String(x.id_ciclo_tratamento)===String(id));if(!item)return;S.ultimoFoco=document.activeElement;S.atual=item;S.detalhe=await rpc("obter_detalhes_demanda_operador",{p_id_indicio:item.id_indicio,p_id_ciclo_tratamento:item.id_ciclo_tratamento});E.modalOverlay.hidden=false;document.body.style.overflow="hidden";E.modalOverlay.querySelector(".operator-modal").focus();E.mNumero.textContent=item.identificador_do_indicio;E.mNome.textContent=item.nome_atual;E.mCpf.textContent=item.cpf_mascarado;E.mTipo.textContent=item.tipo_indicio;E.mStatus.textContent=item.nome_status_ciclo;E.mStatus.className=`badge ${badge(item.codigo_status_ciclo)}`;E.mPrioridade.textContent=item.nome_prioridade;E.mPrazo.textContent=fmtDate(item.prazo_em);E.mPapel.textContent=item.nome_papel;E.mProcessos.textContent=(S.detalhe.processos_sei||[]).filter(x=>x.processo_ativo).length;renderDetails();renderTreatment();renderProcesses();await loadHistory();switchTab("detalhes")}
+function renderDetails(){const d=S.detalhe,c=d.ciclo_selecionado||{};E.painelDetalhes.innerHTML=section("Identificação",card("Número do indício",d.identificador_do_indicio)+card("Base de dados",d.base_de_dados)+card("Tipo",d.tipo_indicio,"wide")+card("Descrição",d.descricao_indicio,"full"))+section("Pessoa",card("Nome",d.nome_atual,"wide")+card("CPF",d.cpf_mascarado||d.cpf)+card("Situação funcional",d.situacoes_funcionais_resumo||d.situacao_funcional,"full"))+section("Ciclo",card("Número do ciclo",c.numero_ciclo)+card("Situação",c.nome_status_ciclo)+card("Retorno",c.indicador_retorno?"Sim":"Não")+card("Resultado",c.resultado_encerramento,"full"))}
+function restoreDraft(id,type){const el=$(id),v=localStorage.getItem(draftKey(type));if(el&&v){el.value=v;el.insertAdjacentHTML("afterend",'<div class="draft-notice">Rascunho recuperado.</div>')}if(el)el.addEventListener("input",()=>localStorage.setItem(draftKey(type),el.value))}
+function renderTreatment(){const p=S.detalhe.permissoes||{},c=S.detalhe.ciclo_selecionado||{};if(p.somente_leitura){E.painelTratamento.innerHTML=`<div class="readonly-result"><strong>Modo de consulta</strong><p>Este ciclo não permite novas movimentações.</p><p><strong>Resultado:</strong> ${esc(c.resultado_encerramento||"Não informado")}</p></div>`;return}let h="";if(p.pode_iniciar)h='<article class="action-card"><h3>Iniciar tratamento</h3><p>Libera as ações operacionais.</p><button class="btn btn-primary" data-action="start">Iniciar</button></article>';if(p.pode_registrar_observacao)h+='<article class="action-card action-observation"><h3>Registrar observação</h3><p>Registre análise ou constatação.</p><textarea class="control textarea" id="obsInput"></textarea><button class="btn btn-primary" data-action="OBSERVACAO">Registrar</button></article>';if(p.pode_registrar_providencia)h+='<article class="action-card action-providence"><h3>Registrar providência</h3><p>Registre a ação adotada.</p><textarea class="control textarea" id="provInput"></textarea><button class="btn btn-primary" data-action="PROVIDENCIA">Registrar</button></article>';if(p.pode_encerrar)h+='<article class="action-card action-conclusion"><h3>Concluir tratamento</h3><p>Revise o resultado antes de confirmar.</p><textarea class="control textarea" id="concInput"></textarea><button class="btn btn-danger" data-action="CONCLUSAO">Concluir</button></article>';E.painelTratamento.innerHTML=`<div class="treatment-grid">${h}</div>`;restoreDraft("obsInput","observacao");restoreDraft("provInput","providencia");restoreDraft("concInput","conclusao")}
+function renderProcesses(){const p=S.detalhe.permissoes||{},all=S.detalhe.processos_sei||[],active=all.filter(x=>x.processo_ativo),inactive=all.filter(x=>!x.processo_ativo);const form=p.pode_vincular_processo_sei?`<div class="table-toolbar"><strong>Processos SEI</strong><button class="btn btn-primary" data-process="new">+ Vincular processo</button></div><form class="embedded" id="processForm" hidden><div class="form-grid-v3"><div class="field"><label>Número *</label><input class="control" id="processNumber" required placeholder="00000.000000/0000-00"></div><div class="field"><label>Assunto</label><input class="control" id="processSubject"></div><div class="field wide"><label>Observação</label><textarea class="control textarea" id="processNote"></textarea></div><label class="check-option wide"><input type="checkbox" id="processMain"> Definir como principal</label></div><div class="form-actions"><button class="btn" type="button" data-process="cancel">Cancelar</button><button class="btn btn-primary">Salvar</button></div></form>`:"";const list=(arr,inact=false)=>arr.length?arr.map(x=>`<article class="process-card ${inact?"inactive":""}"><div><h3>${esc(x.numero_processo)} ${x.processo_principal?'<span class="badge badge-primary">Principal</span>':''}</h3><p>${esc(x.assunto||"Sem assunto")}</p><small>Incluído por ${esc(x.incluido_por||"")} em ${fmtDT(x.incluido_em)}${inact?`<br>Inativado por ${esc(x.inativado_por||"")} em ${fmtDT(x.inativado_em)}<br>Motivo: ${esc(x.motivo_inativacao||"")}`:""}</small></div>${!inact?`<div class="process-actions">${p.pode_definir_processo_principal&&!x.processo_principal?`<button class="btn" data-main="${x.id_processo_sei}">Definir principal</button>`:""}${p.pode_inativar_processo_sei?`<button class="btn btn-danger" data-inactivate="${x.id_processo_sei}">Inativar</button>`:""}</div>`:""}</article>`).join(""):'<div class="table-state">Nenhum registro.</div>';E.painelProcessos.innerHTML=form+`<div class="process-groups"><section><h3 class="process-group-title">Ativos</h3><div class="process-list">${list(active)}</div></section><section><h3 class="process-group-title">Inativados</h3><div class="process-list">${list(inactive,true)}</div></section></div>`}
+const historyMap={INICIO_TRATAMENTO:["Início do tratamento","history-start","▶"],VINCULO_PROCESSO_SEI:["Processo SEI vinculado","history-sei","⌁"],ALTERACAO_PROCESSO_SEI_PRINCIPAL:["Processo principal alterado","history-sei","⌁"],INATIVACAO_PROCESSO_SEI:["Processo SEI inativado","history-sei","⌁"],OBSERVACAO:["Observação registrada","history-observation","✎"],PROVIDENCIA:["Providência adotada","history-providence","✓"],ENCERRAMENTO_INTERNO:["Tratamento encerrado","history-closed","■"]};
+async function loadHistory(){const d=await rpc("listar_minhas_movimentacoes_demanda",{p_id_ciclo_tratamento:S.atual.id_ciclo_tratamento,p_codigo_movimentacao:null,p_data_inicial:null,p_data_final:null,p_pagina:1,p_tamanho_pagina:100});S.historico=d.itens||[];renderHistory()}
+function renderHistory(){E.painelHistorico.innerHTML=`<div class="history-toolbar"><div class="field"><label for="historyFilter">Filtrar histórico</label><select class="control" id="historyFilter"><option value="">Todos</option><option value="OBSERVACAO">Observações</option><option value="PROVIDENCIA">Providências</option><option value="PROCESSO">Processos SEI</option><option value="ENCERRAMENTO">Encerramento</option></select></div><button class="btn" id="exportPdf" type="button">Exportar relatório em PDF</button></div><div id="historyList"></div>`;$("historyFilter").onchange=renderHistoryList;$("exportPdf").onclick=exportHistoryPdf;renderHistoryList()}
+function renderHistoryList(){const f=$("historyFilter")?.value||"",rows=S.historico.filter(x=>!f||(f==="PROCESSO"?x.codigo_movimentacao.includes("PROCESSO"):f==="ENCERRAMENTO"?x.codigo_movimentacao.includes("ENCERR"):x.codigo_movimentacao===f));$("historyList").innerHTML=rows.length?`<div class="timeline">${rows.map(x=>{const m=historyMap[x.codigo_movimentacao]||[x.nome_movimentacao||"Movimentação","history-default","•"];return`<article class="timeline-item ${m[1]}"><span class="history-icon">${m[2]}</span><div class="history-content"><div class="history-heading"><strong>${esc(m[0])}</strong><time>${fmtDT(x.realizada_em)}</time></div>${x.descricao?`<p>${esc(x.descricao)}</p>`:""}</div></article>`}).join("")}</div>`:'<div class="table-state">Nenhuma movimentação encontrada.</div>'}
+function confirm(title,body,label="Confirmar"){return new Promise(resolve=>{S.confirmar=resolve;E.confirmTitulo.textContent=title;E.confirmCorpo.innerHTML=body;E.confirmOk.textContent=label;E.confirmOverlay.hidden=false;E.confirmOk.focus()})}
+function closeConfirm(v=false){E.confirmOverlay.hidden=true;S.confirmar?.(v);S.confirmar=null}
+async function refreshModal(){const id=S.atual?.id_ciclo_tratamento;await loadList();if(id){const next=S.itens.find(x=>String(x.id_ciclo_tratamento)===String(id));if(next)await openModal(id);else closeModal()}}
+async function action(name,args,success,draft){try{msg(E.modalMensagem,"Processando...");await rpc(name,args);if(draft)localStorage.removeItem(draftKey(draft));await refreshModal();msg(E.mensagem,success,"success")}catch(e){msg(E.modalMensagem,friendly(e),"error")}}
+function switchTab(name){document.querySelectorAll("[data-panel]").forEach(x=>x.hidden=x.dataset.panel!==name);document.querySelectorAll("[data-tab]").forEach(x=>{const a=x.dataset.tab===name;x.classList.toggle("active",a);x.setAttribute("aria-selected",a)})}
+function closeModal(){E.modalOverlay.hidden=true;document.body.style.overflow="";S.atual=S.detalhe=null;S.ultimoFoco?.focus()}
+function csvCell(v){return`"${String(v??"").replaceAll('"','""')}"`}function exportCsv(){const headers=["Indício","Nome","CPF","Tipo","Vínculos","Processo SEI principal","Situação","Prioridade","Prazo","Papel"];const rows=S.itens.map(x=>[x.identificador_do_indicio,x.nome_atual,x.cpf_mascarado,x.tipo_indicio,x.situacoes_funcionais_resumo,x.processo_sei_principal,x.nome_status_ciclo,x.nome_prioridade,fmtDate(x.prazo_em),x.nome_papel]);download(`demandas_${S.escopo.toLowerCase()}.csv`,"\ufeff"+[headers,...rows].map(r=>r.map(csvCell).join(";")).join("\r\n"),"text/csv;charset=utf-8")}
+function download(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportHistoryPdf(){const d=S.detalhe,html=`<!doctype html><html><head><meta charset="utf-8"><title>Relatório do histórico</title><style>body{font:12pt Arial;margin:28mm;color:#172033}h1{color:#155eef}h2{font-size:14pt}.meta{padding:12px;background:#f2f4f7}.item{margin:14px 0;padding:10px;border-left:4px solid #155eef;page-break-inside:avoid}.item small{color:#667085}@media print{button{display:none}}</style></head><body><h1>Relatório breve do histórico</h1><div class="meta"><b>Indício:</b> ${esc(d.identificador_do_indicio)}<br><b>Pessoa:</b> ${esc(d.nome_atual)}<br><b>CPF:</b> ${esc(d.cpf_mascarado||"")}<br><b>Gerado em:</b> ${fmtDT(new Date())}</div><h2>Movimentações realizadas pelo operador</h2>${S.historico.map(x=>{const m=historyMap[x.codigo_movimentacao]||[x.nome_movimentacao];return`<div class="item"><b>${esc(m[0])}</b><br><small>${fmtDT(x.realizada_em)}</small><p>${esc(x.descricao||"Sem descrição.")}</p></div>`}).join("")}<script>window.onload=()=>window.print()<\/script></body></html>`;const w=window.open("","_blank","noopener,noreferrer");if(!w){msg(E.modalMensagem,"Permita pop-ups para exportar o relatório em PDF.","warning");return}w.document.write(html);w.document.close()}
+function setup(){document.querySelectorAll("[data-main-tab]").forEach(b=>b.onclick=async()=>{document.querySelectorAll("[data-main-tab]").forEach(x=>{const a=x===b;x.classList.toggle("active",a);x.setAttribute("aria-selected",a)});const tab=b.dataset.mainTab;E.secaoPainel.hidden=tab!=="painel";E.secaoDemandas.hidden=tab==="painel";if(tab==="painel")await loadPanel();else{S.escopo=tab;S.pagina=1;E.tituloTabela.textContent=tab==="ATIVAS"?"Demandas ativas":tab==="CONCLUIDAS"?"Demandas concluídas":"Participações anteriores";await loadList()}});E.aplicar.onclick=()=>{S.pagina=1;loadList()};E.limpar.onclick=()=>{[E.busca,E.status,E.prioridade,E.papel,E.prazo,E.processo].forEach(x=>x.value="");S.pagina=1;loadList()};E.toggleFiltros.onclick=()=>{E.avancados.hidden=!E.avancados.hidden;E.toggleFiltros.setAttribute("aria-expanded",!E.avancados.hidden)};E.porPagina.onchange=()=>{S.tamanho=+E.porPagina.value;S.pagina=1;loadList()};E.anterior.onclick=()=>{S.pagina--;loadList()};E.proxima.onclick=()=>{S.pagina++;loadList()};E.exportarCsv.onclick=exportCsv;E.tbody.onclick=e=>{const b=e.target.closest("[data-view]");if(b)openModal(b.dataset.view)};document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));E.fecharModal.onclick=E.fecharRodape.onclick=closeModal;E.modalOverlay.onclick=e=>{if(e.target===E.modalOverlay)closeModal()};E.confirmCancelar.onclick=()=>closeConfirm(false);E.confirmOk.onclick=()=>closeConfirm(true);E.atualizarBtn.onclick=()=>E.secaoPainel.hidden?loadList():loadPanel();E.aplicarPainel.onclick=loadPanel;E.temaBtn.onclick=()=>{const t=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=t;localStorage.setItem("tema",t)};E.sairBtn.onclick=async()=>{await supabase.auth.signOut();location.replace("index.html")};document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!E.confirmOverlay.hidden)closeConfirm(false);else if(!E.modalOverlay.hidden)closeModal()}});E.painelTratamento.onclick=async e=>{const b=e.target.closest("[data-action]");if(!b)return;const c=S.detalhe.ciclo_selecionado,type=b.dataset.action;if(type==="start")return action("iniciar_tratamento_individual",{p_id_ciclo_tratamento:c.id_ciclo_tratamento,p_versao_esperada:c.versao_ciclo,p_id_data_inicio:todayId()},"Tratamento iniciado.");const id=type==="OBSERVACAO"?"obsInput":type==="PROVIDENCIA"?"provInput":"concInput",text=$(id)?.value.trim();if(!text)return msg(E.modalMensagem,"Preencha o campo antes de continuar.","warning");if(type==="CONCLUSAO"&&!(await confirm("Confirmar encerramento",`<p>O tratamento será encerrado internamente.</p><p><b>Resultado:</b> ${esc(text)}</p>`,"Encerrar demanda")))return;const name=type==="OBSERVACAO"?"registrar_observacao_individual":type==="PROVIDENCIA"?"registrar_providencia_individual":"encerrar_tratamento_individual",args=type==="CONCLUSAO"?{p_id_ciclo_tratamento:c.id_ciclo_tratamento,p_versao_esperada:c.versao_ciclo,p_id_data_encerramento:todayId(),p_resultado_encerramento:text}:{p_id_ciclo_tratamento:c.id_ciclo_tratamento,p_versao_esperada:c.versao_ciclo,p_id_data_movimentacao:todayId(),p_descricao:text,p_dados_complementares:{origem:"PAGINA_OPERADOR"}};action(name,args,type==="CONCLUSAO"?"Tratamento encerrado. A demanda foi movida para Concluídas.":"Registro salvo.",type==="OBSERVACAO"?"observacao":type==="PROVIDENCIA"?"providencia":"conclusao")};E.painelProcessos.onclick=async e=>{const n=e.target.closest("[data-process]"),m=e.target.closest("[data-main]"),i=e.target.closest("[data-inactivate]");if(n){const f=$("processForm");f.hidden=n.dataset.process!=="new"}if(m){const p=S.detalhe.processos_sei.find(x=>String(x.id_processo_sei)===m.dataset.main);if(await confirm("Alterar processo principal",`<p>Definir <b>${esc(p.numero_processo)}</b> como principal?</p>`))action("definir_processo_sei_principal",{p_id_processo_sei:p.id_processo_sei,p_versao_processo_esperada:p.versao,p_versao_ciclo_esperada:S.detalhe.ciclo_selecionado.versao_ciclo,p_id_data_movimentacao:todayId()},"Processo principal alterado.")}if(i){const p=S.detalhe.processos_sei.find(x=>String(x.id_processo_sei)===i.dataset.inactivate);const reason=prompt("Informe a justificativa da inativação:");if(reason?.trim()&&await confirm("Inativar processo",`<p>Inativar <b>${esc(p.numero_processo)}</b>?</p><p>Motivo: ${esc(reason)}</p>`))action("inativar_processo_sei_individual",{p_id_processo_sei:p.id_processo_sei,p_versao_processo_esperada:p.versao,p_versao_ciclo_esperada:S.detalhe.ciclo_selecionado.versao_ciclo,p_id_data_inativacao:todayId(),p_motivo_inativacao:reason.trim()},"Processo inativado.")}};E.painelProcessos.onsubmit=e=>{e.preventDefault();action("adicionar_processo_sei_individual",{p_id_ciclo_tratamento:S.detalhe.ciclo_selecionado.id_ciclo_tratamento,p_versao_esperada:S.detalhe.ciclo_selecionado.versao_ciclo,p_id_data_inclusao:todayId(),p_numero_processo:$("processNumber").value,p_assunto:$("processSubject").value||null,p_observacao:$("processNote").value||null,p_processo_principal:$("processMain").checked},"Processo vinculado.")}}
+(async()=>{try{document.documentElement.dataset.theme=localStorage.getItem("tema")||"light";const end=new Date(),start=new Date(Date.now()-29*86400000);E.painelFim.value=end.toISOString().slice(0,10);E.painelInicio.value=start.toISOString().slice(0,10);setup();await context();await loadPanel()}catch(e){if(e.message!=="SESSAO_AUSENTE")msg(E.mensagem,friendly(e),"error")}})();
