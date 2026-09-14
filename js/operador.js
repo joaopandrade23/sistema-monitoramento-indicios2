@@ -13,7 +13,10 @@ const ERROR_MESSAGES = {
   VERSAO_DESATUALIZADA: "A demanda foi atualizada. Recarregue e tente novamente.",
   CICLO_NAO_PERMITE_MOVIMENTACAO: "Inicie o tratamento antes desta ação.",
   PROCESSO_SEI_JA_VINCULADO_AO_CICLO: "Este processo já está vinculado.",
-  NUMERO_PROCESSO_SEI_INVALIDO: "Número de processo inválido."
+  NUMERO_PROCESSO_SEI_INVALIDO: "Número de processo inválido.",
+  USUARIO_SEM_PARTICIPACAO_ATIVA: "Você não possui participação ativa neste ciclo.",
+  CICLO_NAO_ESTA_EM_TRATAMENTO: "A demanda precisa estar em tratamento para ser encerrada.",
+  RESULTADO_ENCERRAMENTO_NAO_INFORMADO: "Informe o resultado do tratamento antes de concluir."
 };
 
 // Funções Utilitárias
@@ -476,12 +479,17 @@ function renderTreatmentPanel(item) {
           <textarea class="control textarea" id="provInput" placeholder="Descreva a providência..."></textarea>
           <button class="btn btn-primary" data-reg="PROVIDENCIA">Registrar providência</button>
         </article>
-        <article class="action-card action-conclusion">
-          <h3>Concluir tratamento</h3>
-          <p>Finalize o ciclo somente depois de registrar as análises e providências necessárias.</p>
-          <textarea class="control textarea" id="concInput" placeholder="Descreva o parecer de encerramento..."></textarea>
-          <button class="btn btn-danger" data-reg="CONCLUSAO">Concluir tratamento</button>
-        </article>
+        ${isPrincipal ? `
+          <article class="action-card action-conclusion">
+            <h3>Concluir tratamento</h3>
+            <p>Finalize o ciclo somente depois de registrar as análises e providências necessárias.</p>
+            <label class="field" for="concInput">
+              <span>Resultado do tratamento</span>
+              <textarea class="control textarea" id="concInput" placeholder="Descreva o resultado e a conclusão da análise..."></textarea>
+            </label>
+            <button class="btn btn-danger" data-reg="CONCLUSAO">Concluir tratamento</button>
+          </article>
+        ` : ""}
       </div>
     `;
 
@@ -527,6 +535,66 @@ function renderProcessesPanel(item) {
   `).join("");
 }
 
+const HISTORY_PRESENTATION = Object.freeze({
+  INICIO_TRATAMENTO: {
+    label: "Início do tratamento",
+    className: "history-start",
+    icon: "▶"
+  },
+  VINCULO_PROCESSO_SEI: {
+    label: "Processo SEI vinculado",
+    className: "history-sei",
+    icon: "⌁"
+  },
+  INATIVACAO_PROCESSO_SEI: {
+    label: "Processo SEI inativado",
+    className: "history-sei",
+    icon: "⌁"
+  },
+  OBSERVACAO: {
+    label: "Observação registrada",
+    className: "history-observation",
+    icon: "✎"
+  },
+  PROVIDENCIA: {
+    label: "Providência adotada",
+    className: "history-providence",
+    icon: "✓"
+  },
+  ENCERRAMENTO_INTERNO: {
+    label: "Tratamento encerrado",
+    className: "history-closed",
+    icon: "■"
+  },
+  ENCERRAMENTO_TRATAMENTO: {
+    label: "Tratamento encerrado",
+    className: "history-closed",
+    icon: "■"
+  }
+});
+
+function getHistoryPresentation(movement) {
+  const code = String(movement.codigo_movimentacao || "").toUpperCase();
+  if (HISTORY_PRESENTATION[code]) return HISTORY_PRESENTATION[code];
+
+  const rawName = String(movement.nome_movimentacao || "").toUpperCase();
+  if (rawName.includes("OBSERV")) return HISTORY_PRESENTATION.OBSERVACAO;
+  if (rawName.includes("PROVID")) return HISTORY_PRESENTATION.PROVIDENCIA;
+  if (rawName.includes("PROCESSO") || rawName.includes("SEI")) {
+    return HISTORY_PRESENTATION.VINCULO_PROCESSO_SEI;
+  }
+  if (rawName.includes("INÍCIO") || rawName.includes("INICIO")) {
+    return HISTORY_PRESENTATION.INICIO_TRATAMENTO;
+  }
+  if (rawName.includes("ENCERR")) return HISTORY_PRESENTATION.ENCERRAMENTO_INTERNO;
+
+  return {
+    label: movement.nome_movimentacao || "Movimentação registrada",
+    className: "history-default",
+    icon: "•"
+  };
+}
+
 async function loadHistoryTab(item) {
   elements.painelHistorico.innerHTML = '<div class="table-state"><strong>Carregando...</strong></div>';
 
@@ -551,11 +619,21 @@ async function loadHistoryTab(item) {
   elements.painelHistorico.innerHTML = `
     <div class="timeline">
       ${rows.map((m) => `
-        <article class="timeline-item">
-          <time>${formatDateTime(m.realizada_em)}</time>
-          <strong>${escapeHtml(m.nome_movimentacao)}</strong>
-          <p>${escapeHtml(m.descricao || "")}</p>
-        </article>
+        ${(() => {
+          const presentation = getHistoryPresentation(m);
+          return `
+            <article class="timeline-item ${presentation.className}">
+              <span class="history-icon" aria-hidden="true">${presentation.icon}</span>
+              <div class="history-content">
+                <div class="history-heading">
+                  <strong>${escapeHtml(presentation.label)}</strong>
+                  <time>${formatDateTime(m.realizada_em)}</time>
+                </div>
+                ${m.descricao ? `<p>${escapeHtml(m.descricao)}</p>` : ""}
+              </div>
+            </article>
+          `;
+        })()}
       `).join("")}
     </div>
   `;
@@ -606,18 +684,48 @@ async function startTreatment() {
 async function registerAction(type) {
   const item = state.atual;
 
-  let inputId = "obsInput";
-  let rpcName = "registrar_observacao_individual";
+  if (type === "CONCLUSAO") {
+    const result = getElement("concInput")?.value.trim() || "";
+    if (!result) {
+      showBannerMessage(
+        elements.modalMensagem,
+        "Informe o resultado do tratamento antes de concluir.",
+        "warning"
+      );
+      getElement("concInput")?.focus();
+      return;
+    }
 
-  if (type === "PROVIDENCIA") {
-    inputId = "provInput";
-    rpcName = "registrar_providencia_individual";
-  } else if (type === "CONCLUSAO") {
-    inputId = "concInput";
-    rpcName = "concluir_tratamento_individual";
+    await handleAsyncAction(async () => {
+      const { error } = await supabase.rpc("encerrar_tratamento_individual", {
+        p_id_ciclo_tratamento: item.id_ciclo_tratamento,
+        p_versao_esperada: item.versao,
+        p_id_data_encerramento: getTodayFormattedId(),
+        p_resultado_encerramento: result
+      });
+      if (error) throw error;
+    });
+    return;
   }
 
+  const isProvision = type === "PROVIDENCIA";
+  const inputId = isProvision ? "provInput" : "obsInput";
+  const rpcName = isProvision
+    ? "registrar_providencia_individual"
+    : "registrar_observacao_individual";
   const description = getElement(inputId)?.value.trim() || "";
+
+  if (!description) {
+    showBannerMessage(
+      elements.modalMensagem,
+      isProvision
+        ? "Descreva a providência adotada antes de registrar."
+        : "Descreva a observação antes de registrar.",
+      "warning"
+    );
+    getElement(inputId)?.focus();
+    return;
+  }
 
   await handleAsyncAction(async () => {
     const { error } = await supabase.rpc(rpcName, {
