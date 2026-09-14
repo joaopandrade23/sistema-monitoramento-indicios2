@@ -1,6 +1,6 @@
 "use strict";
 
-import { supabase } from "./supabase.js";
+import { supabase } from "supabase.js";
 /* ==========================================================================
    Painel do Operador - Sistema de Monitoramento de Indícios
    Código Principal Integrado com Melhorias v11
