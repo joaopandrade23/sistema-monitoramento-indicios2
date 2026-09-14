@@ -13,10 +13,10 @@ const PERFIL_GESTOR_DADOS_SISTEMA = "GESTOR_DADOS_SISTEMA";
 const PERFIL_GESTOR_SEGEP_CE = "GESTOR_SEGEP_CE";
 const PERFIL_OPERADOR_SEGEP_CE = "OPERADOR_SEGEP_CE";
 
-const PAGINA_INICIAL_PADRAO = "./html/inicio.html";
-const PAGINA_SOLICITACOES = "./html/solicitacoes.html";
-const PAGINA_DEMANDAS = "./html/demandas.html";
-const PAGINA_OPERADOR = "./html/operador.html";
+const PAGINA_INICIAL_PADRAO = "../html/inicio.html";
+const PAGINA_SOLICITACOES = "../html/solicitacoes.html";
+const PAGINA_DEMANDAS = "../html/demandas.html";
+const PAGINA_OPERADOR = "../html/operador.html";
 
 /**
  * Verifica se todos os elementos necessários existem no index.html.
