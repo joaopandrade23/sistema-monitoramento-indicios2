@@ -1,59 +1,296 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <title>Operador SEGEP/CE | Monitoramento de Indícios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel do Operador - Monitoramento de Indícios</title>
   <link rel="stylesheet" href="operador.css">
 </head>
 <body>
-<a class="skip-link" href="#conteudoPrincipal">Ir para o conteúdo</a>
-<header class="app-header">
-  <div class="brand"><div class="brand-mark" aria-hidden="true">MI</div><div class="brand-text"><strong>Monitoramento de Indícios</strong><span>Operação SEGEP/CE</span></div></div>
-  <div class="header-actions"><div class="user-box"><strong id="usuarioNome">Carregando...</strong><span id="usuarioPerfil"></span></div><button class="btn icon-btn btn-ghost" id="temaBtn" type="button" aria-label="Alternar tema">◐</button><button class="btn btn-danger" id="sairBtn" type="button">Sair</button></div>
-</header>
-<main class="container" id="conteudoPrincipal">
-  <section class="page-heading"><div><h1>Área do Operador</h1><p>Acompanhe a carteira, trate os indícios e consulte suas entregas.</p></div><div class="heading-actions"><a class="btn" id="voltarGestaoBtn" href="demandas.html" hidden>Gestão de demandas</a><button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button></div></section>
-  <div class="status-banner" id="mensagem" hidden role="status" aria-live="polite"></div>
-  <nav class="main-tabs" aria-label="Seções do Operador">
-    <button class="main-tab active" data-main-tab="painel" type="button" aria-selected="true">Painel</button>
-    <button class="main-tab" data-main-tab="ATIVAS" type="button" aria-selected="false">Demandas ativas</button>
-    <button class="main-tab" data-main-tab="CONCLUIDAS" type="button" aria-selected="false">Concluídas</button>
-    <button class="main-tab" data-main-tab="HISTORICAS" type="button" aria-selected="false">Participações anteriores</button>
-  </nav>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true"></div>
+        <div class="brand-text">
+          <strong>Monitoramento</strong>
+          <small>Painel do Operador</small>
+        </div>
+      </div>
+      <nav class="nav-menu" aria-label="Navegação principal">
+        <button type="button" class="nav-item active" data-tab="tabDemandas">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>Demandas</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="tabPainel">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Painel</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-subtle btn-icon-only" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
+          <svg class="icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <div class="user-badge">
+          <span class="user-avatar" id="userInitials">--</span>
+          <div class="user-info">
+            <strong id="userName">Carregando...</strong>
+            <small id="userRole">Operador</small>
+          </div>
+        </div>
+      </div>
+    </aside>
 
-  <section id="secaoPainel" class="main-section">
-    <div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" type="date" id="painelInicio"></div><div class="field"><label for="painelFim">Período final</label><input class="control" type="date" id="painelFim"></div><button class="btn btn-primary" id="aplicarPainel" type="button">Atualizar painel</button></div>
-    <section class="metric-grid metric-grid-6" id="metricasPainel" aria-label="Indicadores do painel"></section>
-    <section class="dashboard-grid">
-      <article class="panel chart-card"><div class="chart-heading"><h2>Situação da carga atual</h2><p>Somente participações ativas.</p></div><div id="graficoStatus" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Situação dos prazos</h2><p>Distribuição das demandas ativas.</p></div><div id="graficoPrazos" class="chart-area"></div></article>
-      <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Evolução diária das entregas.</p></div><div id="graficoConclusoes" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Tipos de indício</h2><p>Tipos presentes na carga atual.</p></div><div id="graficoTipos" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Atividades realizadas</h2><p>Movimentações efetuadas no período.</p></div><div id="graficoAtividades" class="chart-area"></div></article>
-    </section>
-  </section>
+    <main class="main-content">
+      <!-- TAB DEMANDAS -->
+      <section class="tab-content active" id="tabDemandas" aria-labelledby="headingDemandas">
+        <header class="content-header">
+          <div>
+            <h1 id="headingDemandas">Demandas</h1>
+            <p class="text-muted">Demandas atualmente atribuídas a você.</p>
+          </div>
+          <div class="header-actions">
+            <button type="button" class="btn btn-secondary" id="btnAtualizar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              <span>Atualizar</span>
+            </button>
+          </div>
+        </header>
 
-  <section id="secaoDemandas" class="main-section" hidden>
-    <section class="metric-grid" aria-label="Resumo da listagem">
-      <button class="metric active" data-card="TODAS" type="button"><span>Total no escopo</span><strong id="total">0</strong><small>Resultados encontrados</small></button>
-      <button class="metric" data-card="PENDENTE_DE_TRATAMENTO" type="button"><span>Pendentes</span><strong id="pendentes">0</strong><small>Aguardando início</small></button>
-      <button class="metric" data-card="EM_TRATAMENTO" type="button"><span>Em tratamento</span><strong id="tratando">0</strong><small>Em andamento</small></button>
-      <button class="metric" data-card="ATRASADAS" type="button"><span>Atrasadas</span><strong id="atrasadas">0</strong><small>Prazo vencido</small></button>
-    </section>
-    <section class="panel filter-panel">
-      <div class="filter-grid"><div class="field"><label for="busca">Buscar</label><input class="control" id="busca" placeholder="Nome, CPF, indício ou processo SEI"></div><div class="field"><label for="status">Situação</label><select class="control" id="status"><option value="">Todas</option><option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option><option value="EM_TRATAMENTO">Em tratamento</option><option value="ENCERRADO_INTERNAMENTE">Encerrado internamente</option></select></div><div class="field"><label for="prioridade">Prioridade</label><select class="control" id="prioridade"><option value="">Todas</option></select></div><div class="field"><label for="papel">Meu papel</label><select class="control" id="papel"><option value="">Todos</option><option value="PRINCIPAL">Principal</option><option value="COLABORADOR">Colaborador</option></select></div></div>
-      <div class="advanced-grid" id="avancados" hidden><div class="field"><label for="prazo">Prazo</label><select class="control" id="prazo"><option value="">Todos</option><option value="ATRASADA">Atrasada</option><option value="VENCE_HOJE">Vence hoje</option><option value="ATE_3_DIAS">Até 3 dias</option><option value="ATE_7_DIAS">Até 7 dias</option><option value="NO_PRAZO">No prazo</option><option value="SEM_PRAZO">Sem prazo</option></select></div><div class="field"><label for="processo">Processos SEI</label><select class="control" id="processo"><option value="">Todos</option><option value="COM">Com processo</option><option value="SEM">Sem processo</option><option value="MULTIPLOS">Múltiplos</option></select></div><div class="field"><label for="ordem">Ordenar</label><select class="control" id="ordem"><option value="PRAZO_ASC">Prazo mais próximo</option><option value="ATRASO_DESC">Mais atrasadas</option><option value="ESPERA_DESC">Maior espera</option><option value="PRIORIDADE">Prioridade</option><option value="RECENTE">Atualização recente</option></select></div></div>
-      <div class="filter-footer"><button class="btn btn-ghost" id="toggleFiltros" type="button" aria-expanded="false">Filtros avançados ▾</button><div class="filter-actions"><button class="btn btn-ghost" id="limpar" type="button">Limpar</button><button class="btn btn-primary" id="aplicar" type="button">Aplicar</button></div></div>
-    </section>
-    <section class="panel"><div class="table-toolbar"><div><strong id="tituloTabela">Demandas ativas</strong><br><small id="resumoTabela"></small></div><div class="toolbar-actions"><button class="btn" id="exportarCsv" type="button">Exportar CSV</button><label class="table-page-size" for="porPagina"><span>Por página</span><select class="control" id="porPagina"><option>10</option><option selected>20</option><option>50</option></select></label></div></div><div class="table-wrap"><table class="operator-table"><thead><tr><th>Indício</th><th>Pessoa</th><th>Tipo</th><th>Vínculos</th><th>Processo SEI</th><th>Situação</th><th>Prioridade</th><th>Prazo</th><th>Papel</th><th>Ações</th></tr></thead><tbody id="tbody"></tbody></table><div class="table-state" id="estadoTabela"><strong>Carregando...</strong></div></div><div class="pagination"><button class="btn" id="anterior" type="button">Anterior</button><span id="paginaInfo">Página 1 de 1</span><button class="btn" id="proxima" type="button">Próxima</button></div></section>
-  </section>
-</main>
+        <div class="filter-bar card">
+          <div class="search-box">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="inputBusca" placeholder="Buscar por indício, CPF, nome..." aria-label="Buscar demandas">
+          </div>
 
-<div class="overlay" id="modalOverlay" hidden><section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="mNome" tabindex="-1"><header class="operator-head"><div><span class="eyebrow">Indício <strong id="mNumero"></strong></span><h2 id="mNome"></h2><div class="head-meta"><span id="mCpf"></span><span>•</span><span id="mTipo"></span></div></div><div><span class="badge" id="mStatus"></span><button class="btn icon-btn btn-ghost" id="fecharModal" type="button" aria-label="Fechar">×</button></div></header><div class="context-strip"><div><span>Prioridade</span><strong id="mPrioridade"></strong></div><div><span>Prazo</span><strong id="mPrazo"></strong></div><div><span>Meu papel</span><strong id="mPapel"></strong></div><div><span>Processos SEI</span><strong id="mProcessos"></strong></div></div>
-<nav class="tabs" aria-label="Detalhes da demanda"><button class="tab active" data-tab="detalhes" type="button">Detalhes</button><button class="tab" data-tab="tratamento" type="button">Tratamento</button><button class="tab" data-tab="processos" type="button">Processos SEI</button><button class="tab" data-tab="historico" type="button">Meu histórico</button></nav><div class="status-banner modal-message" id="modalMensagem" hidden role="status" aria-live="polite"></div><div class="tab-panel" data-panel="detalhes" id="painelDetalhes"></div><div class="tab-panel" data-panel="tratamento" id="painelTratamento" hidden></div><div class="tab-panel" data-panel="processos" id="painelProcessos" hidden></div><div class="tab-panel" data-panel="historico" id="painelHistorico" hidden></div><footer class="modal-footer"><button class="btn" id="fecharRodape" type="button">Fechar</button></footer></section></div>
+          <div class="filter-group">
+            <select id="filtroStatus" aria-label="Filtrar por Status">
+              <option value="">Todos os Status</option>
+              <option value="PENDENTE_DE_TRATAMENTO">Aguardando início</option>
+              <option value="EM_TRATAMENTO">Em tratamento</option>
+              <option value="ENCERRADO_INTERNAMENTE">Tratamento encerrado</option>
+              <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
+              <option value="VALIDADO_TCU">Validado pelo TCU</option>
+            </select>
 
-<div class="overlay" id="confirmOverlay" hidden><section class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitulo"><header class="confirm-head"><h2 id="confirmTitulo">Confirmar ação</h2></header><div class="confirm-body" id="confirmCorpo"></div><footer class="modal-footer"><button class="btn" id="confirmCancelar" type="button">Cancelar</button><button class="btn btn-danger" id="confirmOk" type="button">Confirmar</button></footer></section></div>
-<script type="module" src="./js/operador.js"></script>
-</body></html>
+            <select id="filtroPrazo" aria-label="Filtrar por Prazo">
+              <option value="">Todos os Prazos</option>
+              <option value="ATRASADA">Prazo vencido</option>
+              <option value="VENCE_HOJE">Vence hoje</option>
+              <option value="ATE_3_DIAS">Vence em até 3 dias</option>
+              <option value="ATE_7_DIAS">Vence em até 7 dias</option>
+              <option value="ACIMA_7_DIAS">Vence após 7 dias</option>
+              <option value="SEM_PRAZO">Sem prazo definido</option>
+            </select>
+
+            <select id="filtroTipo" aria-label="Filtrar por Tipo">
+              <option value="">Todos os Tipos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container card">
+          <table class="data-table" id="tabelaDemandas">
+            <thead>
+              <tr>
+                <th>Demanda</th>
+                <th>Pessoa / CPF</th>
+                <th>Tipo de Indício</th>
+                <th>Status</th>
+                <th>Prazo</th>
+                <th class="text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabela">
+              <tr>
+                <td colspan="6" class="text-center py-4">Carregando dados...</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span id="contagemResultados">Exibindo 0 demandas</span>
+            <div class="pagination" id="paginacao"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB PAINEL -->
+      <section class="tab-content" id="tabPainel" aria-labelledby="headingPainel">
+        <header class="content-header">
+          <div>
+            <h1 id="headingPainel">Painel Geral</h1>
+            <p class="text-muted">Visão consolidada do fluxo de tratamento e estatísticas de atendimento.</p>
+          </div>
+          <div class="header-actions">
+            <div class="date-range-picker">
+              <input type="date" id="painelInicio" aria-label="Data inicial">
+              <span>até</span>
+              <input type="date" id="painelFim" aria-label="Data final">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnFiltrarPainel">Filtrar</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="metrics-grid" id="metricasPainel">
+          <div class="metric">
+            <span class="metric-label">Aguardando início</span>
+            <strong class="metric-value" id="metricaPendente">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Em análise</span>
+            <strong class="metric-value" id="metricaEmTratamento">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Prazo próximo</span>
+            <strong class="metric-value" id="metricaVencendo">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Prazo vencido</span>
+            <strong class="metric-value" id="metricaAtrasadas">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Concluídas no período</span>
+            <strong class="metric-value" id="metricaConcluidas">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Tempo médio de tratamento</span>
+            <strong class="metric-value" id="metricaTempoMedio">0d</strong>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card chart-tone-status">
+            <div class="chart-heading">
+              <h2>Situação das minhas demandas</h2>
+              <p class="text-muted">Demandas atualmente atribuídas a você.</p>
+            </div>
+            <div class="chart-body" id="graficoStatus"></div>
+          </div>
+
+          <div class="chart-card chart-tone-prazo">
+            <div class="chart-heading">
+              <h2>Atenção aos prazos</h2>
+              <p class="text-muted">Organização das demandas por vencimento.</p>
+            </div>
+            <div class="chart-body" id="graficoPrazos"></div>
+          </div>
+
+          <div class="chart-card chart-tone-tipo">
+            <div class="chart-heading">
+              <h2>Principais tipos de indício</h2>
+              <p class="text-muted">Composição das demandas atualmente atribuídas.</p>
+            </div>
+            <div class="chart-body" id="graficoTipos"></div>
+          </div>
+
+          <div class="chart-card chart-tone-atividade">
+            <div class="chart-heading">
+              <h2>Registros realizados no período</h2>
+              <p class="text-muted">Observações, providências e demais ações registradas.</p>
+            </div>
+            <div class="chart-body" id="graficoAtividades"></div>
+          </div>
+
+          <div class="chart-card daily-chart full-width">
+            <div class="chart-heading">
+              <h2>Demandas concluídas no período</h2>
+              <p class="text-muted">Quantidade de tratamentos encerrados por dia.</p>
+            </div>
+            <div class="chart-body" id="graficoConclusoes"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL DETALHES -->
+  <div class="modal-backdrop" id="modalDetalhes" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalTitulo">Detalhes da Demanda</h2>
+          <span class="badge" id="mStatus">STATUS</span>
+        </div>
+        <button type="button" class="btn-close" id="fecharModal" aria-label="Fechar modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Nº do Indício</label>
+            <strong id="mNumero">-</strong>
+          </div>
+          <div class="detail-item">
+            <label>Pessoa</label>
+            <strong id="mNome">-</strong>
+          </div>
+          <div class="detail-item">
+            <label>CPF</label>
+            <strong id="mCpf">-</strong>
+          </div>
+          <div class="detail-item">
+            <label>Tipo de Indício</label>
+            <strong id="mTipo">-</strong>
+          </div>
+          <div class="detail-item">
+            <label>Prazo Limite</label>
+            <strong id="mPrazo">-</strong>
+          </div>
+          <div class="detail-item">
+            <label>Processo SEI Principal</label>
+            <strong id="mSeiPrincipal">-</strong>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="tab-subnav">
+          <button type="button" class="subnav-item active" data-subtab="subHistórico">Histórico de Atividades</button>
+          <button type="button" class="subnav-item" data-subtab="subAcoes">Registrar Ação</button>
+        </div>
+
+        <div class="subtab-content active" id="subHistórico">
+          <div class="timeline-header">
+            <h3>Histórico de participações</h3>
+            <button type="button" class="btn btn-subtle btn-sm" id="exportPdf">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Exportar PDF</span>
+            </button>
+          </div>
+          <div class="timeline" id="historyList">
+            <p class="text-muted">Carregando histórico...</p>
+          </div>
+        </div>
+
+        <div class="subtab-content" id="subAcoes">
+          <form id="formAcao" class="form-grid">
+            <div class="form-group">
+              <label for="tipoAcao">Tipo de Registros</label>
+              <select id="tipoAcao" required>
+                <option value="">Selecione...</option>
+                <option value="OBSERVACAO">Observação</option>
+                <option value="PROVIDENCIA">Providência</option>
+                <option value="VINCULO_PROCESSO_SEI">Vincular Processo SEI</option>
+                <option value="ALTERACAO_PROCESSO_SEI_PRINCIPAL">Alterar SEI Principal</option>
+                <option value="ENCERRAMENTO_INTERNO">Encerrar Tratamento Interno</option>
+              </select>
+            </div>
+            <div class="form-group form-group-sei hidden" id="groupProcessoSei">
+              <label for="inputProcessoSei">Número do Processo SEI</label>
+              <input type="text" id="inputProcessoSei" placeholder="Ex: 00000.000000/2026-00">
+            </div>
+            <div class="form-group full-width">
+              <label for="descAcao">Descrição / Justificativa</label>
+              <textarea id="descAcao" rows="4" required placeholder="Digite os detalhes da ação executada..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSalvarAcao">Salvar Registro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/operador.js"></script>
+</body>
+</html>
