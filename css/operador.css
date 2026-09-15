@@ -1050,3 +1050,60 @@ html:not([data-theme="dark"]) .bar-track{background:#e7edf5;border-color:#d0d9e6
 [data-theme="dark"] .bar-track{background:#202b3c;border-color:#37465d}
 [data-theme="dark"] .bar-row .bar-fill{filter:saturate(1.24) brightness(1.15)}
 [data-theme="dark"] .bar-row .bar-value{filter:brightness(1.3)}
+
+/* ========================================================================== */
+/* Versao 14: cor visivel nas barras horizontais                              */
+/* ========================================================================== */
+.bar-track {
+  display: block;
+  position: relative;
+  height: 17px;
+  overflow: hidden;
+  border: 1px solid #d0d9e6;
+  border-radius: 999px;
+  background: #e7edf5;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.14);
+}
+
+.bar-row .bar-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bar-color) 72%, #ffffff),
+    var(--bar-color)
+  ) !important;
+  box-shadow: 0 0 12px color-mix(
+    in srgb,
+    var(--bar-color) 38%,
+    transparent
+  );
+  transition: width 0.45s ease;
+}
+
+.bar-row .bar-value {
+  color: var(--bar-color);
+  font-weight: 850;
+}
+
+[data-theme="dark"] .bar-track {
+  border-color: #3c4b62;
+  background: #202b3c;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.38);
+}
+
+[data-theme="dark"] .bar-row .bar-fill {
+  filter: saturate(1.25) brightness(1.18);
+  box-shadow: 0 0 14px color-mix(
+    in srgb,
+    var(--bar-color) 48%,
+    transparent
+  );
+}
+
+[data-theme="dark"] .bar-row .bar-value {
+  filter: brightness(1.25);
+}
