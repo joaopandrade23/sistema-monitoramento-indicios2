@@ -20,24 +20,24 @@
     <button class="main-tab active" data-main-tab="painel" type="button" aria-selected="true">Painel</button>
     <button class="main-tab" data-main-tab="ATIVAS" type="button" aria-selected="false">Demandas ativas</button>
     <button class="main-tab" data-main-tab="CONCLUIDAS" type="button" aria-selected="false">Concluídas</button>
-    <button class="main-tab" data-main-tab="HISTORICAS" type="button" aria-selected="false">Participações anteriores</button>
+    <button class="main-tab" data-main-tab="HISTORICAS" type="button" aria-selected="false">Histórico de participações</button>
   </nav>
 
   <section id="secaoPainel" class="main-section">
     <div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" type="date" id="painelInicio"></div><div class="field"><label for="painelFim">Período final</label><input class="control" type="date" id="painelFim"></div><button class="btn btn-primary" id="aplicarPainel" type="button">Atualizar painel</button></div>
     <section class="metric-grid metric-grid-6" id="metricasPainel" aria-label="Indicadores do painel"></section>
     <section class="dashboard-grid">
-      <article class="panel chart-card"><div class="chart-heading"><h2>Situação da carga atual</h2><p>Somente participações ativas.</p></div><div id="graficoStatus" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Situação dos prazos</h2><p>Distribuição das demandas ativas.</p></div><div id="graficoPrazos" class="chart-area"></div></article>
-      <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Evolução diária das entregas.</p></div><div id="graficoConclusoes" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Tipos de indício</h2><p>Tipos presentes na carga atual.</p></div><div id="graficoTipos" class="chart-area"></div></article>
-      <article class="panel chart-card"><div class="chart-heading"><h2>Atividades realizadas</h2><p>Movimentações efetuadas no período.</p></div><div id="graficoAtividades" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Situação das minhas demandas</h2><p>Demandas atualmente atribuídas a você.</p></div><div id="graficoStatus" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Atenção aos prazos</h2><p>Organização das demandas por vencimento.</p></div><div id="graficoPrazos" class="chart-area"></div></article>
+      <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Demandas concluídas no período</h2><p>Quantidade de tratamentos encerrados por dia.</p></div><div id="graficoConclusoes" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indício</h2><p>Composição das demandas atualmente atribuídas.</p></div><div id="graficoTipos" class="chart-area"></div></article>
+      <article class="panel chart-card"><div class="chart-heading"><h2>Registros realizados no período</h2><p>Observações, providências e demais ações registradas.</p></div><div id="graficoAtividades" class="chart-area"></div></article>
     </section>
   </section>
 
   <section id="secaoDemandas" class="main-section" hidden>
     <section class="metric-grid" aria-label="Resumo da listagem">
-      <button class="metric active" data-card="TODAS" type="button"><span>Total no escopo</span><strong id="total">0</strong><small>Resultados encontrados</small></button>
+      <button class="metric active" data-card="TODAS" type="button"><span>Total de demandas</span><strong id="total">0</strong><small>No grupo selecionado</small></button>
       <button class="metric" data-card="PENDENTE_DE_TRATAMENTO" type="button"><span>Pendentes</span><strong id="pendentes">0</strong><small>Aguardando início</small></button>
       <button class="metric" data-card="EM_TRATAMENTO" type="button"><span>Em tratamento</span><strong id="tratando">0</strong><small>Em andamento</small></button>
       <button class="metric" data-card="ATRASADAS" type="button"><span>Atrasadas</span><strong id="atrasadas">0</strong><small>Prazo vencido</small></button>
