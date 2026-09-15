@@ -1032,3 +1032,21 @@ html:not([data-theme="dark"]) #metricasPainel .metric{background:linear-gradient
 .deadline-cell small{display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-size:.71rem;font-weight:700;text-transform:none;letter-spacing:0}[data-theme="dark"] .deadline-cell small{background:#172d55;color:#9ec0ff}
 html:not([data-theme="dark"]) .chart-card{background:linear-gradient(180deg,#fff,#f8fafc);border-color:#cbd5e1}[data-theme="dark"] .chart-card{background:linear-gradient(180deg,#161e2c,#121926);border-color:#344054}
 .confirm-body .field{margin-top:12px}.confirm-body .field span{font-size:.82rem;font-weight:700;color:var(--muted)}
+
+/* Versao final de apresentacao v13: graficos com preenchimento vivo */
+.bar-track{
+  background:color-mix(in srgb,var(--line) 55%,transparent);
+  border:1px solid color-mix(in srgb,var(--line) 82%,transparent);
+  box-shadow:inset 0 1px 3px rgba(15,23,42,.16);
+}
+.bar-row .bar-fill{
+  background:linear-gradient(90deg,color-mix(in srgb,var(--bar-color) 78%,#ffffff),var(--bar-color))!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--bar-color) 35%,transparent);
+  min-width:8px;
+}
+.bar-row .bar-value{color:var(--bar-color);font-weight:850}
+.chart-note{margin:6px 0 0;color:var(--muted);font-size:.72rem;line-height:1.4}
+html:not([data-theme="dark"]) .bar-track{background:#e7edf5;border-color:#d0d9e6}
+[data-theme="dark"] .bar-track{background:#202b3c;border-color:#37465d}
+[data-theme="dark"] .bar-row .bar-fill{filter:saturate(1.24) brightness(1.15)}
+[data-theme="dark"] .bar-row .bar-value{filter:brightness(1.3)}
