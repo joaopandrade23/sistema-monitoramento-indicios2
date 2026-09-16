@@ -230,7 +230,7 @@
               <th>Situação</th>
               <th>Prioridade</th>
               <th>Operador</th>
-              <th title="Tempo decorrido e data da última modificação registrada no sistema de origem.">Tempo de espera</th>
+              <th title="Tempo decorrido e data da atualização registrada no e-Pessoal.">Tempo de espera</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -262,7 +262,7 @@
     <div class="status-banner modal-message" id="modalMensagemDetalhe" hidden></div>
     <div class="tab-panel" data-detail-panel="detalhes" id="painelDetalhesGestor"></div><div class="tab-panel" data-detail-panel="equipe" id="painelEquipeGestor" hidden></div><div class="tab-panel" data-detail-panel="processos" id="painelProcessosGestor" hidden></div><div class="tab-panel" data-detail-panel="historico" id="painelHistoricoGestor" hidden></div>
     <span hidden id="modalNumeroIndicio"></span><span hidden id="modalSituacaoFuncional"></span><span hidden id="modalEspera"></span><span hidden id="modalUltimaAlteracao"></span><span hidden id="modalDescricao"></span><span hidden id="modalModo"></span><span hidden id="modalColaboradores"></span><span hidden id="modalAtribuidoEm"></span><span hidden id="modalNumeroCiclo"></span><span hidden id="modalStatusCiclo"></span><span hidden id="modalSituacaoPrazo"></span>
-    <footer class="modal-footer detail-actions"><button class="btn btn-secondary" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar equipe e responsabilidade</button><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
+    <footer class="modal-footer detail-actions"><button class="btn" id="exportarRelatorioGestorBtn" type="button">Exportar relatório em PDF</button><button class="btn btn-secondary" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar equipe e responsabilidade</button><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
   </section></div>
   <!-- Overlay/Modal de Atribuição em Lote -->
   <div class="overlay" id="loteOverlay" hidden>
@@ -322,7 +322,7 @@
               <small>Selecione pelo menos uma pessoa diferente do operador principal.</small>
             </div>
             <div class="field"><label for="lotePrazoCheck">Prazo</label><label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"><span>Definir prazo para o lote</span></label></div>
-            <div class="field" id="lotePrazoField" hidden><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"></div>
+            <div class="field" id="lotePrazoField" hidden><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"></div><div class="field detail-wide assignment-sei"><label class="check-option compact"><input id="loteProcessoSeiCheck" type="checkbox"><span>Vincular processo SEI após a atribuição</span></label></div><div class="assignment-grid detail-wide" id="loteProcessoSeiCampos" hidden><div class="field"><label for="loteProcessoSeiNumero">Número do processo SEI</label><input class="control" id="loteProcessoSeiNumero" placeholder="00000.000000/0000-00"></div><div class="field"><label for="loteProcessoSeiAssunto">Assunto</label><input class="control" id="loteProcessoSeiAssunto"></div><div class="field detail-wide"><label for="loteProcessoSeiObservacao">Observação</label><textarea class="control textarea" id="loteProcessoSeiObservacao"></textarea></div><label class="check-option compact detail-wide"><input id="loteProcessoSeiPrincipal" type="checkbox" checked><span>Definir como processo principal</span></label></div>
           </div>
         </section>
         <div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
