@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./css/demandas.css">
 </head>
 <body>
+  <a class="skip-link" href="#conteudoPrincipal">Ir para o conteudo</a>
   <header class="app-header">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">MI</div>
@@ -30,11 +31,11 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="container" id="conteudoPrincipal">
     <section class="page-heading">
       <div>
-        <h1>Demandas</h1>
-        <p>Consulte, filtre e atribua os indícios aos operadores da SEGEP/CE.</p>
+        <h1>Gestao de demandas</h1>
+        <p>Acompanhe o estoque, distribua responsabilidades e consulte o historico completo.</p>
       </div>
       <div class="heading-actions">
         <button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
@@ -77,6 +78,31 @@
 
     <div id="mensagem" class="status-banner" role="status" aria-live="polite" hidden></div>
 
+    <nav class="main-tabs" aria-label="Secoes da gestao de demandas">
+      <button class="main-tab active" data-gestao-tab="painel" type="button" aria-selected="true">Painel</button>
+      <button class="main-tab" data-gestao-tab="atuais" type="button" aria-selected="false">Demandas atuais</button>
+      <button class="main-tab" data-gestao-tab="concluidas" type="button" aria-selected="false">Concluidas</button>
+      <button class="main-tab" data-gestao-tab="historico" type="button" aria-selected="false">Historico integral</button>
+    </nav>
+
+    <section id="secaoPainelGestao" class="main-section">
+      <div class="panel dashboard-filter">
+        <div class="field"><label for="painelInicio">Periodo inicial</label><input class="control" id="painelInicio" type="date"></div>
+        <div class="field"><label for="painelFim">Periodo final</label><input class="control" id="painelFim" type="date"></div>
+        <button class="btn btn-primary" id="aplicarPainelBtn" type="button">Atualizar painel</button>
+      </div>
+      <section class="dashboard-metrics" id="metricasPainelGestao" aria-label="Indicadores gerenciais"></section>
+      <section class="dashboard-grid">
+        <article class="panel chart-card"><div class="chart-heading"><h2>Distribuicao por situacao</h2><p>Estoque atual de demandas.</p></div><div id="graficoStatusGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Atencao aos prazos</h2><p>Demandas atuais por faixa de vencimento.</p></div><div id="graficoPrazosGestao" class="chart-area"></div></article>
+        <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusoes no periodo</h2><p>Tratamentos encerrados por dia.</p></div><div id="graficoConclusoesGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indicio</h2><p>Composicao do estoque atual.</p></div><div id="graficoTiposGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Movimentacoes administrativas</h2><p>Atribuicoes, trocas e alteracoes no periodo.</p></div><div id="graficoMovimentacoesGestao" class="chart-area"></div></article>
+        <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Carga atual dos operadores</h2><p>Participacoes principais e colaborativas ativas.</p></div><div id="cargaOperadoresGestao" class="operator-load-grid"></div></article>
+      </section>
+    </section>
+
+    <section id="secaoDemandasAtuais" class="main-section" hidden>
     <section class="cards" aria-label="Resumo das demandas">
       <article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
         <span>Total de demandas</span>
@@ -425,6 +451,26 @@
         <button class="btn" id="revisarRedistribuicaoBtn" type="button">Gerar prévia</button>
         <button class="btn btn-primary" id="confirmarRedistribuicaoBtn" type="button" disabled>Confirmar redistribuição</button>
       </footer>
+    </section>
+  </div>
+
+  <div class="overlay" id="administracaoOverlay" hidden>
+    <section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitulo" tabindex="-1">
+      <header class="modal-header"><div><span class="eyebrow">Gestao da demanda</span><h2 id="adminTitulo">Detalhes e administracao</h2></div><button class="btn icon-btn btn-ghost" id="fecharAdminBtn" type="button" aria-label="Fechar">x</button></header>
+      <nav class="tabs" aria-label="Administracao da demanda">
+        <button class="tab active" data-admin-tab="detalhes" type="button">Detalhes</button>
+        <button class="tab" data-admin-tab="prioridade" type="button">Prioridade e prazo</button>
+        <button class="tab" data-admin-tab="processos" type="button">Processos SEI</button>
+        <button class="tab" data-admin-tab="historico" type="button">Historico</button>
+      </nav>
+      <div class="status-banner modal-message" id="adminMensagem" hidden></div>
+      <div class="tab-panel" data-admin-panel="detalhes" id="adminDetalhes"></div>
+      <div class="tab-panel" data-admin-panel="prioridade" hidden>
+        <div class="form-grid-v3"><div class="field"><label for="adminPrioridade">Prioridade</label><select class="control" id="adminPrioridade"></select></div><div class="field"><label for="adminPrazo">Prazo</label><input class="control" id="adminPrazo" type="date"></div><label class="check-option wide"><input id="adminRemoverPrazo" type="checkbox"> Remover prazo atual</label><div class="field wide"><label for="adminJustificativa">Justificativa obrigatoria</label><textarea class="control textarea" id="adminJustificativa" maxlength="1000"></textarea></div></div><div class="form-actions"><button class="btn btn-primary" id="salvarPrioridadePrazoBtn" type="button">Salvar alteracoes</button></div>
+      </div>
+      <div class="tab-panel" data-admin-panel="processos" id="adminProcessos" hidden></div>
+      <div class="tab-panel" data-admin-panel="historico" id="adminHistorico" hidden></div>
+      <footer class="modal-footer"><button class="btn" id="fecharAdminRodapeBtn" type="button">Fechar</button><button class="btn btn-primary" id="imprimirRelatorioGestorBtn" type="button">Imprimir relatorio detalhado</button></footer>
     </section>
   </div>
 
