@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../css/demandas.css">
 </head>
 <body>
-  <a class="skip-link" href="#conteudoPrincipal">Ir para o conteudo</a>
+  <a class="skip-link" href="#conteudoPrincipal">Ir para o conteúdo</a>
   <header class="app-header">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">MI</div>
@@ -78,8 +78,23 @@
 
     <div id="mensagem" class="status-banner" role="status" aria-live="polite" hidden></div>
 
-    <nav class="main-tabs" aria-label="Secoes da gestao"><button class="main-tab active" data-gestao-tab="painel" type="button">Painel</button><button class="main-tab" data-gestao-tab="atuais" type="button">Demandas atuais</button><button class="main-tab" data-gestao-tab="concluidas" type="button">Concluidas</button></nav>
-    <section id="secaoPainelGestao" class="main-section"><div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Periodo inicial</label><input class="control" id="painelInicio" type="date"></div><div class="field"><label for="painelFim">Periodo final</label><input class="control" id="painelFim" type="date"></div><button class="btn btn-primary" id="aplicarPainelBtn">Atualizar painel</button></div><section class="dashboard-metrics" id="metricasPainelGestao"></section><section class="dashboard-grid"><article class="panel chart-card"><div class="chart-heading"><h2>Distribuicao por situacao</h2><p>Visao consolidada do estoque atual.</p></div><div id="graficoStatusGestao" class="chart-area"></div></article><article class="panel chart-card"><div class="chart-heading"><h2>Atencao aos prazos</h2><p>Demandas organizadas por vencimento.</p></div><div id="graficoPrazosGestao" class="chart-area"></div></article><article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusoes no periodo</h2><p>Tratamentos encerrados por dia.</p></div><div id="graficoConclusoesGestao" class="chart-area"></div></article><article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indicio</h2><p>Composicao das demandas atuais.</p></div><div id="graficoTiposGestao" class="chart-area"></div></article><article class="panel chart-card"><div class="chart-heading"><h2>Movimentacoes administrativas</h2><p>Atribuicoes, trocas e alteracoes realizadas.</p></div><div id="graficoMovimentacoesGestao" class="chart-area"></div></article><article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Carga atual dos operadores</h2><p>Participacoes principais e colaborativas ativas.</p></div><div id="cargaOperadoresGestao" class="operator-load-grid"></div></article></section></section>
+    <nav class="main-tabs" aria-label="Seções da gestão">
+      <button class="main-tab active" data-gestao-tab="painel" type="button" aria-selected="true">Painel</button>
+      <button class="main-tab" data-gestao-tab="atuais" type="button" aria-selected="false">Demandas atuais</button>
+      <button class="main-tab" data-gestao-tab="concluidas" type="button" aria-selected="false">Concluídas</button>
+    </nav>
+    <section id="secaoPainelGestao" class="main-section">
+      <div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" id="painelInicio" type="date"></div><div class="field"><label for="painelFim">Período final</label><input class="control" id="painelFim" type="date"></div><button class="btn btn-primary" id="aplicarPainelBtn" type="button">Atualizar painel</button></div>
+      <section class="dashboard-metrics" id="metricasPainelGestao"></section>
+      <section class="dashboard-grid">
+        <article class="panel chart-card"><div class="chart-heading"><h2>Distribuição por situação</h2><p>Visão consolidada do estoque atual.</p></div><div id="graficoStatusGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Atenção aos prazos</h2><p>Demandas organizadas por vencimento.</p></div><div id="graficoPrazosGestao" class="chart-area"></div></article>
+        <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Tratamentos encerrados por dia.</p></div><div id="graficoConclusoesGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indício</h2><p>Composição das demandas atuais.</p></div><div id="graficoTiposGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Movimentações administrativas</h2><p>Atribuições, trocas e alterações no período.</p></div><div id="graficoMovimentacoesGestao" class="chart-area"></div></article>
+        <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Carga atual dos operadores</h2><p>Participações principais e colaborativas ativas.</p></div><div id="cargaOperadoresGestao" class="operator-load-grid"></div></article>
+      </section>
+    </section>
     <section id="secaoDemandasAtuais" class="main-section" hidden>
     <section class="cards" aria-label="Resumo das demandas">
       <article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
@@ -190,8 +205,7 @@
           <button class="btn btn-ghost btn-sm" id="verSelecionadasBtn" type="button" hidden>Ver selecionadas</button>
           <button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button>
         </div>
-        <div class="toolbar-actions"><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button>
-        <label class="field table-page-size">
+        <div class="toolbar-actions"><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><label class="field table-page-size">
           <span>Por página</span>
           <select class="control" id="tamanhoPaginaSelect">
             <option value="20">20</option>
@@ -236,27 +250,20 @@
         </div>
       </div>
     </section>
-      </section><section id="secaoConcluidasGestao" class="main-section" hidden><section class="panel readonly-section"><div class="table-toolbar"><div><strong>Demandas concluidas</strong><br><small>Consulta em modo somente leitura, preservando o ciclo historico.</small></div><button class="btn" id="exportarConcluidasBtn">Exportar CSV</button></div><div id="concluidasConteudo" class="table-state">Abra esta aba para carregar os registros.</div></section></section>
-</main>
+      </section>
+    <section id="secaoConcluidasGestao" class="main-section" hidden><section class="panel readonly-section"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br><small>Consulta do ciclo histórico em modo somente leitura.</small></div><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button></div><div id="concluidasConteudo" class="table-state">Abra esta aba para carregar os registros.</div></section></section>
+  </main>
 
-  <!-- Modal gerencial de detalhes -->
-  <div class="overlay" id="atribuicaoOverlay" hidden>
-    <section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="modalNome" tabindex="-1">
-      <header class="operator-head">
-        <div><span class="eyebrow">Indício <strong id="modalIdentificador"></strong></span><h2 id="modalNome"></h2><div class="head-meta"><span id="modalCpf"></span><span>•</span><span id="modalTipo"></span></div></div>
-        <div><span class="badge" id="modalSituacao"></span><button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button></div>
-      </header>
-      <div class="context-strip"><div><span>Prioridade</span><strong id="modalPrioridade"></strong></div><div><span>Prazo</span><strong id="modalPrazo"></strong></div><div><span>Responsável</span><strong id="modalOperador"></strong></div><div><span>Processos SEI</span><strong id="modalProcessosQtd">0</strong></div></div>
-      <nav class="tabs" aria-label="Detalhes da demanda"><button class="tab active" data-detail-tab="detalhes" type="button">Detalhes</button><button class="tab" data-detail-tab="equipe" type="button">Equipe e ciclo</button><button class="tab" data-detail-tab="processos" type="button">Processos SEI</button><button class="tab" data-detail-tab="historico" type="button">Histórico</button></nav>
-      <div class="status-banner modal-message" id="modalMensagemDetalhe" hidden></div>
-      <div class="tab-panel" data-detail-panel="detalhes" id="painelDetalhesGestor"></div>
-      <div class="tab-panel" data-detail-panel="equipe" id="painelEquipeGestor" hidden></div>
-      <div class="tab-panel" data-detail-panel="processos" id="painelProcessosGestor" hidden></div>
-      <div class="tab-panel" data-detail-panel="historico" id="painelHistoricoGestor" hidden></div>
-      <span hidden id="modalNumeroIndicio"></span><span hidden id="modalSituacaoFuncional"></span><span hidden id="modalEspera"></span><span hidden id="modalUltimaAlteracao"></span><span hidden id="modalDescricao"></span><span hidden id="modalModo"></span><span hidden id="modalColaboradores"></span><span hidden id="modalAtribuidoEm"></span><span hidden id="modalNumeroCiclo"></span><span hidden id="modalStatusCiclo"></span><span hidden id="modalSituacaoPrazo"></span>
-      <footer class="modal-footer detail-actions"><button class="btn btn-secondary" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar equipe e responsabilidade</button><button class="btn" id="exportarRelatorioDetalheBtn" type="button">Imprimir relatório</button><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
-    </section>
-  </div>
+  <!-- Modal de detalhes no padrão do Operador -->
+  <div class="overlay" id="atribuicaoOverlay" hidden><section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="modalNome" tabindex="-1">
+    <header class="operator-head"><div><span class="eyebrow">Indício <strong id="modalIdentificador"></strong></span><h2 id="modalNome"></h2><div class="head-meta"><span id="modalCpf"></span><span>•</span><span id="modalTipo"></span></div></div><div><span class="badge" id="modalSituacao"></span><button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button></div></header>
+    <div class="context-strip"><div><span>Prioridade</span><strong id="modalPrioridade"></strong></div><div><span>Prazo</span><strong id="modalPrazo"></strong></div><div><span>Responsável</span><strong id="modalOperador"></strong></div><div><span>Processos SEI</span><strong id="modalProcessosQtd">0</strong></div></div>
+    <nav class="tabs"><button class="tab active" data-detail-tab="detalhes" type="button">Detalhes</button><button class="tab" data-detail-tab="equipe" type="button">Equipe e ciclo</button><button class="tab" data-detail-tab="processos" type="button">Processos SEI</button><button class="tab" data-detail-tab="historico" type="button">Histórico</button></nav>
+    <div class="status-banner modal-message" id="modalMensagemDetalhe" hidden></div>
+    <div class="tab-panel" data-detail-panel="detalhes" id="painelDetalhesGestor"></div><div class="tab-panel" data-detail-panel="equipe" id="painelEquipeGestor" hidden></div><div class="tab-panel" data-detail-panel="processos" id="painelProcessosGestor" hidden></div><div class="tab-panel" data-detail-panel="historico" id="painelHistoricoGestor" hidden></div>
+    <span hidden id="modalNumeroIndicio"></span><span hidden id="modalSituacaoFuncional"></span><span hidden id="modalEspera"></span><span hidden id="modalUltimaAlteracao"></span><span hidden id="modalDescricao"></span><span hidden id="modalModo"></span><span hidden id="modalColaboradores"></span><span hidden id="modalAtribuidoEm"></span><span hidden id="modalNumeroCiclo"></span><span hidden id="modalStatusCiclo"></span><span hidden id="modalSituacaoPrazo"></span>
+    <footer class="modal-footer detail-actions"><button class="btn btn-secondary" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar equipe e responsabilidade</button><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
+  </section></div>
   <!-- Overlay/Modal de Atribuição em Lote -->
   <div class="overlay" id="loteOverlay" hidden>
     <section class="modal batch-modal" role="dialog" aria-modal="true" aria-labelledby="loteTitulo">
