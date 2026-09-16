@@ -91,7 +91,7 @@
         <article class="panel chart-card"><div class="chart-heading"><h2>Atenção aos prazos</h2><p>Demandas organizadas por vencimento.</p></div><div id="graficoPrazosGestao" class="chart-area"></div></article>
         <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Tratamentos encerrados por dia.</p></div><div id="graficoConclusoesGestao" class="chart-area"></div></article>
         <article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indício</h2><p>Composição das demandas atuais.</p></div><div id="graficoTiposGestao" class="chart-area"></div></article>
-        <article class="panel chart-card"><div class="chart-heading"><h2>Movimentações administrativas</h2><p>Atribuições, trocas e alterações no período.</p></div><div id="graficoMovimentacoesGestao" class="chart-area"></div></article>
+        <article class="panel chart-card"><div class="chart-heading"><h2>Registros e movimentações</h2><p>Atos administrativos e registros operacionais no período.</p></div><div id="graficoMovimentacoesGestao" class="chart-area"></div></article>
         <article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Carga atual dos operadores</h2><p>Participações principais e colaborativas ativas.</p></div><div id="cargaOperadoresGestao" class="operator-load-grid"></div></article>
       </section>
     </section>
@@ -205,7 +205,8 @@
           <button class="btn btn-ghost btn-sm" id="verSelecionadasBtn" type="button" hidden>Ver selecionadas</button>
           <button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar seleção</button>
         </div>
-        <div class="toolbar-actions"><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><label class="field table-page-size">
+        <div class="toolbar-actions"><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button>
+        <label class="field table-page-size">
           <span>Por página</span>
           <select class="control" id="tamanhoPaginaSelect">
             <option value="20">20</option>
@@ -251,10 +252,9 @@
       </div>
     </section>
       </section>
-    <section id="secaoConcluidasGestao" class="main-section" hidden><section class="panel readonly-section"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br><small>Consulta do ciclo histórico em modo somente leitura.</small></div><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button></div><div id="concluidasConteudo" class="table-state">Abra esta aba para carregar os registros.</div></section></section>
+    <section id="secaoConcluidasGestao" class="main-section" hidden><section class="panel"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br><small>Consulta do ciclo histórico em modo somente leitura.</small></div><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button></div><div id="concluidasConteudo" class="table-state">Abra esta aba para carregar os registros.</div></section></section>
   </main>
 
-  <!-- Modal de detalhes no padrão do Operador -->
   <div class="overlay" id="atribuicaoOverlay" hidden><section class="modal operator-modal" role="dialog" aria-modal="true" aria-labelledby="modalNome" tabindex="-1">
     <header class="operator-head"><div><span class="eyebrow">Indício <strong id="modalIdentificador"></strong></span><h2 id="modalNome"></h2><div class="head-meta"><span id="modalCpf"></span><span>•</span><span id="modalTipo"></span></div></div><div><span class="badge" id="modalSituacao"></span><button class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button" aria-label="Fechar">×</button></div></header>
     <div class="context-strip"><div><span>Prioridade</span><strong id="modalPrioridade"></strong></div><div><span>Prazo</span><strong id="modalPrazo"></strong></div><div><span>Responsável</span><strong id="modalOperador"></strong></div><div><span>Processos SEI</span><strong id="modalProcessosQtd">0</strong></div></div>
