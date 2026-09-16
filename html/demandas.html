@@ -1,398 +1,375 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="light dark" name="color-scheme"/>
-<title>Demandas | Sistema de Monitoramento de Indícios</title>
-<meta content="Consulta e atribuição de demandas aos operadores da SEGEP/CE." name="description"/>
-<!-- Vinculação do arquivo CSS unificado -->
-<link href="../css/demandas.css" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Monitoramento de Indícios</title>
+  <link rel="stylesheet" href="../demandas.css">
 </head>
 <body>
-<a class="skip-link" href="#conteudoPrincipal">Ir para o conteúdo</a>
-<header class="app-header">
-<div class="brand">
-<div aria-hidden="true" class="brand-mark">MI</div>
-<div class="brand-text">
-<strong>Monitoramento de Indícios</strong>
-<span>Gestão SEGEP/CE</span>
-</div>
-</div>
-<div class="header-actions">
-<div class="user-box">
-<strong id="usuarioNome">Carregando...</strong>
-<span id="usuarioPerfil"></span>
-</div>
-<button aria-label="Alternar tema" class="btn icon-btn btn-ghost" id="temaBtn" title="Alternar tema" type="button">◐</button>
-<button class="btn btn-danger" id="sairBtn" type="button">Sair</button>
-</div>
-</header>
-<main class="container" id="conteudoPrincipal">
-<section class="page-heading">
-<div>
-<h1>Gestão de demandas</h1>
-<p>Acompanhe o estoque, os prazos, a distribuição do trabalho e o histórico integral da equipe.</p>
-</div>
-<div class="heading-actions">
-<button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
-<div class="assignment-menu" id="assignmentMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">
-            Atribuir demandas <span aria-hidden="true">▾</span>
-</button>
-<div class="assignment-menu-popover" hidden="" id="assignmentMenuPopover" role="menu">
-<button disabled="" id="atribuirSelecionadasBtn" role="menuitem" type="button">
-<strong>Atribuir selecionadas</strong>
-<span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
-</button>
-<button id="atribuirPorTipoBtn" role="menuitem" type="button">
-<strong>Atribuir por tipo de indício</strong>
-<span>Escolher um tipo e revisar o conjunto</span>
-</button>
-<button id="atribuirPorCpfBtn" role="menuitem" type="button">
-<strong>Atribuir por CPF</strong>
-<span>Localizar as demandas de uma pessoa</span>
-</button>
-</div>
-</div>
-<div class="assignment-menu" id="redistributionMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">
-            Redistribuir demandas <span aria-hidden="true">▾</span>
-</button>
-<div class="assignment-menu-popover" hidden="" id="redistributionMenuPopover" role="menu">
-<button id="redistribuirPorTipoBtn" role="menuitem" type="button">
-<strong>Redistribuir por tipo de indício</strong>
-<span>Somente pendências do responsável atual</span>
-</button>
-<button id="redistribuirPorCpfBtn" role="menuitem" type="button">
-<strong>Redistribuir por CPF</strong>
-<span>Somente indícios pendentes da pessoa</span>
-</button>
-</div>
-</div>
-</div>
-</section>
-<div aria-live="polite" class="status-banner" hidden="" id="mensagem" role="status"></div>
-<nav aria-label="Seções da gestão" class="main-tabs">
-<button aria-selected="true" class="main-tab active" data-gestao-tab="painel" type="button">Painel</button>
-<button aria-selected="false" class="main-tab" data-gestao-tab="atuais" type="button">Demandas atuais</button>
-<button aria-selected="false" class="main-tab" data-gestao-tab="concluidas" type="button">Concluídas</button>
-</nav>
-<section class="main-section" id="secaoPainelGestao">
-<div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" id="painelInicio" type="date"/></div><div class="field"><label for="painelFim">Período final</label><input class="control" id="painelFim" type="date"/></div><button class="btn btn-primary" id="aplicarPainelBtn" type="button">Atualizar painel</button></div>
-<section class="dashboard-metrics" id="metricasPainelGestao"></section>
-<section class="dashboard-grid">
-<article class="panel chart-card"><div class="chart-heading"><h2>Distribuição por situação</h2><p>Visão consolidada do estoque atual.</p></div><div class="chart-area" id="graficoStatusGestao"></div></article>
-<article class="panel chart-card"><div class="chart-heading"><h2>Atenção aos prazos</h2><p>Demandas organizadas por vencimento.</p></div><div class="chart-area" id="graficoPrazosGestao"></div></article>
-<article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Conclusões no período</h2><p>Tratamentos encerrados por dia.</p></div><div class="chart-area" id="graficoConclusoesGestao"></div></article>
-<article class="panel chart-card"><div class="chart-heading"><h2>Principais tipos de indício</h2><p>Composição das demandas atuais.</p></div><div class="chart-area" id="graficoTiposGestao"></div></article>
-<article class="panel chart-card"><div class="chart-heading"><h2>Registros e movimentações</h2><p>Atos administrativos e registros operacionais no período.</p></div><div class="chart-area" id="graficoMovimentacoesGestao"></div></article>
-<article class="panel chart-card chart-wide"><div class="chart-heading"><h2>Carga atual dos operadores</h2><p>Participações principais e colaborativas ativas.</p></div><div class="operator-load-grid" id="cargaOperadoresGestao"></div></article>
-</section>
-</section>
-<section class="main-section" hidden="" id="secaoDemandasAtuais">
-<section aria-label="Resumo das demandas" class="quick-metrics">
-<article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
-<span>Total de demandas</span>
-<div class="metric-value-row">
-<strong id="cardTotal">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">01</span>
-</div>
-<small>Todas as demandas atuais</small>
-</article>
-<article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
-<span>Disponíveis para atribuição</span>
-<div class="metric-value-row">
-<strong id="cardDisponiveis">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">02</span>
-</div>
-<small>Aguardando distribuição</small>
-</article>
-<article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
-<span>Pendentes de tratamento</span>
-<div class="metric-value-row">
-<strong id="cardPendentes">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">03</span>
-</div>
-<small>Atribuídas, ainda não iniciadas</small>
-</article>
-<article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO" tabindex="0">
-<span>Em tratamento</span>
-<div class="metric-value-row">
-<strong id="cardEmTratamento">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">04</span>
-</div>
-<small>Com tratamento iniciado</small>
-</article>
-<article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-<span>Sem responsável</span>
-<div class="metric-value-row">
-<strong id="cardSemResponsavel">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">05</span>
-</div>
-<small>Sem operador principal</small>
-</article>
-<article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
-<span>Com múltiplos vínculos</span>
-<div class="metric-value-row">
-<strong id="cardMultiplas">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">06</span>
-</div>
-<small>Com mais de um vínculo</small>
-</article>
-</section>
-<section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="true" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Recolher filtros</button></div><div id="filtrosAtuaisConteudo">
-<div class="filter-grid">
-<div class="field">
-<label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
-<input autocomplete="off" class="control" id="buscaInput" maxlength="120" placeholder="Digite para pesquisar" type="search"/>
-</div>
-<div class="field">
-<label for="situacaoSelect">Situação operacional</label>
-<select class="control" id="situacaoSelect">
-<option value="">Todas</option>
-<option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
-<option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
-<option value="EM_TRATAMENTO">Em tratamento</option>
-<option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
-<option value="VALIDADO_TCU">Validado pelo TCU</option>
-<option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
-</select>
-</div>
-<div class="field">
-<label for="operadorFiltroSelect">Operador principal</label>
-<select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select>
-</div>
-<div class="field"><label for="tipoIndicioFiltroSelect">Tipo de indício</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select></div>
-<div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option></select></div>
-<div class="field"><label for="situacaoPrazoSelect">Situação do prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todas</option><option value="SEM_PRAZO">Sem prazo</option><option value="PRAZO_VENCIDO">Prazo vencido</option><option value="VENCE_HOJE">Vence hoje</option><option value="VENCE_EM_ATE_3_DIAS">Vence em até 3 dias</option><option value="VENCE_EM_ATE_7_DIAS">Vence entre 4 e 7 dias</option><option value="DENTRO_DO_PRAZO">Mais de 7 dias</option></select></div>
-<div class="field">
-<label for="ordenacaoSelect">Ordenar por</label>
-<select class="control" id="ordenacaoSelect">
-<option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
-<option value="DIAS_ESPERA_ASC">Menor tempo de espera</option>
-<option value="ATUALIZACAO_DESC">Atualização mais recente</option>
-<option value="ATUALIZACAO_ASC">Atualização mais antiga</option>
-<option value="NOME_ASC">Nome de A a Z</option>
-<option value="NOME_DESC">Nome de Z a A</option>
-<option value="TIPO_ASC">Tipo de A a Z</option>
-<option value="IDENTIFICADOR_ASC">Identificador crescente</option>
-<option value="IDENTIFICADOR_DESC">Identificador decrescente</option>
-</select>
-</div>
-</div>
-<div class="filter-footer">
-<div class="check-row">
-<label><input id="semResponsavelCheck" type="checkbox"/> Apenas sem responsável</label>
-<label><input id="multiplasCheck" type="checkbox"/> Apenas múltiplos vínculos</label>
-<label><input id="analiseCheck" type="checkbox"/> Apenas requerem análise</label>
-</div>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">SMI</div>
+      <div class="brand-text">
+        <strong>Gestão de Indícios</strong>
+        <span>SEGEP / Governo do Estado do Ceará</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="user-box">
+        <strong id="usuarioNome">Carregando...</strong>
+        <span id="usuarioPerfil">...</span>
+      </div>
+      <button class="btn btn-ghost" id="temaBtn" type="button" title="Alternar tema">🌓</button>
+      <button class="btn btn-ghost btn-danger" id="sairBtn" type="button">Sair</button>
+    </div>
+  </header>
 
-<div class="filter-actions"><button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button><button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar filtros</button></div></div>
-</div></section>
-<section class="panel list-panel">
-<div class="table-toolbar">
-<div class="selection-summary"><div><strong>Demandas atuais</strong><br/><small id="resultadoAtualResumo">Consulte e administre as demandas em andamento.</small></div>
-<div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
-<button class="btn btn-ghost btn-sm" hidden="" id="verSelecionadasBtn" type="button">Ver selecionadas</button>
-<button class="btn btn-ghost btn-sm" hidden="" id="limparSelecaoBtn" type="button">Limpar seleção</button>
-</div>
-<div class="toolbar-actions"><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
-<label class="field table-page-size">
-<span>Por página</span>
-<select class="control" id="tamanhoPaginaSelect">
-<option value="20">20</option>
-<option value="50">50</option>
-<option value="100">100</option>
-</select>
-</label>
-</div>
-<div class="table-scroll">
-<table aria-label="Lista de demandas">
-<thead>
-<tr>
-<th class="selection-column">
-<input aria-label="Selecionar demandas elegíveis desta página" id="selecionarPaginaCheck" title="Selecionar demandas elegíveis desta página" type="checkbox"/>
-</th>
-<th>Indício</th>
-<th>Pessoa</th>
-<th>Tipo</th>
-<th>Vínculos</th>
-<th>Situação</th>
-<th>Prioridade</th>
-<th>Operador</th>
-<th>Prazo</th><th title="Atualização mais recente recebida do sistema e-Pessoal.">Atualização no e-Pessoal</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody id="demandasTbody"></tbody>
-</table>
+  <main class="container">
+    <div id="mensagem" class="status-banner" hidden></div>
 
-</div><div class="empty" id="estadoTabela">
-<strong>Carregando demandas...</strong>
-<span>Aguarde um momento.</span>
-</div>
-<div class="pagination">
-<div class="pagination-info" id="paginacaoInfo">Carregando...</div>
-<div class="pagination-actions">
-<button class="btn" disabled="" id="paginaAnteriorBtn" type="button">Anterior</button>
-<span id="paginaAtualInfo">Página 1</span>
-<button class="btn" disabled="" id="proximaPaginaBtn" type="button">Próxima</button>
-</div>
-</div>
-</div></section>
-</section>
-<section class="main-section" hidden="" id="secaoConcluidasGestao">
-<div class="readonly-banner"><strong>Somente leitura</strong><span>Consulte ciclos encerrados, participantes históricos, processos SEI e movimentações.</span></div>
-<section class="concluded-metrics" id="metricasConcluidas"></section>
-<section class="panel filter-panel concluded-filters"><div class="section-toolbar"><div><h2>Filtros das concluídas</h2><p>Use o período de encerramento e os dados históricos para refinar a consulta.</p></div></div><div class="filter-grid"><div class="field"><label for="concluidaBusca">Pessoa, indício ou processo SEI</label><input class="control" id="concluidaBusca" type="search"/></div><div class="field"><label for="concluidaInicio">Conclusão inicial</label><input class="control" id="concluidaInicio" type="date"/></div><div class="field"><label for="concluidaFim">Conclusão final</label><input class="control" id="concluidaFim" type="date"/></div><div class="field"><label for="concluidaTipo">Tipo de indício</label><select class="control" id="concluidaTipo"><option value="">Todos</option></select></div></div><div class="filter-footer"><span></span><div class="filter-actions"><button class="btn btn-ghost" id="limparConcluidasBtn" type="button">Limpar</button><button class="btn btn-primary" id="aplicarConcluidasBtn" type="button">Pesquisar</button></div></div></section>
-<section class="panel"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br/><small id="resumoConcluidas">Consulta do ciclo histórico em modo somente leitura.</small></div><div class="toolbar-actions"><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button><button class="btn" id="exportarConcluidasPdfBtn" type="button">Exportar relatório em PDF</button></div></div><div class="table-state" id="concluidasConteudo">Abra esta aba para carregar os registros.</div><div class="pagination" id="paginacaoConcluidas"><div class="pagination-info" id="infoConcluidas">Nenhum registro carregado</div></div></section>
-</section>
-</main>
-<div class="overlay" hidden="" id="atribuicaoOverlay"><section aria-labelledby="modalNome" aria-modal="true" class="modal operator-modal" role="dialog" tabindex="-1">
-<header class="operator-head"><div><span class="eyebrow">Indício <strong id="modalIdentificador"></strong></span><h2 id="modalNome"></h2><div class="head-meta"><span id="modalCpf"></span><span>•</span><span id="modalTipo"></span></div></div><div><span class="badge" id="modalSituacao"></span><button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button">×</button></div></header>
-<div class="context-strip context-strip-6"><div><span>Ciclo</span><strong id="modalCicloResumo">Não informado</strong></div><div><span>Prioridade</span><strong id="modalPrioridade"></strong></div><div><span>Prazo</span><strong id="modalPrazo"></strong></div><div><span>Responsável principal</span><strong id="modalOperador"></strong></div><div><span>Processos SEI</span><strong id="modalProcessosQtd">0</strong></div><div><span>Atualização no e-Pessoal</span><strong id="modalAtualizacaoEPessoal">Não informada</strong></div></div>
-<nav class="tabs"><button class="tab active" data-detail-tab="detalhes" type="button">Detalhes</button><button class="tab" data-detail-tab="equipe" type="button">Equipe e ciclo</button><button class="tab" data-detail-tab="processos" type="button">Processos SEI</button><button class="tab" data-detail-tab="historico" type="button">Histórico integral</button><button class="tab" data-detail-tab="relatorio" type="button">Relatório</button></nav>
-<div class="status-banner modal-message" hidden="" id="modalMensagemDetalhe"></div>
-<div class="tab-panel" data-detail-panel="detalhes" id="painelDetalhesGestor"></div><div class="tab-panel" data-detail-panel="equipe" hidden="" id="painelEquipeGestor"></div><div class="tab-panel" data-detail-panel="processos" hidden="" id="painelProcessosGestor"></div><div class="tab-panel" data-detail-panel="historico" hidden="" id="painelHistoricoGestor"></div><div class="tab-panel" data-detail-panel="relatorio" hidden="" id="painelRelatorioGestor"></div>
-<span hidden="" id="modalNumeroIndicio"></span><span hidden="" id="modalSituacaoFuncional"></span><span hidden="" id="modalEspera"></span><span hidden="" id="modalUltimaAlteracao"></span><span hidden="" id="modalDescricao"></span><span hidden="" id="modalModo"></span><span hidden="" id="modalColaboradores"></span><span hidden="" id="modalAtribuidoEm"></span><span hidden="" id="modalNumeroCiclo"></span><span hidden="" id="modalStatusCiclo"></span><span hidden="" id="modalSituacaoPrazo"></span>
-<footer class="modal-footer detail-actions"><button class="btn" id="exportarRelatorioGestorBtn" type="button">Exportar relatório em PDF</button><button class="btn btn-secondary" hidden="" id="gerenciarEquipeBtn" type="button">Gerenciar equipe e responsabilidade</button><button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button></footer>
-</section></div>
-<!-- Overlay/Modal de Atribuição em Lote -->
-<div class="overlay" hidden="" id="loteOverlay">
-<section aria-labelledby="loteTitulo" aria-modal="true" class="modal batch-modal" role="dialog">
-<header class="modal-header">
-<div>
-<span class="eyebrow">Assistente administrativo</span>
-<h2 id="loteTitulo">Atribuir demandas</h2>
-</div>
-<button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharLoteBtn" type="button">×</button>
-</header>
-<div class="wizard-steps" id="loteWizardSteps"><button class="wizard-step active" data-lote-step="1"><b>1</b><span>Escopo</span></button><button class="wizard-step" data-lote-step="2"><b>2</b><span>Equipe</span></button><button class="wizard-step" data-lote-step="3"><b>3</b><span>Prioridade e prazo</span></button><button class="wizard-step" data-lote-step="4"><b>4</b><span>Processo SEI</span></button><button class="wizard-step" data-lote-step="5"><b>5</b><span>Revisão</span></button></div><div class="modal-body wizard-layout"><div class="wizard-main">
-<div class="batch-step" hidden="" id="loteEtapaSelecionadas">
-<div class="batch-summary">
-<strong id="loteQuantidade">0</strong>
-<span>demandas selecionadas</span>
-</div>
-<div class="selected-list" id="loteSelecionadasLista"></div>
-</div>
-<div class="batch-step" hidden="" id="loteEtapaTipo">
-<div class="field">
-<label for="loteTipoSelect">Tipo de indício</label>
-<select class="control" id="loteTipoSelect">
-<option value="">Selecione um tipo</option>
-</select>
-</div>
-<p class="modal-note">A prévia localizará todas as demandas elegíveis do tipo selecionado.</p>
-</div>
-<div class="batch-step" hidden="" id="loteEtapaCpf">
-<div class="field">
-<label for="loteCpfInput">CPF</label>
-<input autocomplete="off" class="control" id="loteCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"/>
-</div>
-<p class="modal-note">O CPF será usado somente como critério de busca e não será gravado integralmente na auditoria.</p>
-</div>
-<section class="assignment-section">
-<h3>Configuração da atribuição</h3>
-<div class="assignment-grid">
-<div class="field principal-field">
-<label for="loteOperadorSelect" id="loteOperadorLabel">Operador responsável</label>
-<select class="control" id="loteOperadorSelect">
-<option value="">Selecione um operador</option>
-</select>
-</div>
-<div class="field"><label for="lotePrioridadeSelect">Prioridade inicial</label><select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select></div>
-<div class="field mode-field">
-<label for="loteModoSelect">1. Modo de trabalho</label>
-<select class="control" id="loteModoSelect">
-<option value="INDIVIDUAL">Individual</option>
-<option value="COLABORATIVO">Colaborativo</option>
-</select>
-<small id="loteModoAjuda">Uma pessoa será responsável pelo ciclo.</small>
-</div>
-<div class="field detail-wide collaborators-field" hidden="" id="loteColaboradoresField">
-<span class="field-label">3. Equipe colaboradora</span>
-<div aria-label="Selecione os colaboradores" class="collaborator-options" id="loteColaboradoresLista" role="group"></div>
-<small>Selecione pelo menos uma pessoa diferente do operador principal.</small>
-</div>
-<div class="field"><label for="lotePrazoCheck">Prazo</label><label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"/><span>Definir prazo para o lote</span></label></div>
-<div class="field" hidden="" id="lotePrazoField"><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"/></div>
-</div>
-</section>
-<section class="assignment-section sei-step"><h3>Processo SEI opcional</h3><label class="check-option compact"><input id="loteVincularSei" type="checkbox"/><span>Vincular processo SEI às demandas atribuídas com sucesso</span></label><div class="assignment-grid" hidden="" id="loteSeiCampos"><div class="field"><label for="loteSeiNumero">Número do processo</label><input class="control" id="loteSeiNumero" placeholder="00000.000000/0000-00"/></div><div class="field"><label for="loteSeiAssunto">Assunto</label><input class="control" id="loteSeiAssunto"/></div><div class="field detail-wide"><label for="loteSeiObservacao">Observação</label><textarea class="control textarea" id="loteSeiObservacao"></textarea></div><label class="check-option compact detail-wide"><input checked="" id="loteSeiPrincipal" type="checkbox"/><span>Definir como processo principal</span></label></div></section><div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
-<section aria-live="polite" class="preview-panel" hidden="" id="lotePrevia">
-<div class="preview-metrics" id="lotePreviaResumo"></div>
-<div class="participants-preview" id="lotePreviaParticipantes"></div>
-<div id="lotePreviaDetalhes"></div>
-</section></div><aside class="wizard-summary"><h3>Resumo da atribuição</h3><div id="resumoAssistenteAtribuicao"><p>Defina o escopo para iniciar.</p></div></aside></div>
-<footer class="modal-footer wizard-footer">
-<button class="btn" id="cancelarLoteBtn" type="button">Cancelar</button>
-<button class="btn" id="revisarLoteBtn" type="button">Revisar atribuição</button>
-<button class="btn btn-primary" disabled="" id="confirmarLoteBtn" type="button">Confirmar atribuição</button>
-</footer>
-</section>
-</div>
-<!-- Modal de gerenciamento da equipe -->
-<div class="overlay" hidden="" id="equipeOverlay">
-<section aria-labelledby="equipeTitulo" aria-modal="true" class="modal team-modal" role="dialog">
-<header class="modal-header">
-<div><span class="eyebrow">Equipe da demanda</span><h2 id="equipeTitulo">Gerenciar equipe e responsabilidade</h2></div>
-<button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharEquipeBtn" type="button">×</button>
-</header>
-<div class="modal-body">
-<div class="team-current" id="equipeResumoAtual"></div>
-<div class="team-tabs" role="tablist">
-<button class="team-tab is-active" id="equipeAbaAdicionar" type="button">Adicionar colaboradores</button>
-<button class="team-tab" id="equipeAbaRemover" type="button">Remover colaboradores</button>
-<button class="team-tab" id="equipeAbaRedistribuir" type="button">Trocar responsável</button>
-</div>
-<section class="team-panel" id="equipePainelAdicionar">
-<div class="collaborator-options" id="equipeDisponiveisLista"></div>
-<div class="status-banner warning" hidden="" id="equipeConversaoAviso">A inclusão do primeiro colaborador alterará o modo para Colaborativo.</div>
-<button class="btn btn-primary" id="incluirColaboradoresBtn" type="button">Adicionar selecionados</button>
-</section>
-<section class="team-panel" hidden="" id="equipePainelRemover">
-<div class="member-list" id="equipeAtivosLista"></div>
-<div class="field"><label for="remocaoJustificativa">Justificativa da remoção</label><textarea class="control textarea" id="remocaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da remoção"></textarea></div>
-</section>
-<section class="team-panel" hidden="" id="equipePainelRedistribuir">
-<div class="field"><label for="equipeNovoPrincipalSelect">Novo responsável principal</label><select class="control" id="equipeNovoPrincipalSelect"><option value="">Selecione</option></select></div>
-<label class="check-option compact"><input id="equipeManterAnteriorCheck" type="checkbox"/><span>Manter o responsável atual como colaborador</span></label>
-<div class="field"><label for="equipeRedistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="equipeRedistribuicaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da troca"></textarea></div>
-<button class="btn btn-primary" id="redistribuirIndividualBtn" type="button">Trocar responsável</button>
-</section>
-<div class="status-banner" hidden="" id="equipeAviso"></div>
-</div>
-<footer class="modal-footer"><button class="btn" id="cancelarEquipeBtn" type="button">Fechar</button></footer>
-</section>
-</div>
-<!-- Modal de redistribuição em lote -->
-<div class="overlay" hidden="" id="redistribuicaoOverlay">
-<section aria-labelledby="redistribuicaoTitulo" aria-modal="true" class="modal batch-modal" role="dialog">
-<header class="modal-header">
-<div><span class="eyebrow">Redistribuição em lote</span><h2 id="redistribuicaoTitulo">Redistribuir demandas</h2></div>
-<button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharRedistribuicaoBtn" type="button">×</button>
-</header>
-<div class="wizard-steps" id="redistribuicaoWizardSteps"><button class="wizard-step active"><b>1</b><span>Critério</span></button><button class="wizard-step"><b>2</b><span>Responsáveis</span></button><button class="wizard-step"><b>3</b><span>Regras</span></button><button class="wizard-step"><b>4</b><span>Prévia</span></button><button class="wizard-step"><b>5</b><span>Confirmação</span></button></div><div class="modal-body wizard-layout"><div class="wizard-main"><div class="scope-options"><button class="scope-option active" type="button">Por critério</button><button class="scope-option" type="button">Demandas selecionadas</button><button class="scope-option" type="button">Uma demanda</button><button class="scope-option" type="button">Resultados filtrados</button></div>
-<div class="field" id="redistribuicaoCampoTipo"><label for="redistribuicaoTipoSelect">Tipo de indício</label><select class="control" id="redistribuicaoTipoSelect"><option value="">Selecione um tipo</option></select></div>
-<div class="field" hidden="" id="redistribuicaoCampoCpf"><label for="redistribuicaoCpfInput">CPF</label><input class="control" id="redistribuicaoCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"/></div>
-<div class="assignment-grid">
-<div class="field"><label for="redistribuicaoAtualSelect">Responsável atual</label><select class="control" id="redistribuicaoAtualSelect"><option value="">Selecione</option></select></div>
-<div class="field"><label for="redistribuicaoNovoSelect">Novo responsável</label><select class="control" id="redistribuicaoNovoSelect"><option value="">Selecione</option></select></div>
-<label class="check-option compact detail-wide"><input id="redistribuicaoManterCheck" type="checkbox"/><span>Manter o responsável anterior como colaborador</span></label>
-<div class="field detail-wide"><label for="redistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="redistribuicaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da redistribuição"></textarea></div>
-</div>
-<div class="status-banner" id="redistribuicaoAviso">Configure os filtros e gere a prévia.</div>
-<section class="preview-panel" hidden="" id="redistribuicaoPrevia"><div class="preview-metrics" id="redistribuicaoResumo"></div><div id="redistribuicaoDetalhes"></div></section></div><aside class="wizard-summary"><h3>Resumo da redistribuição</h3><div id="resumoAssistenteRedistribuicao"><p>Defina o critério e os responsáveis.</p></div></aside></div>
-<footer class="modal-footer wizard-footer">
-<button class="btn" id="cancelarRedistribuicaoBtn" type="button">Cancelar</button>
-<button class="btn" id="revisarRedistribuicaoBtn" type="button">Gerar prévia</button>
-<button class="btn btn-primary" disabled="" id="confirmarRedistribuicaoBtn" type="button">Confirmar redistribuição</button>
-</footer>
-</section>
-</div>
-<!-- JavaScript Principal -->
-<script src="../js/demandas.js" type="module"></script>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-gestao-tab="painel" type="button">Painel Gerencial</button>
+      <button class="nav-tab" data-gestao-tab="atuais" type="button">Demandas em Estoque</button>
+      <button class="nav-tab" data-gestao-tab="concluidas" type="button">Demandas Concluídas</button>
+    </nav>
+
+    <!-- Painel de Indicadores -->
+    <section id="secaoPainelGestao">
+      <div class="filter-panel panel" style="margin-bottom: 20px;">
+        <div class="filter-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="field"><label for="painelInicio">Data Inicial</label><input class="control" type="date" id="painelInicio"></div>
+          <div class="field"><label for="painelFim">Data Final</label><input class="control" type="date" id="painelFim"></div>
+          <div class="field" style="justify-content: flex-end;"><button class="btn btn-primary" id="aplicarPainelBtn" type="button">Atualizar Painel</button></div>
+        </div>
+      </div>
+      <div class="cards" id="metricasPainelGestao"></div>
+      <div class="filter-grid" style="grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
+        <div class="panel" style="padding: 16px;"><h3>Situação Operacional</h3><div id="graficoStatusGestao"></div></div>
+        <div class="panel" style="padding: 16px;"><h3>Faixa de Prazos</h3><div id="graficoPrazosGestao"></div></div>
+        <div class="panel" style="padding: 16px;"><h3>Tipos de Indício</h3><div id="graficoTiposGestao"></div></div>
+        <div class="panel" style="padding: 16px;"><h3>Atividades Administrativas</h3><div id="graficoMovimentacoesGestao"></div></div>
+      </div>
+      <div class="panel" style="padding: 16px; margin-top: 16px;"><h3>Conclusões por Dia</h3><div id="graficoConclusoesGestao"></div></div>
+      <div class="panel" style="padding: 16px; margin-top: 16px;"><h3>Carga dos Operadores</h3><div id="cargaOperadoresGestao"></div></div>
+    </section>
+
+    <!-- Demandas Atuais -->
+    <section id="secaoDemandasAtuais" hidden>
+      <div class="page-heading">
+        <div>
+          <h1>Fila de Gestão de Indícios</h1>
+          <p id="resultadoAtualResumo">Carregando estoque...</p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn" id="atualizarBtn" type="button">Atualizar</button>
+          <button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button>
+          <div class="assignment-menu" id="assignmentMenu">
+            <button class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button" aria-expanded="false">
+              Atribuir Em Lote ▾
+            </button>
+            <div class="assignment-menu-popover" id="assignmentMenuPopover" hidden>
+              <button type="button" id="atribuirSelecionadasBtn">
+                <strong>Demandas selecionadas</strong>
+                <span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
+              </button>
+              <button type="button" id="atribuirPorTipoBtn">
+                <strong>Por tipo de indício</strong>
+                <span>Atribui indícios de um tipo específico</span>
+              </button>
+              <button type="button" id="atribuirPorCpfBtn">
+                <strong>Por CPF</strong>
+                <span>Atribui indícios associados a um CPF</span>
+              </button>
+            </div>
+          </div>
+          <div class="assignment-menu" id="redistributionMenu">
+            <button class="btn btn-secondary" id="redistribuirDemandasBtn" type="button" aria-expanded="false">
+              Redistribuir ▾
+            </button>
+            <div class="assignment-menu-popover" id="redistributionMenuPopover" hidden>
+              <button type="button" id="redistribuirPorTipoBtn"><strong>Por tipo de indício</strong></button>
+              <button type="button" id="redistribuirPorCpfBtn"><strong>Por CPF</strong></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <article class="metric clickable metric-total" data-card-filter="TODAS"><span>Total no estoque</span><strong id="cardTotal">0</strong></article>
+        <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO"><span>Disponíveis</span><strong id="cardDisponiveis">0</strong></article>
+        <article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO"><span>Pendentes</span><strong id="cardPendentes">0</strong></article>
+        <article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO"><span>Em tratamento</span><strong id="cardEmTratamento">0</strong></article>
+        <article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL"><span>Sem responsável</span><strong id="cardSemResponsavel">0</strong></article>
+        <article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS"><span>Múltiplos vínculos</span><strong id="cardMultiplas">0</strong></article>
+      </div>
+
+      <div class="filter-panel panel">
+        <button class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Recolher filtros</button>
+        <div id="filtrosAtuaisConteudo">
+          <div class="filter-grid" style="margin-top: 12px;">
+            <div class="field"><label for="buscaInput">Busca rápida</label><input class="control" id="buscaInput" placeholder="Nome, CPF ou indício..."></div>
+            <div class="field"><label for="situacaoSelect">Situação</label><select class="control" id="situacaoSelect"><option value="">Todas</option></select></div>
+            <div class="field"><label for="operadorFiltroSelect">Operador</label><select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select></div>
+            <div class="field"><label for="tipoIndicioFiltroSelect">Tipo</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos</option></select></div>
+            <div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas</option></select></div>
+            <div class="field"><label for="situacaoPrazoSelect">Prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todos</option></select></div>
+            <div class="field"><label for="ordenacaoSelect">Ordenação</label><select class="control" id="ordenacaoSelect"><option value="DIAS_ESPERA_DESC">Tempo de espera (Maior)</option></select></div>
+          </div>
+          <div class="filter-footer">
+            <div class="check-row">
+              <label><input type="checkbox" id="semResponsavelCheck"> Sem responsável</label>
+              <label><input type="checkbox" id="multiplasCheck"> Múltiplas origens</label>
+              <label><input type="checkbox" id="analiseCheck"> Requer análise</label>
+            </div>
+            <div>
+              <button class="btn" id="limparFiltrosBtn" type="button">Limpar</button>
+              <button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar Filtros</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-toolbar">
+          <div class="selection-summary">
+            <label><input type="checkbox" id="selecionarPaginaCheck"> Selecionar página</label>
+            <span class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</span>
+            <button class="btn btn-ghost btn-sm" id="limparSelecaoBtn" type="button" hidden>Limpar</button>
+            <button class="btn btn-sm" id="verSelecionadasBtn" type="button" hidden>Atribuir Selecionadas</button>
+          </div>
+          <div class="table-page-size field">
+            <span>Exibir</span>
+            <select class="control" id="tamanhoPaginaSelect">
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="selection-column"></th>
+                <th>Indício / Base</th>
+                <th>Pessoa / CPF</th>
+                <th>Tipo de Indício</th>
+                <th>Situação Funcional</th>
+                <th>Situação Operacional</th>
+                <th>Prioridade</th>
+                <th>Responsável Principal</th>
+                <th>Prazo</th>
+                <th>Modificação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="demandasTbody"></tbody>
+          </table>
+          <div id="estadoTabela" class="empty"><strong>Carregando...</strong></div>
+        </div>
+        <div class="pagination">
+          <span class="pagination-info" id="paginacaoInfo">...</span>
+          <div class="pagination-actions">
+            <span id="paginaAtualInfo">Página 1</span>
+            <button class="btn btn-sm" id="paginaAnteriorBtn" type="button" disabled>Anterior</button>
+            <button class="btn btn-sm" id="proximaPaginaBtn" type="button" disabled>Próxima</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demandas Concluídas -->
+    <section id="secaoConcluidasGestao" hidden>
+      <div class="page-heading">
+        <div>
+          <h1>Histórico de Conclusões</h1>
+          <p id="resumoConcluidas">Consultando dados...</p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button>
+          <button class="btn" id="exportarConcluidasPdfBtn" type="button">Imprimir</button>
+        </div>
+      </div>
+      <div class="cards" id="metricasConcluidas"></div>
+      <div class="filter-panel panel" style="margin-bottom: 16px;">
+        <div class="filter-grid" style="grid-template-columns: minmax(240px, 2fr) repeat(3, 1fr);">
+          <div class="field"><label for="concluidaBusca">Busca</label><input class="control" id="concluidaBusca" placeholder="Nome, CPF ou indício..."></div>
+          <div class="field"><label for="concluidaTipo">Tipo</label><select class="control" id="concluidaTipo"><option value="">Todos os tipos</option></select></div>
+          <div class="field"><label for="concluidaInicio">Data Inicial</label><input class="control" type="date" id="concluidaInicio"></div>
+          <div class="field"><label for="concluidaFim">Data Final</label><input class="control" type="date" id="concluidaFim"></div>
+        </div>
+        <div class="filter-footer">
+          <span class="selection-info" id="infoConcluidas"></span>
+          <div>
+            <button class="btn" id="limparConcluidasBtn" type="button">Limpar</button>
+            <button class="btn btn-primary" id="aplicarConcluidasBtn" type="button">Filtrar Concluídas</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel" id="concluidasConteudo"></div>
+    </section>
+  </main>
+
+  <!-- Modal Detalhes -->
+  <div class="overlay" id="atribuicaoOverlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalIdentificador">Detalhes da Demanda</h2>
+        <button class="btn btn-ghost icon-btn" id="fecharModalBtn" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalMensagemDetalhe" class="status-banner error" hidden></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
+          <button class="btn btn-ghost btn-sm active" data-detail-tab="detalhes" type="button">Visão Geral</button>
+          <button class="btn btn-ghost btn-sm" data-detail-tab="equipe" type="button">Equipe / Responsáveis</button>
+          <button class="btn btn-ghost btn-sm" data-detail-tab="processos" type="button">Processos SEI (<span id="modalProcessosQtd">0</span>)</button>
+          <button class="btn btn-ghost btn-sm" data-detail-tab="historico" type="button">Histórico / Auditoria</button>
+          <button class="btn btn-ghost btn-sm" data-detail-tab="relatorio" type="button">Relatório Gerencial</button>
+        </div>
+        <div data-detail-panel="detalhes" id="painelDetalhesGestor"></div>
+        <div data-detail-panel="equipe" id="painelEquipeGestor" hidden></div>
+        <div data-detail-panel="processos" id="painelProcessosGestor" hidden></div>
+        <div data-detail-panel="historico" id="painelHistoricoGestor" hidden></div>
+        <div data-detail-panel="relatorio" id="painelRelatorioGestor" hidden></div>
+      </div>
+      <div class="modal-footer">
+        <span id="modalCicloResumo" class="muted-text"></span>
+        <div>
+          <button class="btn" id="gerenciarEquipeBtn" type="button" hidden>Gerenciar Equipe</button>
+          <button class="btn" id="exportarRelatorioGestorBtn" type="button">Relatório em PDF</button>
+          <button class="btn btn-primary" id="cancelarModalBtn" type="button">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Lote Atribuição -->
+  <div class="overlay" id="loteOverlay" hidden>
+    <div class="modal batch-modal">
+      <div class="modal-header">
+        <h2 id="loteTitulo">Atribuir Demandas em Lote</h2>
+        <button class="btn btn-ghost icon-btn" id="fecharLoteBtn" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="loteAviso" class="status-banner warning">Configure a atribuição e gere a prévia antes de confirmar.</div>
+        <div id="loteEtapaSelecionadas" hidden>
+          <div class="batch-summary"><strong id="loteQuantidade">0</strong> <span>demandas selecionadas para atribuição</span></div>
+          <div class="selected-list" id="loteSelecionadasLista"></div>
+        </div>
+        <div id="loteEtapaTipo" hidden class="field"><label for="loteTipoSelect">Tipo de Indício</label><select class="control" id="loteTipoSelect"></select></div>
+        <div id="loteEtapaCpf" hidden class="field"><label for="loteCpfInput">CPF do Titular</label><input class="control" id="loteCpfInput" placeholder="000.000.000-00"></div>
+
+        <div class="assignment-grid" style="margin-top: 14px;">
+          <div class="field"><label for="loteModoSelect">1. Modo de Atribuição</label><select class="control" id="loteModoSelect"><option value="INDIVIDUAL">Individual</option><option value="COLABORATIVO">Colaborativo</option></select><small id="loteModoAjuda" class="muted-text"></small></div>
+          <div class="field"><label id="loteOperadorLabel" for="loteOperadorSelect">2. Operador responsável</label><select class="control" id="loteOperadorSelect"></select></div>
+        </div>
+
+        <div class="field" id="loteColaboradoresField" hidden style="margin-top: 12px;">
+          <label>Colaboradores Ativos</label>
+          <div id="loteColaboradoresLista" class="panel" style="padding: 10px; max-height: 150px; overflow: auto;"></div>
+        </div>
+
+        <div class="assignment-grid">
+          <div class="field"><label for="lotePrioridadeSelect">Prioridade do Ciclo</label><select class="control" id="lotePrioridadeSelect"></select></div>
+          <div class="field">
+            <label><input type="checkbox" id="lotePrazoCheck"> Definir Prazo Limite</label>
+            <div id="lotePrazoField" hidden style="margin-top: 6px;"><input class="control" type="date" id="lotePrazoInput"></div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 12px;">
+          <label><input type="checkbox" id="loteVincularSei"> Vincular Processo SEI Inicial</label>
+          <div id="loteSeiCampos" hidden class="assignment-grid" style="margin-top: 6px;">
+            <input class="control" id="loteSeiNumero" placeholder="Número do processo SEI">
+            <input class="control" id="loteSeiAssunto" placeholder="Assunto do processo">
+          </div>
+        </div>
+
+        <div id="lotePrevia" hidden style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px;">
+          <h3>Prévia da Atribuição</h3>
+          <div id="lotePreviaResumo" style="display: flex; gap: 10px; margin-bottom: 10px;"></div>
+          <div id="lotePreviaParticipantes"></div>
+          <div id="lotePreviaDetalhes" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelarLoteBtn" type="button">Cancelar</button>
+        <button class="btn btn-secondary" id="revisarLoteBtn" type="button">Gerar Prévia</button>
+        <button class="btn btn-primary" id="confirmarLoteBtn" type="button" disabled>Confirmar Atribuição</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Redistribuição -->
+  <div class="overlay" id="redistribuicaoOverlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="redistribuicaoTitulo">Redistribuir Demandas</h2>
+        <button class="btn btn-ghost icon-btn" id="fecharRedistribuicaoBtn" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="redistribuicaoAviso" class="status-banner warning">Selecione as opções para simular a redistribuição.</div>
+        <div id="redistribuicaoCampoTipo" class="field" hidden><label for="redistribuicaoTipoSelect">Tipo de Indício</label><select class="control" id="redistribuicaoTipoSelect"></select></div>
+        <div id="redistribuicaoCampoCpf" class="field" hidden><label for="redistribuicaoCpfInput">CPF</label><input class="control" id="redistribuicaoCpfInput"></div>
+        <div class="assignment-grid">
+          <div class="field"><label for="redistribuicaoAtualSelect">Responsável Atual</label><select class="control" id="redistribuicaoAtualSelect"></select></div>
+          <div class="field"><label for="redistribuicaoNovoSelect">Novo Responsável</label><select class="control" id="redistribuicaoNovoSelect"></select></div>
+        </div>
+        <div class="field" style="margin-top: 10px;"><label><input type="checkbox" id="redistribuicaoManterCheck"> Manter responsável anterior como colaborador</label></div>
+        <div class="field" style="margin-top: 10px;"><label for="redistribuicaoJustificativa">Justificativa da Alteração</label><textarea class="control" id="redistribuicaoJustificativa" rows="3" placeholder="Mínimo de 10 caracteres..."></textarea></div>
+
+        <div id="redistribuicaoPrevia" hidden style="margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px;">
+          <div id="redistribuicaoResumo" style="display: flex; gap: 10px;"></div>
+          <div id="redistribuicaoDetalhes" style="margin-top: 8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancelarRedistribuicaoBtn" type="button">Cancelar</button>
+        <button class="btn btn-secondary" id="revisarRedistribuicaoBtn" type="button">Gerar Prévia</button>
+        <button class="btn btn-primary" id="confirmarRedistribuicaoBtn" type="button" disabled>Confirmar Redistribuição</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Equipe Detalhada -->
+  <div class="overlay" id="equipeOverlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Gerenciar Equipe do Indício</h2>
+        <button class="btn btn-ghost icon-btn" id="fecharEquipeBtn" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="equipeAviso" class="status-banner" hidden></div>
+        <div id="equipeResumoAtual" style="margin-bottom: 14px;"></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <button class="btn btn-sm" id="equipeAbaAdicionar" type="button">Adicionar Colaborador</button>
+          <button class="btn btn-sm" id="equipeAbaRemover" type="button">Remover Colaborador</button>
+          <button class="btn btn-sm" id="equipeAbaRedistribuir" type="button">Trocar Responsável</button>
+        </div>
+        <div id="equipePainelAdicionar">
+          <div class="field"><label>Operadores Disponíveis</label><div id="equipeDisponiveisLista" class="panel" style="padding: 10px; max-height: 160px; overflow: auto;"></div></div>
+          <button class="btn btn-primary" id="incluirColaboradoresBtn" type="button" style="margin-top: 10px;">Incluir Selecionados</button>
+        </div>
+        <div id="equipePainelRemover" hidden>
+          <div id="equipeConversaoAviso" class="status-banner warning" hidden>Sem colaboradores ativos.</div>
+          <div id="equipeAtivosLista"></div>
+          <div class="field" style="margin-top: 10px;"><label for="remocaoJustificativa">Justificativa da Remoção</label><textarea class="control" id="remocaoJustificativa" rows="2" placeholder="Mínimo 10 caracteres..."></textarea></div>
+        </div>
+        <div id="equipePainelRedistribuir" hidden>
+          <div class="field"><label for="equipeNovoPrincipalSelect">Novo Responsável Principal</label><select class="control" id="equipeNovoPrincipalSelect"></select></div>
+          <div class="field" style="margin-top: 8px;"><label><input type="checkbox" id="equipeManterAnteriorCheck"> Manter atual como colaborador</label></div>
+          <div class="field" style="margin-top: 8px;"><label for="equipeRedistribuicaoJustificativa">Justificativa</label><textarea class="control" id="equipeRedistribuicaoJustificativa" rows="2" placeholder="Mínimo 10 caracteres..."></textarea></div>
+          <button class="btn btn-primary" id="redistribuirIndividualBtn" type="button" style="margin-top: 10px;">Confirmar Troca</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="cancelarEquipeBtn" type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Declaração do Script Principal -->
+  <script type="module" src="../demandas.js"></script>
 </body>
 </html>
