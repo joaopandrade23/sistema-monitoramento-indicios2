@@ -3,7 +3,7 @@
 import { supabase } from "./supabase.js";
 
 const CONFIG = Object.freeze({
-  LOGIN_URL: "./index.html",
+  LOGIN_URL: "../index.html",
   PERFIS_AUTORIZADOS: ["GESTOR_SEGEP_CE", "GESTOR_DADOS_SISTEMA"]
 });
 
