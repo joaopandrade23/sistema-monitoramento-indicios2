@@ -759,43 +759,282 @@ function registrarEventos() {
 /* Painel, concluídas, exportações e inicialização */
 const dom = id => document.getElementById(id);
 const rotulosMovimentacao = {
-  INICIO_TRATAMENTO: "Tratamentos iniciados", OBSERVACAO: "Observações registradas",
-  PROVIDENCIA: "Providências adotadas", VINCULO_PROCESSO_SEI: "Processos SEI vinculados",
+  INICIO_TRATAMENTO: "Tratamentos iniciados",
+  OBSERVACAO: "Observações registradas",
+  PROVIDENCIA: "Providências adotadas",
+  VINCULO_PROCESSO_SEI: "Processos SEI vinculados",
   INATIVACAO_PROCESSO_SEI: "Processos SEI inativados",
   ALTERACAO_PROCESSO_SEI_PRINCIPAL: "Processos principais alterados",
-  ENCERRAMENTO_INTERNO: "Tratamentos encerrados", INCLUSAO_COLABORADOR: "Colaboradores incluídos",
-  REMOCAO_COLABORADOR: "Colaboradores removidos", REDISTRIBUICAO: "Redistribuições realizadas",
-  ALTERACAO_PRIORIDADE: "Prioridades alteradas", ALTERACAO_PRAZO: "Prazos alterados"
+  ENCERRAMENTO_INTERNO: "Tratamentos encerrados",
+  INCLUSAO_COLABORADOR: "Colaboradores incluídos",
+  REMOCAO_COLABORADOR: "Colaboradores removidos",
+  REDISTRIBUICAO: "Redistribuições realizadas",
+  ALTERACAO_PRIORIDADE: "Prioridades alteradas",
+  ALTERACAO_PRAZO: "Prazos alterados"
 };
-function rotuloGenerico(valor) {
-  return rotulosMovimentacao[valor] || rotuloSituacao(valor) || String(valor || "Não informado").replaceAll("_", " ").toLowerCase().replace(/(^|\s)\S/g, x => x.toUpperCase());
+
+/**
+ * Rótulos gerenciais do painel.
+ * A função converte códigos técnicos da API em textos adequados para leitura
+ * executiva, sem modificar os valores recebidos do backend.
+ */
+function rotuloPainel(valor) {
+  const rotulos = {
+    DISPONIVEL_PARA_ATRIBUICAO: "Disponíveis para atribuição",
+    SEM_RESPONSAVEL: "Sem responsável",
+    PENDENTE: "Aguardando início",
+    PENDENTE_DE_TRATAMENTO: "Aguardando início",
+    EM_TRATAMENTO: "Em tratamento",
+    AGUARDANDO_VALIDACAO_TCU: "Aguardando validação do TCU",
+    ENCERRADO_INTERNAMENTE: "Encerradas internamente",
+    VALIDADO_TCU: "Validadas pelo TCU",
+    CANCELADO: "Canceladas",
+    PRAZO_VENCIDO: "Prazo vencido",
+    ATRASADA: "Prazo vencido",
+    VENCE_HOJE: "Vence hoje",
+    VENCE_EM_ATE_3_DIAS: "Vence em até 3 dias",
+    ATE_3_DIAS: "Vence em até 3 dias",
+    VENCE_EM_ATE_7_DIAS: "Vence entre 4 e 7 dias",
+    ATE_7_DIAS: "Vence em até 7 dias",
+    ACIMA_7_DIAS: "Vence após 7 dias",
+    NO_PRAZO: "Prazo confortável",
+    SEM_PRAZO: "Sem prazo definido",
+    NAO_SE_APLICA: "Prazo não aplicável"
+  };
+  return rotulosMovimentacao[valor] || rotulos[valor] ||
+    String(valor || "Não informado")
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/(^|\s)\S/g, letra => letra.toUpperCase());
 }
-function renderizarBarras(id, dados, campo) {
-  const alvo = dom(id); if (!alvo) return;
-  if (!dados?.length) { alvo.innerHTML = '<div class="empty-chart">Sem dados no período.</div>'; return; }
-  const maximo = Math.max(...dados.map(x => Number(x.quantidade || 0)), 1);
-  alvo.innerHTML = `<div class="bar-chart">${dados.map((x, i) => {
-    const valor = Number(x.quantidade || 0), cor = ["#2563eb", "#059669", "#d97706", "#7c3aed", "#dc2626", "#0891b2"][i % 6];
-    const nome = rotuloGenerico(x.codigo_movimentacao || x[campo]);
-    return `<div class="bar-row" style="--bar-color:${cor}"><span class="bar-label" title="${escapeHtml(nome)}">${escapeHtml(nome)}</span><span class="bar-track"><span class="bar-fill" style="width:${Math.max(valor / maximo * 100, valor ? 3 : 0)}%"></span></span><span class="bar-value">${valor}</span></div>`;
+
+/** Retorna uma porcentagem segura, limitada ao intervalo entre 0 e 100. */
+function percentual(parte, total) {
+  if (!Number(total)) return 0;
+  return Math.max(0, Math.min(100, (Number(parte || 0) / Number(total)) * 100));
+}
+
+/** Formata percentuais do painel sem casas decimais desnecessárias. */
+function formatarPercentual(valor) {
+  const numero = Number(valor || 0);
+  return numero < 10 && numero % 1 ? `${numero.toFixed(1)}%` : `${Math.round(numero)}%`;
+}
+
+/** Soma o campo quantidade de uma coleção retornada pela API. */
+function somarQuantidades(itens) {
+  return (itens || []).reduce((total, item) => total + Number(item.quantidade || 0), 0);
+}
+
+/**
+ * Define a cor semântica de cada barra. O painel deixa de usar uma única cor
+ * para comunicar normalidade, atenção, risco, conclusão e administração.
+ */
+function corSemantica(codigo, indice = 0) {
+  const cores = {
+    DISPONIVEL_PARA_ATRIBUICAO: "#f59e0b",
+    SEM_RESPONSAVEL: "#f59e0b",
+    PENDENTE: "#38bdf8",
+    PENDENTE_DE_TRATAMENTO: "#38bdf8",
+    EM_TRATAMENTO: "#8b5cf6",
+    AGUARDANDO_VALIDACAO_TCU: "#06b6d4",
+    ENCERRADO_INTERNAMENTE: "#10b981",
+    VALIDADO_TCU: "#22c55e",
+    CANCELADO: "#64748b",
+    PRAZO_VENCIDO: "#ef4444",
+    ATRASADA: "#ef4444",
+    VENCE_HOJE: "#f97316",
+    VENCE_EM_ATE_3_DIAS: "#f59e0b",
+    ATE_3_DIAS: "#f59e0b",
+    VENCE_EM_ATE_7_DIAS: "#eab308",
+    ATE_7_DIAS: "#eab308",
+    ACIMA_7_DIAS: "#3b82f6",
+    NO_PRAZO: "#10b981",
+    SEM_PRAZO: "#94a3b8",
+    NAO_SE_APLICA: "#64748b",
+    REDISTRIBUICAO: "#8b5cf6",
+    INCLUSAO_COLABORADOR: "#06b6d4",
+    REMOCAO_COLABORADOR: "#f97316",
+    ENCERRAMENTO_INTERNO: "#10b981",
+    OBSERVACAO: "#3b82f6",
+    PROVIDENCIA: "#14b8a6",
+    VINCULO_PROCESSO_SEI: "#0ea5e9"
+  };
+  const paleta = ["#2563eb", "#7c3aed", "#0891b2", "#059669", "#d97706", "#db2777", "#4f46e5"];
+  return cores[codigo] || paleta[indice % paleta.length];
+}
+
+/** Renderiza barras horizontais com rótulos humanos, cores e percentuais. */
+function renderizarBarrasGerenciais(id, dados, opcoes = {}) {
+  const alvo = dom(id);
+  if (!alvo) return;
+  const itens = (dados || []).filter(item => Number(item.quantidade || 0) > 0);
+  if (!itens.length) {
+    alvo.innerHTML = '<div class="empty-chart">Sem dados para o período selecionado.</div>';
+    return;
+  }
+  const maximo = Math.max(...itens.map(item => Number(item.quantidade || 0)), 1);
+  const total = opcoes.total ?? somarQuantidades(itens);
+  alvo.innerHTML = `<div class="bar-chart managerial-bars">${itens.map((item, indice) => {
+    const codigo = item.codigo_movimentacao || item.codigo_status || item.faixa || item[opcoes.campoCodigo] || item[opcoes.campoRotulo];
+    const quantidade = Number(item.quantidade || 0);
+    const rotulo = item.rotulo || rotuloPainel(item[opcoes.campoRotulo] || codigo);
+    const proporcao = percentual(quantidade, total);
+    return `<div class="bar-row" style="--bar-color:${corSemantica(codigo, indice)}">
+      <span class="bar-label" title="${escapeHtml(rotulo)}">${escapeHtml(rotulo)}</span>
+      <span class="bar-track" aria-hidden="true"><span class="bar-fill" style="width:${Math.max((quantidade / maximo) * 100, 3)}%"></span></span>
+      <span class="bar-value"><strong>${quantidade}</strong><small>${formatarPercentual(proporcao)}</small></span>
+    </div>`;
   }).join("")}</div>`;
 }
+
+/**
+ * O bloco de prazos omite "não aplicável" das barras de risco para evitar que
+ * centenas de registros sem prazo escondam as poucas demandas que requerem ação.
+ */
+function renderizarRiscoPrazos(dados, totalEstoque) {
+  const alvo = dom("graficoPrazosGestao");
+  const todos = dados || [];
+  const naoAplicavel = todos.find(item => item.faixa === "NAO_SE_APLICA");
+  const risco = todos.filter(item => item.faixa !== "NAO_SE_APLICA");
+  renderizarBarrasGerenciais("graficoPrazosGestao", risco, { campoRotulo: "faixa", total: totalEstoque });
+  if (naoAplicavel) {
+    alvo.insertAdjacentHTML("beforeend", `<p class="chart-footnote"><strong>${Number(naoAplicavel.quantidade || 0)}</strong> demanda(s) sem prazo aplicável foram retiradas das barras para preservar a leitura do risco.</p>`);
+  }
+}
+
+/** Renderiza a evolução das entregas com rótulos espaçados e sem sobreposição. */
+function renderizarEntregas(dados) {
+  const alvo = dom("graficoConclusoesGestao");
+  const itens = dados || [];
+  if (!itens.length) {
+    alvo.innerHTML = '<div class="empty-chart">Nenhuma entrega registrada no período.</div>';
+    return;
+  }
+  const maximo = Math.max(...itens.map(item => Number(item.quantidade || 0)), 1);
+  const passoRotulo = Math.max(1, Math.ceil(itens.length / 8));
+  alvo.innerHTML = `<div class="delivery-chart" role="img" aria-label="Entregas concluídas por dia">${itens.map((item, indice) => {
+    const quantidade = Number(item.quantidade || 0);
+    const exibirData = indice % passoRotulo === 0 || indice === itens.length - 1;
+    return `<div class="delivery-day">
+      <div class="delivery-column ${quantidade ? "has-value" : ""}" style="height:${Math.max((quantidade / maximo) * 100, quantidade ? 6 : 1)}%" title="${formatarData(item.data)}: ${quantidade} entrega(s)">
+        ${quantidade ? `<span>${quantidade}</span>` : ""}
+      </div>
+      <time>${exibirData ? new Date(`${item.data}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : ""}</time>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+/**
+ * Transforma a carga bruta em informação de capacidade: concentração, risco de
+ * prazo e distância entre a maior e a menor carteira principal.
+ */
+function renderizarCapacidadeEquipe(operadores, totalEstoque) {
+  const alvo = dom("cargaOperadoresGestao");
+  const equipe = (operadores || []).map(operador => ({
+    ...operador,
+    principal: Number(operador.carga?.como_principal || 0),
+    colaborador: Number(operador.carga?.como_colaborador || 0),
+    total: Number(operador.carga?.total_participacoes_ativas || 0),
+    vencidas: Number(operador.situacao_principal?.prazos_vencidos || 0)
+  })).sort((a, b) => b.principal - a.principal);
+  if (!equipe.length) {
+    alvo.innerHTML = '<div class="empty-chart">Nenhum operador disponível para análise.</div>';
+    return;
+  }
+  const maior = Math.max(...equipe.map(item => item.principal));
+  const menor = Math.min(...equipe.map(item => item.principal));
+  const media = equipe.reduce((soma, item) => soma + item.principal, 0) / equipe.length;
+  const totalDistribuido = equipe.reduce((soma, item) => soma + item.principal, 0);
+  const concentracao = totalDistribuido ? percentual(maior, totalDistribuido) : 0;
+  const vencidas = equipe.reduce((soma, item) => soma + item.vencidas, 0);
+  const desequilibrio = maior - menor;
+  alvo.innerHTML = `
+    <div class="team-management-summary">
+      <article><span>Carteira média</span><strong>${media.toFixed(1)}</strong><small>Demandas principais por operador</small></article>
+      <article><span>Amplitude da distribuição</span><strong>${desequilibrio}</strong><small>Diferença entre maior e menor carteira</small></article>
+      <article><span>Maior concentração</span><strong>${formatarPercentual(concentracao)}</strong><small>Parcela da carteira distribuída em um operador</small></article>
+      <article><span>Exposição a atraso</span><strong>${vencidas}</strong><small>Demandas vencidas sob responsabilidade</small></article>
+    </div>
+    <div class="team-capacity-list">${equipe.map((operador, indice) => {
+      const cargaRelativa = maior ? percentual(operador.principal, maior) : 0;
+      const nivel = operador.vencidas > 0 ? "critical" : operador.principal > media * 1.25 ? "attention" : "balanced";
+      const textoNivel = nivel === "critical" ? "Prazo vencido" : nivel === "attention" ? "Carga acima da média" : "Carga controlada";
+      return `<article class="capacity-row ${nivel}">
+        <div class="capacity-rank">${indice + 1}</div>
+        <div class="capacity-person"><strong>${escapeHtml(operador.nome_exibicao)}</strong><small>${textoNivel}</small></div>
+        <div class="capacity-bar"><span style="width:${cargaRelativa}%"></span></div>
+        <div class="capacity-numbers"><strong>${operador.principal}</strong><small>principal</small></div>
+        <div class="capacity-numbers"><strong>${operador.colaborador}</strong><small>colaboração</small></div>
+        <div class="capacity-numbers risk"><strong>${operador.vencidas}</strong><small>vencidas</small></div>
+      </article>`;
+    }).join("")}</div>
+    <p class="chart-footnote">O estoque total possui <strong>${Number(totalEstoque || 0)}</strong> demanda(s). A lista destaca apenas a carteira já distribuída entre operadores.</p>`;
+}
+
+/**
+ * Carrega e apresenta somente o painel. Nenhum fluxo das demais telas é
+ * alterado por este módulo.
+ */
 async function carregarPainelGestao() {
   try {
-    const { data, error } = await sb.rpc("resumo_painel_gestor_segep", { p_data_inicial: dom("painelInicio").value || null, p_data_final: dom("painelFim").value || null });
+    const { data, error } = await sb.rpc("resumo_painel_gestor_segep", {
+      p_data_inicial: dom("painelInicio").value || null,
+      p_data_final: dom("painelFim").value || null
+    });
     if (error) throw error;
+
     const cards = data?.cards || {};
-    dom("metricasPainelGestao").innerHTML = [["Demandas no estoque", cards.total_demandas], ["Aguardando atribuição", cards.sem_responsavel], ["Aguardando início", cards.aguardando_inicio], ["Em tratamento", cards.em_analise], ["Prazo em até 7 dias", cards.prazo_proximo], ["Prazo vencido", cards.prazo_vencido]].map(([l,v]) => `<article class="metric"><span>${l}</span><strong>${v ?? 0}</strong><small>Visão consolidada</small></article>`).join("");
-    renderizarBarras("graficoStatusGestao", data?.por_status || [], "nome_status");
-    renderizarBarras("graficoPrazosGestao", data?.por_prazo || [], "faixa");
-    renderizarBarras("graficoTiposGestao", data?.por_tipo_indicio || [], "tipo_indicio");
-    renderizarBarras("graficoMovimentacoesGestao", [...(data?.atividades_por_tipo || []), ...(data?.movimentacoes_administrativas || [])], "nome_movimentacao");
-    const dias = data?.concluidas_por_dia || [], max = Math.max(...dias.map(x => Number(x.quantidade || 0)), 1);
-    dom("graficoConclusoesGestao").innerHTML = dias.length ? `<div class="daily-chart">${dias.map(x => `<div class="daily-column-wrap"><div class="daily-column" style="height:${Math.max(Number(x.quantidade || 0) / max * 100, 2)}%"><span>${x.quantidade || ""}</span></div><time>${formatarData(x.data)}</time></div>`).join("")}</div>` : '<div class="empty-chart">Sem conclusões no período.</div>';
-    const cargas = data?.carga_operadores || [];
-    dom("cargaOperadoresGestao").innerHTML = cargas.length ? cargas.map(o => `<article class="operator-load-card"><header><strong>${escapeHtml(o.nome_exibicao)}</strong><span class="badge badge-primary">${o.carga?.total_participacoes_ativas ?? 0}</span></header><small>${escapeHtml(o.email_institucional, "")}</small><div class="load-metrics"><div><b>${o.carga?.como_principal ?? 0}</b><small>Principal</small></div><div><b>${o.carga?.como_colaborador ?? 0}</b><small>Colaborador</small></div><div><b>${o.situacao_principal?.prazos_vencidos ?? 0}</b><small>Vencidas</small></div></div></article>`).join("") : '<div class="empty-chart">Sem operadores.</div>';
-  } catch (error) { exibirMensagem(mensagemErro(error, error.message || "Não foi possível carregar o painel."), "error"); }
+    const total = Number(cards.total_demandas || 0);
+    const semResponsavel = Number(cards.sem_responsavel || 0);
+    const atribuidas = Math.max(0, total - semResponsavel);
+    const emExecucao = Number(cards.aguardando_inicio || 0) + Number(cards.em_analise || 0);
+    const riscoPrazo = Number(cards.prazo_proximo || 0) + Number(cards.prazo_vencido || 0);
+    const entregas = somarQuantidades(data?.concluidas_por_dia);
+    const cobertura = percentual(atribuidas, total);
+
+    /* Cards respondem às primeiras perguntas gerenciais da entrada da página. */
+    const indicadores = [
+      { titulo: "Estoque sem responsável", valor: semResponsavel, detalhe: `${formatarPercentual(percentual(semResponsavel, total))} do estoque aguarda distribuição`, tom: "warning" },
+      { titulo: "Cobertura de atribuição", valor: formatarPercentual(cobertura), detalhe: `${atribuidas} de ${total} demanda(s) com responsável`, tom: cobertura < 80 ? "danger" : "success" },
+      { titulo: "Trabalho em execução", valor: emExecucao, detalhe: `${Number(cards.aguardando_inicio || 0)} aguardando início e ${Number(cards.em_analise || 0)} em tratamento`, tom: "primary" },
+      { titulo: "Risco de prazo", valor: riscoPrazo, detalhe: `${Number(cards.prazo_vencido || 0)} vencida(s) e ${Number(cards.prazo_proximo || 0)} próxima(s)`, tom: Number(cards.prazo_vencido || 0) ? "danger" : "warning" },
+      { titulo: "Entregas no período", valor: entregas, detalhe: "Tratamentos encerrados no intervalo selecionado", tom: "success" },
+      { titulo: "Estoque total", valor: total, detalhe: "Volume sob responsabilidade gerencial", tom: "neutral" }
+    ];
+    dom("metricasPainelGestao").innerHTML = indicadores.map(item => `<article class="management-metric tone-${item.tom}"><span>${item.titulo}</span><strong>${item.valor}</strong><small>${item.detalhe}</small></article>`).join("");
+
+    /* Situação: foco na cobertura e no estágio atual do trabalho. */
+    renderizarBarrasGerenciais("graficoStatusGestao", data?.por_status || [], {
+      campoRotulo: "nome_status",
+      campoCodigo: "codigo_status",
+      total
+    });
+
+    /* Prazo: códigos técnicos são convertidos e itens não aplicáveis viram nota. */
+    renderizarRiscoPrazos(data?.por_prazo || [], total);
+
+    /* Entregas: datas espaçadas para evitar a sobreposição observada. */
+    renderizarEntregas(data?.concluidas_por_dia || []);
+
+    /* Tipos: cores distintas facilitam identificar concentração temática. */
+    renderizarBarrasGerenciais("graficoTiposGestao", (data?.por_tipo_indicio || []).slice(0, 8), {
+      campoRotulo: "tipo_indicio",
+      total
+    });
+
+    /* Atividade: união das ações operacionais e administrativas disponíveis. */
+    const atividades = [...(data?.atividades_por_tipo || []), ...(data?.movimentacoes_administrativas || [])];
+    renderizarBarrasGerenciais("graficoMovimentacoesGestao", atividades, {
+      campoRotulo: "nome_movimentacao"
+    });
+
+    /* Equipe: substitui cartões isolados por leitura de capacidade e risco. */
+    renderizarCapacidadeEquipe(data?.carga_operadores || [], total);
+  } catch (error) {
+    exibirMensagem(mensagemErro(error, error.message || "Não foi possível carregar o painel."), "error");
+  }
 }
+
 function interpretarCiclo(ciclo = {}) {
   const codigo = String(ciclo.codigo_status_ciclo || "");
   const concluido = Boolean(ciclo.encerrado_em) || ["ENCERRADO_INTERNAMENTE", "VALIDADO_TCU", "CANCELADO"].includes(codigo);
@@ -856,6 +1095,9 @@ async function abrirDetalheCompleto(item) {
   } catch (e) { console.error(e); }
 }
 function alterarAbaPrincipal(aba) {
+  const painelAtivo = aba === "painel";
+  dom("assignmentMenu").hidden = painelAtivo;
+  dom("redistributionMenu").hidden = painelAtivo;
   dom("secaoPainelGestao").hidden = aba !== "painel"; dom("secaoDemandasAtuais").hidden = aba !== "atuais"; dom("secaoConcluidasGestao").hidden = aba !== "concluidas";
   document.querySelectorAll("[data-gestao-tab]").forEach(b => { const ativo = b.dataset.gestaoTab === aba; b.classList.toggle("active", ativo); b.setAttribute("aria-selected", String(ativo)); });
   if (aba === "painel") carregarPainelGestao(); if (aba === "concluidas") carregarConcluidas();
