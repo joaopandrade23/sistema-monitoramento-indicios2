@@ -121,36 +121,75 @@
 
 
 /* ==========================================================================
-   TELA DEMANDAS ATUAIS
-   Este bloco altera somente filtros, indicadores, tabela e ações desta tela.
+   TELA INDÍCIOS ATUAIS
+   Regras isoladas da tela. O Painel homologado permanece inalterado.
    ========================================================================== */
+
+/* Indicadores e filtros. */
 #secaoDemandasAtuais .quick-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 #secaoDemandasAtuais .current-primary-filters { grid-template-columns: minmax(320px, 2fr) repeat(3, minmax(180px, 1fr)); }
 #secaoDemandasAtuais .advanced-filters { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 #secaoDemandasAtuais .current-advanced-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
 #secaoDemandasAtuais .advanced-filters .check-row { margin-top: 12px; }
 #secaoDemandasAtuais .active-filter-summary { flex: 1; color: var(--muted); font-size: .82rem; line-height: 1.4; }
+
+/* Barra da listagem e paginação. */
 #secaoDemandasAtuais .table-toolbar { align-items: flex-start; }
 #secaoDemandasAtuais .toolbar-actions { justify-content: flex-end; flex-wrap: wrap; }
-#secaoDemandasAtuais .toolbar-actions .assignment-menu { display: block; }
 #secaoDemandasAtuais .pagination-actions { flex-wrap: wrap; }
 #secaoDemandasAtuais .pagination .table-page-size { margin-right: 8px; }
-#secaoDemandasAtuais .table-scroll table { min-width: 1660px; }
-#secaoDemandasAtuais th:nth-child(2) { width: 115px; }
-#secaoDemandasAtuais th:nth-child(3) { width: 210px; }
-#secaoDemandasAtuais th:nth-child(4) { width: 240px; }
-#secaoDemandasAtuais th:nth-child(5) { width: 210px; }
-#secaoDemandasAtuais th:nth-child(6) { width: 190px; }
-#secaoDemandasAtuais th:nth-child(7) { width: 120px; }
-#secaoDemandasAtuais th:nth-child(8) { width: 180px; }
-#secaoDemandasAtuais th:nth-child(9) { width: 150px; }
-#secaoDemandasAtuais th:nth-child(10) { width: 190px; }
-#secaoDemandasAtuais th:nth-child(11) { width: 105px; }
-#secaoDemandasAtuais .truncate { display: -webkit-box; max-width: none; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; white-space: normal; }
-#secaoDemandasAtuais td:nth-child(6) .badge { max-width: 178px; white-space: normal; line-height: 1.2; }
-#secaoDemandasAtuais td:nth-child(7) { font-weight: 700; }
+#secaoDemandasAtuais .selection-info[hidden] { display: none !important; }
+
+/* Tabela: larguras por classe, sem dependência de nth-child. */
+#secaoDemandasAtuais .table-scroll table { min-width: 1780px; table-layout: fixed; }
+#secaoDemandasAtuais .col-select { width: 52px; min-width: 52px; max-width: 52px; text-align: center; }
+#secaoDemandasAtuais .col-indicio { width: 120px; }
+#secaoDemandasAtuais .col-pessoa { width: 220px; }
+#secaoDemandasAtuais .col-tipo { width: 245px; }
+#secaoDemandasAtuais .col-vinculos { width: 220px; }
+#secaoDemandasAtuais .col-situacao { width: 200px; }
+#secaoDemandasAtuais .col-prioridade { width: 130px; }
+#secaoDemandasAtuais .col-operador { width: 185px; }
+#secaoDemandasAtuais .col-prazo { width: 160px; }
+#secaoDemandasAtuais .col-atualizacao { width: 195px; }
+#secaoDemandasAtuais .col-acoes { width: 110px; }
+
+/* Seleção e identificação permanecem visíveis durante a rolagem horizontal. */
+#secaoDemandasAtuais .sticky-select { position: sticky; left: 0; z-index: 4; background: var(--surface); }
+#secaoDemandasAtuais .sticky-indicio { position: sticky; left: 52px; z-index: 3; background: var(--surface); box-shadow: 8px 0 12px -12px rgba(0, 0, 0, .55); }
+#secaoDemandasAtuais thead .col-select { position: sticky; left: 0; z-index: 7; background: var(--surface-2); }
+#secaoDemandasAtuais thead .col-indicio { position: sticky; left: 52px; z-index: 6; background: var(--surface-2); }
+#secaoDemandasAtuais .sticky-actions { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -8px 0 12px -12px rgba(0, 0, 0, .55); }
+#secaoDemandasAtuais thead .col-acoes { position: sticky; right: 0; z-index: 6; background: var(--surface-2); }
+#secaoDemandasAtuais tr.is-selected .sticky-select,
+#secaoDemandasAtuais tr.is-selected .sticky-indicio,
+#secaoDemandasAtuais tr.is-selected .sticky-actions { background: var(--primary-soft); }
+#secaoDemandasAtuais .demand-checkbox { width: 18px; height: 18px; margin: 0; accent-color: var(--primary); }
+
+/* Tipo e vínculos podem ocupar duas linhas sem invadir outras colunas. */
+#secaoDemandasAtuais .truncate { display: -webkit-box; max-width: none; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; white-space: normal; line-height: 1.35; }
+
+/* Situações operacionais usam cores semânticas consistentes com o Painel. */
+.status-available { color: #f59e0b; background: color-mix(in srgb, #f59e0b 16%, var(--surface)); }
+.status-pending { color: #38bdf8; background: color-mix(in srgb, #38bdf8 16%, var(--surface)); }
+.status-progress { color: #a78bfa; background: color-mix(in srgb, #8b5cf6 18%, var(--surface)); }
+.status-external { color: #06b6d4; background: color-mix(in srgb, #06b6d4 16%, var(--surface)); }
+.status-closed { color: #10b981; background: color-mix(in srgb, #10b981 16%, var(--surface)); }
+.status-validated { color: #22c55e; background: color-mix(in srgb, #22c55e 16%, var(--surface)); }
+.status-analysis { color: #ef4444; background: color-mix(in srgb, #ef4444 16%, var(--surface)); }
+.status-cancelled, .status-neutral { color: var(--muted); background: var(--automatic-soft); }
+#secaoDemandasAtuais .col-situacao .badge { max-width: 185px; white-space: normal; line-height: 1.2; }
+
+/* Prioridade é informação complementar e recebe um badge mais discreto. */
+.priority-badge { display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .73rem; font-weight: 750; }
+.priority-undefined { color: var(--muted); background: var(--automatic-soft); }
+.priority-low { color: #38bdf8; background: color-mix(in srgb, #38bdf8 14%, var(--surface)); }
+.priority-normal { color: var(--primary); background: var(--primary-soft); }
+.priority-high { color: #f97316; background: color-mix(in srgb, #f97316 14%, var(--surface)); }
+.priority-urgent { color: #ef4444; background: color-mix(in srgb, #ef4444 14%, var(--surface)); }
+
 @media (max-width: 1050px) {
-  #secaoDemandasAtuais .current-primary-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #secaoDemandasAtuais .current-primary-filters,
   #secaoDemandasAtuais .current-advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
