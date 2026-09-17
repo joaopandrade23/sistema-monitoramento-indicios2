@@ -37,7 +37,7 @@ const estado = {
 
 const ids = [
 "redistributionMenu","redistributionMenuPopover","redistribuirDemandasBtn","redistribuirPorTipoBtn","redistribuirPorCpfBtn","gerenciarEquipeBtn","equipeOverlay","fecharEquipeBtn","cancelarEquipeBtn","equipeResumoAtual","equipeAbaAdicionar","equipeAbaRemover","equipeAbaRedistribuir","equipePainelAdicionar","equipePainelRemover","equipePainelRedistribuir","equipeDisponiveisLista","equipeAtivosLista","equipeConversaoAviso","incluirColaboradoresBtn","remocaoJustificativa","equipeNovoPrincipalSelect","equipeManterAnteriorCheck","equipeRedistribuicaoJustificativa","redistribuirIndividualBtn","equipeAviso","redistribuicaoOverlay","fecharRedistribuicaoBtn","cancelarRedistribuicaoBtn","redistribuicaoTitulo","redistribuicaoCampoTipo","redistribuicaoCampoCpf","redistribuicaoTipoSelect","redistribuicaoCpfInput","redistribuicaoAtualSelect","redistribuicaoNovoSelect","redistribuicaoManterCheck","redistribuicaoJustificativa","redistribuicaoAviso","redistribuicaoPrevia","redistribuicaoResumo","redistribuicaoDetalhes","revisarRedistribuicaoBtn","confirmarRedistribuicaoBtn","loteOperadorLabel",
-"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","cardAtencao","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
+"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 const idsAusentes = ids.filter(id => !el[id]);
@@ -78,11 +78,15 @@ function rotuloSituacao(c) {
 }
 
 function classeSituacao(c) {
-  if (c === "DISPONIVEL_PARA_ATRIBUICAO") return "badge-primary";
-  if (["EM_TRATAMENTO", "VALIDADO_TCU"].includes(c)) return "badge-success";
-  if (["PENDENTE_DE_TRATAMENTO", "PENDENTE", "AGUARDANDO_VALIDACAO_TCU"].includes(c)) return "badge-warning";
-  if (/ANALISE|MISTO/.test(c || "")) return "badge-danger";
-  return "";
+  if (c === "DISPONIVEL_PARA_ATRIBUICAO") return "status-available";
+  if (["PENDENTE_DE_TRATAMENTO", "PENDENTE"].includes(c)) return "status-pending";
+  if (c === "EM_TRATAMENTO") return "status-progress";
+  if (c === "AGUARDANDO_VALIDACAO_TCU") return "status-external";
+  if (c === "ENCERRADO_INTERNAMENTE") return "status-closed";
+  if (c === "VALIDADO_TCU") return "status-validated";
+  if (c === "CANCELADO") return "status-cancelled";
+  if (/ANALISE|MISTO/.test(c || "")) return "status-analysis";
+  return "status-neutral";
 }
 
 function mensagemErro(error, fallback) {
@@ -301,16 +305,33 @@ async function carregarResumo() {
   const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
   
-  // Indicadores visíveis da tela Demandas atuais.
-  el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
-  el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
-  el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
-  el.cardAtencao.textContent = data?.requerem_analise ?? data?.com_multiplas_origens ?? 0;
+  /**
+   * A RPC de resumo evoluiu ao longo do projeto. Os aliases abaixo preservam
+   * compatibilidade sem misturar conceitos: aguardando início, em tratamento,
+   * sem responsável e disponível para atribuição continuam independentes.
+   */
+  const primeiroNumero = (...valores) => {
+    const encontrado = valores.find(valor => valor !== null && valor !== undefined && valor !== "");
+    return Number(encontrado ?? 0);
+  };
+  const total = primeiroNumero(data?.total_demandas, data?.total_indicios, data?.total);
+  const disponiveis = primeiroNumero(data?.disponiveis_para_atribuicao, data?.disponiveis);
+  const aguardandoInicio = primeiroNumero(
+    data?.pendentes_de_tratamento,
+    data?.aguardando_inicio,
+    data?.pendentes
+  );
+  const emTratamento = primeiroNumero(data?.em_tratamento, data?.em_analise);
+  const semResponsavel = primeiroNumero(data?.sem_responsavel, data?.sem_operador_principal);
 
-  // Elementos legados permanecem ocultos para compatibilidade com módulos futuros.
-  el.cardTotal.textContent = data?.total_demandas ?? 0;
-  el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
-  el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
+  el.cardDisponiveis.textContent = disponiveis;
+  el.cardPendentes.textContent = aguardandoInicio;
+  el.cardEmTratamento.textContent = emTratamento;
+  el.cardSemResponsavel.textContent = semResponsavel;
+
+  // Elementos ocultos mantidos apenas para compatibilidade com módulos futuros.
+  el.cardTotal.textContent = total;
+  el.cardMultiplas.textContent = primeiroNumero(data?.com_multiplas_origens, data?.com_multiplos_vinculos);
 }
 
 function parametrosListagem() {
@@ -361,38 +382,70 @@ async function carregarDemandas() {
   }
 }
 
+/** Retorna a classe visual da prioridade sem alterar o valor do backend. */
+function classePrioridade(codigo) {
+  const valor = String(codigo || "SEM_PRIORIDADE").toUpperCase();
+  if (/URGENTE|CRITICA/.test(valor)) return "priority-urgent";
+  if (/ALTA/.test(valor)) return "priority-high";
+  if (/BAIXA/.test(valor)) return "priority-low";
+  if (/NORMAL|MEDIA/.test(valor)) return "priority-normal";
+  return "priority-undefined";
+}
+
+/** Produz textos compactos e corretos para o prazo na listagem. */
+function descricaoPrazoListagem(demanda) {
+  if (!demanda.prazo_em) {
+    return demanda.id_ciclo_tratamento
+      ? { principal: "Sem prazo definido", auxiliar: "Definição pendente" }
+      : { principal: "Sem prazo definido", auxiliar: "Não aplicável" };
+  }
+  return {
+    principal: formatarData(demanda.prazo_em),
+    auxiliar: rotuloPainel(demanda.situacao_prazo || "NO_PRAZO")
+  };
+}
+
 function renderizarDemandas() {
   if (!estado.demandas.length) {
     el.estadoTabela.hidden = false;
-    el.estadoTabela.innerHTML = "<strong>Nenhuma demanda encontrada.</strong><span>Revise os filtros.</span>";
+    el.estadoTabela.innerHTML = "<strong>Nenhum indício encontrado.</strong><span>Revise os filtros.</span>";
     el.selecionarPaginaCheck.checked = false;
     return;
   }
-  
+
   el.estadoTabela.hidden = true;
   el.demandasTbody.innerHTML = estado.demandas.map(d => {
     const marcada = estado.selecionadas.has(String(d.id_indicio));
     const elegivel = Boolean(d.pode_abrir_e_atribuir);
-    const vinculos = d.quantidade_origens > 1
-      ? `${escapeHtml((d.origens || [])[0]?.situacao_funcional)} <span class="badge badge-primary">+${d.quantidade_origens - 1}</span>`
-      : escapeHtml(d.situacoes_funcionais_resumo);
+    const prazo = descricaoPrazoListagem(d);
+    const quantidadeOrigens = Number(d.quantidade_origens || 0);
+    const resumoVinculos = d.situacoes_funcionais_resumo || (d.origens || [])[0]?.situacao_funcional || "Sem situação funcional registrada";
+    const vinculos = quantidadeOrigens > 1
+      ? `${escapeHtml(resumoVinculos)} <span class="badge badge-neutral">+${quantidadeOrigens - 1}</span>`
+      : escapeHtml(resumoVinculos);
+    const prioridade = d.nome_prioridade || "Não definida";
+    const diasEstoque = Number(d.dias_de_espera || 0);
 
     return `<tr class="${marcada ? "is-selected" : ""}" data-row-indicio="${d.id_indicio}" aria-selected="${marcada}">
-      <td>
-        <input class="demand-checkbox" type="checkbox" data-selecionar="${d.id_indicio}" ${marcada ? "checked" : ""} ${elegivel ? "" : "disabled"} aria-label="Selecionar demanda ${escapeHtml(d.identificador_do_indicio)}">
+      <td class="col-select sticky-select">
+        <input class="demand-checkbox" type="checkbox" data-selecionar="${d.id_indicio}"
+          ${marcada ? "checked" : ""} ${elegivel ? "" : "disabled"}
+          title="${elegivel ? "Selecionar este indício" : "Este indício não está disponível para atribuição"}"
+          aria-label="Selecionar indício ${escapeHtml(d.identificador_do_indicio)}">
       </td>
-      <td><strong>${escapeHtml(d.identificador_do_indicio)}</strong><br><small>${escapeHtml(d.base_de_dados)}</small></td>
-      <td class="cell-person"><strong>${escapeHtml(d.nome_atual)}</strong><span>${escapeHtml(d.cpf_mascarado)}</span></td>
-      <td><div class="truncate" title="${escapeHtml(d.tipo_indicio)}">${escapeHtml(d.tipo_indicio)}</div></td>
-      <td><div class="truncate" title="${escapeHtml(d.situacoes_funcionais_resumo)}">${vinculos}</div></td>
-      <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
-      <td>${escapeHtml(d.nome_prioridade, "Ainda não definida")}</td>
-      <td>${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
-      <td><strong>${d.prazo_em?formatarData(d.prazo_em):"Sem prazo"}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo||"")}">${escapeHtml(d.situacao_prazo?rotuloPainel(d.situacao_prazo):"Não definido")}</span></td><td><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>via e-Pessoal · ${Number(d.dias_de_espera||0)} dia(s) no estoque</small></td>
-      <td><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Detalhes</button></td>
+      <td class="col-indicio sticky-indicio"><strong>${escapeHtml(d.identificador_do_indicio)}</strong><br><small>${escapeHtml(d.base_de_dados)}</small></td>
+      <td class="col-pessoa cell-person"><strong>${escapeHtml(d.nome_atual)}</strong><span>${escapeHtml(d.cpf_mascarado)}</span></td>
+      <td class="col-tipo"><div class="truncate" title="${escapeHtml(d.tipo_indicio)}">${escapeHtml(d.tipo_indicio)}</div></td>
+      <td class="col-vinculos"><div class="truncate" title="${escapeHtml(resumoVinculos)}">${vinculos}</div></td>
+      <td class="col-situacao"><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
+      <td class="col-prioridade"><span class="priority-badge ${classePrioridade(d.codigo_prioridade)}">${escapeHtml(prioridade)}</span></td>
+      <td class="col-operador">${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
+      <td class="col-prazo"><strong>${escapeHtml(prazo.principal)}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo || "")}">${escapeHtml(prazo.auxiliar)}</span></td>
+      <td class="col-atualizacao"><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>e-Pessoal<br>${diasEstoque} ${diasEstoque === 1 ? "dia" : "dias"} no estoque</small></td>
+      <td class="col-acoes sticky-actions"><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Detalhes</button></td>
     </tr>`;
   }).join("");
-  
+
   atualizarCheckPagina();
 }
 
@@ -440,7 +493,8 @@ function atualizarCheckPagina() {
 function atualizarControles() {
   const n = estado.selecionadas.size;
   atualizarResumoSelecaoGestor();
-  el.selectionInfo.textContent = n ? `${n} demanda${n > 1 ? "s" : ""} selecionada${n > 1 ? "s" : ""}` : "Nenhuma demanda selecionada";
+  el.selectionInfo.textContent = n ? `${n} indício${n > 1 ? "s" : ""} selecionado${n > 1 ? "s" : ""}` : "";
+  el.selectionInfo.hidden = !n;
   el.limparSelecaoBtn.hidden = !n;
   el.verSelecionadasBtn.hidden = !n;
   el.atribuirSelecionadasBtn.disabled = !n;
@@ -528,7 +582,7 @@ function atualizarCardAtivo(codigo = "TODAS") {
   });
 }
 
-/** Atualiza o resumo textual dos filtros efetivamente aplicados. */
+/** Atualiza o resumo textual e o título da listagem conforme os filtros. */
 function atualizarResumoFiltrosAtuais() {
   const ativos = [];
   if (estado.filtros.busca) ativos.push(`Busca: ${estado.filtros.busca}`);
@@ -540,7 +594,19 @@ function atualizarResumoFiltrosAtuais() {
   if (estado.filtros.semResponsavel) ativos.push("Sem responsável");
   if (estado.filtros.multiplas) ativos.push("Com múltiplas origens");
   if (estado.filtros.requerAnalise) ativos.push("Requerem análise");
-  el.resumoFiltrosAtuais.textContent = ativos.length ? `${ativos.length} filtro(s) ativo(s): ${ativos.join(" · ")}` : "Nenhum filtro ativo";
+  el.resumoFiltrosAtuais.textContent = ativos.length
+    ? `${ativos.length} filtro(s) ativo(s): ${ativos.join(" · ")}`
+    : "Nenhum filtro ativo";
+
+  const titulos = {
+    DISPONIVEL_PARA_ATRIBUICAO: "Indícios disponíveis para atribuição",
+    PENDENTE_DE_TRATAMENTO: "Indícios aguardando início",
+    EM_TRATAMENTO: "Indícios em tratamento"
+  };
+  const titulo = estado.filtros.semResponsavel
+    ? "Indícios sem responsável"
+    : (titulos[estado.filtros.situacao] || "Todos os indícios atuais");
+  document.querySelector("#secaoDemandasAtuais .selection-summary strong").textContent = titulo;
 }
 
 function aplicarFiltros() {
@@ -600,7 +666,7 @@ async function revisarRedistribuicao(){try{const p=parametrosRedistribuicao();if
 async function confirmarRedistribuicao(){try{if(estado.redistribuicao.assinatura!==assinaturaRedistribuicao())throw Error("A configuração mudou. Gere uma nova prévia.");const p=parametrosRedistribuicao(false);if(p.p_justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",p);if(error)throw error;exibirMensagem(data.mensagem||"Redistribuição concluída.","success");fecharRedistribuicao();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível confirmar.");el.redistribuicaoAviso.className="status-banner error";}}
 
 
-function atualizarResumoSelecaoGestor(){const n=estado.selecionadas.size;el.resultadoAtualResumo.textContent=`${estado.paginacao.total||0} demanda(s) encontrada(s) · ${n} selecionada(s)`;[el.acaoAtribuirSelecionadas,el.acaoRedistribuirSelecionadas,el.acaoEquipeSelecionada].forEach(x=>x.disabled=!n);}
+function atualizarResumoSelecaoGestor(){const n=estado.selecionadas.size;el.resultadoAtualResumo.textContent = `${estado.paginacao.total || 0} indício${estado.paginacao.total === 1 ? " encontrado" : "s encontrados"}${n ? ` · ${n} selecionado${n > 1 ? "s" : ""}` : ""}`;[el.acaoAtribuirSelecionadas,el.acaoRedistribuirSelecionadas,el.acaoEquipeSelecionada].forEach(x=>x.disabled=!n);}
 function iniciais(nome){return String(nome||"?").split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()}
 function renderEquipeConsolidada(dados,demanda){const ciclo=dados.ciclo_selecionado||dados,equipe=ciclo.equipe||dados.equipe||[],principal=dados.operador_principal||equipe.find(x=>x.papel_principal&&x.participacao_ativa)||{},ativos=(dados.colaboradores||equipe.filter(x=>!x.papel_principal&&x.participacao_ativa)),historicos=equipe.filter(x=>!x.participacao_ativa),encerrado=Boolean(ciclo.ciclo_encerrado||demanda.situacao_operacional==="ENCERRADO_INTERNAMENTE");return `<div class="team-layout"><section class="team-column"><h3>Composição da equipe</h3><div class="primary-member"><span class="member-avatar">${iniciais(principal.nome_exibicao)}</span><div><strong>${escapeHtml(principal.nome_exibicao||demanda.nome_operador_principal||"Responsável não informado")}</strong><small>Responsável principal ${principal.participacao_ativa===false?"histórico":"ativo"}</small><p>${principal.atribuido_em?`Desde ${formatarData(principal.atribuido_em)}`:"Período não informado"}</p></div><span class="badge badge-primary">Principal</span></div><h3>Colaboradores ativos</h3><div class="member-cards">${ativos.length?ativos.map(x=>`<article class="member-card"><strong>${escapeHtml(x.nome_exibicao)}</strong><small>Colaborador ativo</small><p>${x.atribuido_em?`Desde ${formatarData(x.atribuido_em)}`:"Período não informado"}</p></article>`).join(""):'<p class="muted-text">Nenhum colaborador ativo.</p>'}</div><h3>Participantes históricos</h3><div class="member-cards">${historicos.length?historicos.map(x=>`<article class="member-card history"><strong>${escapeHtml(x.nome_exibicao||x.nome)}</strong><small>${escapeHtml(x.nome_papel||x.codigo_papel||"Participante histórico")}</small><p>${formatarData(x.atribuido_em)} a ${formatarData(x.encerrado_em)}</p></article>`).join(""):'<p class="muted-text">Nenhuma participação histórica informada.</p>'}</div></section><aside class="team-action-panel">${encerrado?'<div class="readonly-callout"><strong>Modo somente leitura.</strong><p>Os participantes do ciclo permanecem disponíveis para consulta.</p></div>':`<h3>Gerenciar equipe</h3><p>Escolha uma ação. Apenas os campos necessários serão exibidos.</p><div class="team-choice-grid"><button class="team-choice" data-team-action="adicionar"><b>+</b><span><strong>Adicionar colaborador</strong><small>Inclua um operador no ciclo.</small></span></button><button class="team-choice" data-team-action="remover"><b>−</b><span><strong>Remover colaborador</strong><small>Exige justificativa.</small></span></button><button class="team-choice" data-team-action="redistribuir"><b>⇄</b><span><strong>Trocar ou promover responsável</strong><small>Promova um colaborador ou escolha outro operador.</small></span></button></div><div class="impact-box"><strong>Impacto e auditoria</strong><p>Versão do ciclo: ${escapeHtml(ciclo.versao_ciclo||ciclo.versao)}</p><p>A alteração será registrada no histórico integral.</p></div>`}</aside></div>`}
 function rotuloHistoricoGestor(x){const map={INICIO_TRATAMENTO:["Tratamento iniciado","history-start","▶"],OBSERVACAO:["Observação registrada","history-observation","✎"],PROVIDENCIA:["Providência adotada","history-providence","✓"],VINCULO_PROCESSO_SEI:["Processo SEI vinculado","history-sei","⌁"],INATIVACAO_PROCESSO_SEI:["Processo SEI inativado","history-sei","⌁"],ALTERACAO_PROCESSO_SEI_PRINCIPAL:["Processo principal alterado","history-sei","★"],ENCERRAMENTO_INTERNO:["Tratamento encerrado","history-closed","■"],REDISTRIBUICAO:["Responsabilidade redistribuída","history-manager","⇄"],INCLUSAO_COLABORADOR:["Colaborador incluído","history-manager","+"],REMOCAO_COLABORADOR:["Colaborador removido","history-manager","−"],ALTERACAO_PRIORIDADE:["Prioridade alterada","history-manager","⚑"],ALTERACAO_PRAZO:["Prazo alterado","history-manager","▣"]};return map[x.codigo_movimentacao]||(x.evento_automatico?[x.nome_movimentacao||"Evento automático","history-system","⚙"]:[x.nome_movimentacao||"Movimentação","history-default","•"])}
@@ -701,13 +767,17 @@ function registrarEventos() {
     const fn = () => {
       const t = card.dataset.cardFilter;
       atualizarCardAtivo(t);
+      // Cada atalho substitui os demais filtros de situação para evitar
+      // combinações silenciosas e garantir que total e listagem sejam coerentes.
       el.situacaoSelect.value = "";
       el.semResponsavelCheck.checked = false;
       el.multiplasCheck.checked = false;
-      if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE_DE_TRATAMENTO", "EM_TRATAMENTO"].includes(t)) el.situacaoSelect.value = t;
-      else if (t === "SEM_RESPONSAVEL") el.semResponsavelCheck.checked = true;
-      else if (t === "MULTIPLAS_ORIGENS") el.multiplasCheck.checked = true;
-      else if (t === "REQUER_ANALISE") el.analiseCheck.checked = true;
+      el.analiseCheck.checked = false;
+      if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE_DE_TRATAMENTO", "EM_TRATAMENTO"].includes(t)) {
+        el.situacaoSelect.value = t;
+      } else if (t === "SEM_RESPONSAVEL") {
+        el.semResponsavelCheck.checked = true;
+      }
       aplicarFiltros();
     };
     card.addEventListener("click", fn);
@@ -1123,7 +1193,8 @@ async function exportarDemandas(concluidas) {
   const exportarTudo = !concluidas && escopo === "TODAS";
   const f = concluidas ? parametrosConcluidas() : parametrosListagem();
   const args = {
-    // A RPC homologada usa FILTRADOS. Para "Todas", enviamos esse escopo sem filtros.
+    // A RPC homologada usa FILTRADOS. O escopo "TODAS" reutiliza esse contrato
+    // sem qualquer filtro e com limite ampliado de segurança.
     p_escopo: exportarTudo ? "FILTRADOS" : escopo,
     p_ids_indicios: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_indicio)) : null,
     p_ids_ciclos: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_ciclo_tratamento)).filter(Boolean) : null,
@@ -1139,7 +1210,7 @@ async function exportarDemandas(concluidas) {
     p_tamanho_pagina: exportarTudo ? 5000 : (concluidas ? estado.concluidas.tamanho : estado.paginacao.tamanho)
   };
   try {
-    if (exportarTudo && !window.confirm("Exportar todas as demandas atuais? Os filtros aplicados serão ignorados.")) return;
+    if (exportarTudo && !window.confirm("Exportar todos os indícios atuais? Os filtros aplicados serão ignorados.")) return;
     const { data, error } = await sb.rpc("exportar_demandas_gestor", args); if (error) throw error; if (!data?.itens?.length) throw Error("Nenhum registro disponível para exportação."); baixarCsv(csvLinhas(data), `demandas_${concluidas ? "concluidas" : "atuais"}_${escopo.toLowerCase()}.csv`); exibirMensagem(`${data.quantidade_registros} registro(s) exportado(s).`, "success"); } catch (e) { exibirMensagem(e.message, "error"); }
 }
 async function abrirDetalheCompleto(item) {
@@ -1172,7 +1243,7 @@ function prepararNavegacaoGestao() {
 async function inicializarAplicacao() {
   prepararNavegacaoGestao();
 
-  // Filtro inicial da tela: mostra primeiro o estoque realmente atribuível.
+  // Filtro inicial aplicado uma única vez ao abrir a página.
   el.situacaoSelect.value = "DISPONIVEL_PARA_ATRIBUICAO";
   atualizarCardAtivo("DISPONIVEL_PARA_ATRIBUICAO");
   atualizarResumoFiltrosAtuais();
