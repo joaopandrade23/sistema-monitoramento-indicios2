@@ -627,3 +627,14 @@
 #atribuicaoOverlay .report-scope span, #atribuicaoOverlay .report-scope strong { display:block; }
 #atribuicaoOverlay .report-scope span { color:var(--muted); font-size:.72rem; }
 @media(max-width:760px){#atribuicaoOverlay .report-scope{grid-template-columns:1fr}}
+
+/* AJUSTES FINAIS PARA HOMOLOGACAO DO MODAL */
+#atribuicaoOverlay .cpf-detail-control { display:inline-flex; align-items:center; gap:8px; }
+#atribuicaoOverlay .cpf-toggle { padding:2px 7px; border:1px solid var(--line); border-radius:999px; background:var(--surface-2); color:var(--primary); font-size:.68rem; font-weight:750; }
+.process-form-modal { width:min(620px,calc(100vw - 28px)); }
+.process-form-modal .modal-body { display:grid; gap:14px; }
+.process-context { display:flex; gap:8px; color:var(--muted); }.process-context strong{color:var(--primary)}
+#atribuicaoOverlay .process-empty-state .btn { margin-top:14px; }
+#atribuicaoOverlay .history-filters { grid-template-columns:minmax(240px,2fr) repeat(5,minmax(145px,1fr)); }
+@media(max-width:1100px){#atribuicaoOverlay .history-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){#atribuicaoOverlay .history-filters{grid-template-columns:1fr}}
