@@ -602,3 +602,28 @@
   min-height: 0;
 }
 #equipeOverlay .operator-choice-copy em:empty { display: none; }
+
+/* ETAPAS 3 E 4 | acabamento final do modal */
+#equipeOverlay .team-tabs { gap: 12px; padding: 7px; margin: 14px 0 18px; }
+#equipeOverlay .team-tab { padding: 11px 14px; }
+#equipeOverlay .team-panel { padding: 4px 2px 2px; }
+#equipeOverlay .team-panel > .field { margin-top: 18px; }
+#equipeOverlay .team-panel > .btn { margin-top: 16px; }
+#equipeOverlay .operator-choice, #equipeOverlay .removal-choice { margin-bottom: 10px; }
+#equipeOverlay .modal-footer { margin-top: 18px; padding-top: 16px; }
+#atribuicaoOverlay .functional-links-full { display:grid; gap:8px; margin-top:8px; }
+#atribuicaoOverlay .functional-link-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); }
+#atribuicaoOverlay .functional-link-row small { color:var(--muted); }
+#atribuicaoOverlay .process-empty-state, #atribuicaoOverlay .history-empty-state { display:grid; place-items:center; min-height:220px; padding:28px; border:1px dashed var(--line); border-radius:14px; text-align:center; color:var(--muted); }
+#atribuicaoOverlay .process-empty-state strong, #atribuicaoOverlay .history-empty-state strong { color:var(--text); }
+#atribuicaoOverlay .process-detail-card header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+#atribuicaoOverlay .process-detail-card dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:12px 0 0; }
+#atribuicaoOverlay .process-detail-card dt { color:var(--muted); font-size:.7rem; text-transform:uppercase; }
+#atribuicaoOverlay .process-detail-card dd { margin:3px 0 0; }
+#atribuicaoOverlay .history-summary-line { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; color:var(--muted); }
+#atribuicaoOverlay .history-day { margin:20px 0 10px; color:var(--primary); font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+#atribuicaoOverlay .report-scope { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
+#atribuicaoOverlay .report-scope article { padding:14px; border:1px solid var(--line); border-radius:11px; background:var(--surface-2); }
+#atribuicaoOverlay .report-scope span, #atribuicaoOverlay .report-scope strong { display:block; }
+#atribuicaoOverlay .report-scope span { color:var(--muted); font-size:.72rem; }
+@media(max-width:760px){#atribuicaoOverlay .report-scope{grid-template-columns:1fr}}
