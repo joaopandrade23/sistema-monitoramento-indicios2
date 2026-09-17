@@ -32,8 +32,8 @@
 <main class="container" id="conteudoPrincipal">
 <section class="page-heading">
 <div>
-<h1>Gestão de demandas</h1>
-<p>Acompanhe o estoque, os prazos, a distribuição do trabalho e o histórico integral da equipe.</p>
+<h1>Gestão de indícios</h1>
+<p>Acompanhe o estoque de indícios, os prazos, a distribuição do trabalho e a atuação da equipe.</p>
 </div>
 <div class="heading-actions">
 <button class="btn" id="atualizarBtn" type="button">Atualizar dados</button>
@@ -44,7 +44,7 @@
 <div aria-live="polite" class="status-banner" hidden="" id="mensagem" role="status"></div>
 <nav aria-label="Seções da gestão" class="main-tabs">
 <button aria-selected="true" class="main-tab active" data-gestao-tab="painel" type="button">Painel</button>
-<button aria-selected="false" class="main-tab" data-gestao-tab="atuais" type="button">Demandas atuais</button>
+<button aria-selected="false" class="main-tab" data-gestao-tab="atuais" type="button">Indícios atuais</button>
 <button aria-selected="false" class="main-tab" data-gestao-tab="concluidas" type="button">Concluídas</button>
 </nav>
 <section class="main-section" id="secaoPainelGestao">
@@ -71,12 +71,12 @@
 <small>Aguardando distribuição</small>
 </article>
 <article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
-<span>Pendentes de tratamento</span>
+<span>Aguardando início</span>
 <div class="metric-value-row">
 <strong id="cardPendentes">...</strong>
 <span aria-hidden="true" class="metric-icon-placeholder">03</span>
 </div>
-<small>Atribuídas, ainda não iniciadas</small>
+<small>Indícios atribuídos ainda não iniciados</small>
 </article>
 <article class="metric clickable metric-progress" data-card-filter="EM_TRATAMENTO" tabindex="0">
 <span>Em tratamento</span>
@@ -84,18 +84,18 @@
 <strong id="cardEmTratamento">...</strong>
 <span aria-hidden="true" class="metric-icon-placeholder">04</span>
 </div>
-<small>Com tratamento iniciado</small>
+<small>Indícios com tratamento iniciado</small>
+</article>
+<article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
+<span>Sem responsável</span>
+<div class="metric-value-row">
+<strong id="cardSemResponsavel">...</strong>
+<span aria-hidden="true" class="metric-icon-placeholder">05</span>
+</div>
+<small>Indícios sem operador principal</small>
 </article>
 
-<article class="metric clickable metric-links" data-card-filter="REQUER_ANALISE" tabindex="0">
-<span>Requerem atenção</span>
-<div class="metric-value-row">
-<strong id="cardAtencao">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">06</span>
-</div>
-<small>Inconsistências ou múltiplas origens</small>
-</article>
-</section><div aria-hidden="true" hidden=""><span id="cardTotal"></span><span id="cardSemResponsavel"></span><span id="cardMultiplas"></span></div>
+</section><div aria-hidden="true" hidden=""><span id="cardTotal"></span><span id="cardMultiplas"></span></div>
 <section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="false" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Filtros avançados ▾</button></div><div id="filtrosAtuaisConteudo"><div class="filter-grid current-primary-filters"><div class="field">
 <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
 <input autocomplete="off" class="control" id="buscaInput" maxlength="120" placeholder="Digite para pesquisar" type="search"/>
@@ -138,20 +138,19 @@
 </div></section>
 <section class="panel list-panel">
 <div class="table-toolbar">
-<div class="selection-summary"><div><strong>Demandas atuais</strong><br/><small id="resultadoAtualResumo">Consulte e administre as demandas em andamento.</small></div>
-<div class="selection-info" id="selectionInfo">Nenhuma demanda selecionada</div>
+<div class="selection-summary"><div><strong>Indícios disponíveis para atribuição</strong><br/><small id="resultadoAtualResumo">Consulte e administre as demandas em andamento.</small></div>
+<div class="selection-info" hidden="" id="selectionInfo"></div>
 <button class="btn btn-ghost btn-sm" hidden="" id="verSelecionadasBtn" type="button">Ver selecionadas</button>
 <button class="btn btn-ghost btn-sm" hidden="" id="limparSelecaoBtn" type="button">Limpar seleção</button>
 </div>
-<div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Itens selecionados</option><option value="TODAS">Todas as demandas</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" hidden="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" hidden="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" hidden="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
+<div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Indícios selecionados</option><option value="TODAS">Todos os indícios atuais</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" hidden="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" hidden="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" hidden="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
 
 <div class="assignment-menu" id="assignmentMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">
-            Atribuir demandas <span aria-hidden="true">▾</span>
+<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">Atribuir indícios <span aria-hidden="true">▾</span>
 </button>
 <div class="assignment-menu-popover" hidden="" id="assignmentMenuPopover" role="menu">
 <button disabled="" id="atribuirSelecionadasBtn" role="menuitem" type="button">
-<strong>Atribuir selecionadas</strong>
+<strong>Atribuir selecionados</strong>
 <span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
 </button>
 <button id="atribuirPorTipoBtn" role="menuitem" type="button">
@@ -164,8 +163,7 @@
 </button>
 </div>
 </div><div class="assignment-menu" id="redistributionMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">
-            Redistribuir demandas <span aria-hidden="true">▾</span>
+<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">Redistribuir indícios <span aria-hidden="true">▾</span>
 </button>
 <div class="assignment-menu-popover" hidden="" id="redistributionMenuPopover" role="menu">
 <button id="redistribuirPorTipoBtn" role="menuitem" type="button">
@@ -182,18 +180,18 @@
 <table aria-label="Lista de demandas">
 <thead>
 <tr>
-<th class="selection-column">
+<th class="selection-column col-select">
 <input aria-label="Selecionar demandas elegíveis desta página" id="selecionarPaginaCheck" title="Selecionar demandas elegíveis desta página" type="checkbox"/>
 </th>
-<th>Indício</th>
-<th>Pessoa</th>
-<th>Tipo</th>
-<th>Vínculos</th>
-<th>Situação</th>
-<th>Prioridade</th>
-<th>Operador</th>
-<th>Prazo</th><th title="Atualização mais recente recebida do sistema e-Pessoal.">Atualização na origem</th>
-<th>Ações</th>
+<th class="col-indicio">Indício</th>
+<th class="col-pessoa">Pessoa</th>
+<th class="col-tipo">Tipo</th>
+<th class="col-vinculos">Vínculos</th>
+<th class="col-situacao">Situação</th>
+<th class="col-prioridade">Prioridade</th>
+<th class="col-operador">Operador</th>
+<th class="col-prazo">Prazo</th><th class="col-atualizacao" title="Atualização mais recente recebida do sistema e-Pessoal.">Atualização na origem</th>
+<th class="col-acoes">Ações</th>
 </tr>
 </thead>
 <tbody id="demandasTbody"></tbody>
