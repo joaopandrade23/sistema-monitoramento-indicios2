@@ -37,8 +37,6 @@
 </div>
 <div class="heading-actions">
 <button class="btn" id="atualizarBtn" type="button">Atualizar dados</button>
-
-
 </div>
 </section>
 <div aria-live="polite" class="status-banner" hidden="" id="mensagem" role="status"></div>
@@ -61,7 +59,6 @@
 </section>
 <section class="main-section" hidden="" id="secaoDemandasAtuais">
 <section aria-label="Resumo das demandas" class="quick-metrics">
-
 <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
 <span>Disponíveis para atribuição</span>
 <div class="metric-value-row">
@@ -70,7 +67,7 @@
 </div>
 <small>Aguardando distribuição</small>
 </article>
-<article class="metric clickable metric-pending" data-card-filter="PENDENTE_DE_TRATAMENTO" tabindex="0">
+<article class="metric clickable metric-pending" data-card-filter="PENDENTE" tabindex="0">
 <span>Aguardando início</span>
 <div class="metric-value-row">
 <strong id="cardPendentes">...</strong>
@@ -94,7 +91,6 @@
 </div>
 <small>Indícios sem operador principal</small>
 </article>
-
 </section><div aria-hidden="true" hidden=""><span id="cardTotal"></span><span id="cardMultiplas"></span></div>
 <section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="false" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Filtros avançados ▾</button></div><div id="filtrosAtuaisConteudo"><div class="filter-grid current-primary-filters"><div class="field">
 <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
@@ -104,10 +100,10 @@
 <select class="control" id="situacaoSelect">
 <option value="">Todas as situações</option>
 <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
-<option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
+<option value="PENDENTE">Aguardando início</option>
 <option value="EM_TRATAMENTO">Em tratamento</option>
 <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
-<option value="VALIDADO_TCU">Validado pelo TCU</option>
+
 <option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
 </select>
 </div><div class="field">
@@ -131,9 +127,7 @@
 <label><input id="multiplasCheck" type="checkbox"/> Com múltiplas origens</label>
 <label><input id="analiseCheck" type="checkbox"/> Requerem análise</label>
 </div></div>
-
 <div class="filter-footer"><div aria-live="polite" class="active-filter-summary" id="resumoFiltrosAtuais">1 filtro ativo: Disponível para atribuição</div>
-
 <div class="filter-actions"><button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button><button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar filtros</button></div></div>
 </div></section>
 <section class="panel list-panel">
@@ -144,7 +138,6 @@
 <button class="btn btn-ghost btn-sm" hidden="" id="limparSelecaoBtn" type="button">Limpar seleção</button>
 </div>
 <div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Indícios selecionados</option><option value="TODAS">Todos os indícios atuais</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" hidden="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" hidden="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" hidden="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
-
 <div class="assignment-menu" id="assignmentMenu">
 <button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">Atribuir indícios <span aria-hidden="true">▾</span>
 </button>
@@ -177,11 +170,11 @@
 </div>
 </div></div>
 </div><div class="table-scroll">
-<table aria-label="Lista de demandas">
+<table aria-label="Lista de indícios atuais">
 <thead>
 <tr>
 <th class="selection-column col-select">
-<input aria-label="Selecionar demandas elegíveis desta página" id="selecionarPaginaCheck" title="Selecionar demandas elegíveis desta página" type="checkbox"/>
+<input aria-label="Selecionar indícios elegíveis desta página" id="selecionarPaginaCheck" title="Selecionar indícios elegíveis desta página" type="checkbox"/>
 </th>
 <th class="col-indicio">Indício</th>
 <th class="col-pessoa">Pessoa</th>
