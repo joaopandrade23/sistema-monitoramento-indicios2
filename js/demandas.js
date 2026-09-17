@@ -67,8 +67,8 @@ function formatarData(valor) {
 function rotuloSituacao(c) {
   return ({
     DISPONIVEL_PARA_ATRIBUICAO: "Disponível para atribuição",
-    PENDENTE_DE_TRATAMENTO: "Pendente de tratamento",
-    PENDENTE: "Pendente de tratamento",
+    PENDENTE_DE_TRATAMENTO: "Aguardando início",
+    PENDENTE: "Aguardando início",
     EM_TRATAMENTO: "Em tratamento",
     AGUARDANDO_VALIDACAO_TCU: "Aguardando validação do TCU",
     VALIDADO_TCU: "Validado pelo TCU",
@@ -301,37 +301,58 @@ async function confirmarLote() {
   }
 }
 
-async function carregarResumo() {
-  const { data, error } = await sb.rpc("resumo_demandas_gestao");
-  if (error) throw error;
-  
-  /**
-   * A RPC de resumo evoluiu ao longo do projeto. Os aliases abaixo preservam
-   * compatibilidade sem misturar conceitos: aguardando início, em tratamento,
-   * sem responsável e disponível para atribuição continuam independentes.
-   */
-  const primeiroNumero = (...valores) => {
-    const encontrado = valores.find(valor => valor !== null && valor !== undefined && valor !== "");
-    return Number(encontrado ?? 0);
-  };
-  const total = primeiroNumero(data?.total_demandas, data?.total_indicios, data?.total);
-  const disponiveis = primeiroNumero(data?.disponiveis_para_atribuicao, data?.disponiveis);
-  const aguardandoInicio = primeiroNumero(
-    data?.pendentes_de_tratamento,
-    data?.aguardando_inicio,
-    data?.pendentes
-  );
-  const emTratamento = primeiroNumero(data?.em_tratamento, data?.em_analise);
-  const semResponsavel = primeiroNumero(data?.sem_responsavel, data?.sem_operador_principal);
+/**
+ * Indícios concluídos operacionalmente pertencem exclusivamente à tela
+ * Concluídas, mesmo quando o ciclo ainda aparece como vigente no banco.
+ */
+function indicioConcluidoOperacionalmente(indicio = {}) {
+  const codigo = String(indicio.situacao_operacional || indicio.codigo_status_ciclo || "");
+  return Boolean(indicio.encerrado_em) || [
+    "ENCERRADO_INTERNAMENTE",
+    "VALIDADO_TCU",
+    "CANCELADO"
+  ].includes(codigo);
+}
 
-  el.cardDisponiveis.textContent = disponiveis;
-  el.cardPendentes.textContent = aguardandoInicio;
-  el.cardEmTratamento.textContent = emTratamento;
-  el.cardSemResponsavel.textContent = semResponsavel;
+/** Normaliza os dois códigos históricos usados para a mesma etapa do fluxo. */
+function situacaoAtualNormalizada(indicio = {}) {
+  const codigo = String(indicio.situacao_operacional || indicio.codigo_status_ciclo || "");
+  return codigo === "PENDENTE_DE_TRATAMENTO" ? "PENDENTE" : codigo;
+}
+
+async function carregarResumo() {
+  /**
+   * Os quatro indicadores são calculados pelo mesmo contrato da listagem.
+   * Isso evita divergência entre o número do card e o resultado do clique.
+   */
+  const { data, error } = await sb.rpc("listar_demandas_gestao", {
+    p_busca: null,
+    p_situacao_operacional: null,
+    p_id_operador: null,
+    p_id_tipo_indicio: null,
+    p_codigo_prioridade: null,
+    p_codigo_modo: null,
+    p_apenas_multiplas_origens: null,
+    p_apenas_sem_responsavel: null,
+    p_apenas_requer_analise: null,
+    p_ordenacao: "DIAS_ESPERA_DESC",
+    p_pagina: 1,
+    p_tamanho_pagina: 5000,
+    p_situacao_prazo: null
+  });
+  if (error) throw error;
+
+  const atuais = (data?.itens || []).filter(item => !indicioConcluidoOperacionalmente(item));
+  const contar = codigo => atuais.filter(item => situacaoAtualNormalizada(item) === codigo).length;
+
+  el.cardDisponiveis.textContent = contar("DISPONIVEL_PARA_ATRIBUICAO");
+  el.cardPendentes.textContent = contar("PENDENTE");
+  el.cardEmTratamento.textContent = contar("EM_TRATAMENTO");
+  el.cardSemResponsavel.textContent = atuais.filter(item => !item.id_operador_principal && !item.nome_operador_principal).length;
 
   // Elementos ocultos mantidos apenas para compatibilidade com módulos futuros.
-  el.cardTotal.textContent = total;
-  el.cardMultiplas.textContent = primeiroNumero(data?.com_multiplas_origens, data?.com_multiplos_vinculos);
+  el.cardTotal.textContent = atuais.length;
+  el.cardMultiplas.textContent = atuais.filter(item => Number(item.quantidade_origens || 0) > 1).length;
 }
 
 function parametrosListagem() {
@@ -356,26 +377,58 @@ async function carregarDemandas() {
   estado.carregando = true;
   atualizarControles();
   el.estadoTabela.hidden = false;
-  el.estadoTabela.innerHTML = "<strong>Carregando demandas...</strong><span>Aguarde um momento.</span>";
+  el.estadoTabela.innerHTML = "<strong>Carregando indícios...</strong><span>Aguarde um momento.</span>";
   el.demandasTbody.innerHTML = "";
-  
+
   try {
-    const { data, error } = await sb.rpc("listar_demandas_gestao", parametrosListagem());
+    const parametros = parametrosListagem();
+    const paginaDesejada = estado.paginacao.pagina;
+    const tamanho = estado.paginacao.tamanho;
+
+    /**
+     * A RPC atual ainda pode devolver ciclos encerrados no escopo geral. Para
+     * preservar totais e paginação coerentes, a tela obtém o conjunto filtrado,
+     * exclui terminais e somente então pagina localmente. O limite de 5.000 é
+     * superior ao estoque atual e deve ser revisto se o volume crescer.
+     */
+    const { data, error } = await sb.rpc("listar_demandas_gestao", {
+      ...parametros,
+      p_situacao_operacional: parametros.p_situacao_operacional === "PENDENTE" ? "PENDENTE" : parametros.p_situacao_operacional,
+      p_pagina: 1,
+      p_tamanho_pagina: 5000
+    });
     if (error) throw error;
-    
-    estado.demandas = data?.itens || [];
-    estado.paginacao = {
-      pagina: data?.paginacao?.pagina || 1,
-      tamanho: estado.paginacao.tamanho,
-      total: data?.paginacao?.total_registros || 0,
-      totalPaginas: data?.paginacao?.total_paginas || 0
-    };
+
+    let filtrados = (data?.itens || []).filter(item => !indicioConcluidoOperacionalmente(item));
+
+    // Compatibilidade: alguns ambientes ainda devolvem PENDENTE_DE_TRATAMENTO.
+    if (estado.filtros.situacao === "PENDENTE") {
+      filtrados = filtrados.filter(item => situacaoAtualNormalizada(item) === "PENDENTE");
+    }
+
+    const total = filtrados.length;
+    const totalPaginas = Math.ceil(total / tamanho);
+    const pagina = Math.min(Math.max(paginaDesejada, 1), Math.max(totalPaginas, 1));
+    const inicio = (pagina - 1) * tamanho;
+    const fim = Math.min(inicio + tamanho, total);
+
+    estado.demandas = filtrados.slice(inicio, fim);
+    estado.paginacao = { pagina, tamanho, total, totalPaginas };
+
     renderizarDemandas();
-    renderizarPaginacao(data?.paginacao || {});
+    renderizarPaginacao({
+      pagina,
+      total_paginas: totalPaginas,
+      total_registros: total,
+      registro_inicial: total ? inicio + 1 : 0,
+      registro_final: fim,
+      possui_pagina_anterior: pagina > 1,
+      possui_proxima_pagina: pagina < totalPaginas
+    });
   } catch (error) {
     console.error(error);
     el.estadoTabela.innerHTML = "<strong>Não foi possível carregar.</strong><span>Tente atualizar a página.</span>";
-    exibirMensagem(mensagemErro(error, "Não foi possível carregar as demandas."), "error");
+    exibirMensagem(mensagemErro(error, "Não foi possível carregar os indícios."), "error");
   } finally {
     estado.carregando = false;
     atualizarControles();
@@ -418,11 +471,17 @@ function renderizarDemandas() {
     const marcada = estado.selecionadas.has(String(d.id_indicio));
     const elegivel = Boolean(d.pode_abrir_e_atribuir);
     const prazo = descricaoPrazoListagem(d);
-    const quantidadeOrigens = Number(d.quantidade_origens || 0);
-    const resumoVinculos = d.situacoes_funcionais_resumo || (d.origens || [])[0]?.situacao_funcional || "Sem situação funcional registrada";
-    const vinculos = quantidadeOrigens > 1
-      ? `${escapeHtml(resumoVinculos)} <span class="badge badge-neutral">+${quantidadeOrigens - 1}</span>`
-      : escapeHtml(resumoVinculos);
+    /**
+     * Exibe uma situação funcional representativa e um mini-badge com as
+     * demais origens. O tooltip preserva a consulta do conjunto completo.
+     */
+    const origens = Array.isArray(d.origens) ? d.origens : [];
+    const quantidadeOrigens = Math.max(Number(d.quantidade_origens || 0), origens.length);
+    const situacoes = [...new Set(origens.map(origem => origem.situacao_funcional).filter(Boolean))];
+    const vinculoPrincipal = situacoes[0] || d.situacoes_funcionais_resumo || "Sem situação funcional registrada";
+    const vinculosCompletos = situacoes.length ? situacoes.join(" · ") : vinculoPrincipal;
+    const adicionais = Math.max(0, quantidadeOrigens - 1);
+    const vinculos = `<span class="bond-primary">${escapeHtml(vinculoPrincipal)}</span>${adicionais ? `<span class="bond-count" title="${escapeHtml(vinculosCompletos)}">+${adicionais}</span>` : ""}`;
     const prioridade = d.nome_prioridade || "Não definida";
     const diasEstoque = Number(d.dias_de_espera || 0);
 
@@ -436,7 +495,7 @@ function renderizarDemandas() {
       <td class="col-indicio sticky-indicio"><strong>${escapeHtml(d.identificador_do_indicio)}</strong><br><small>${escapeHtml(d.base_de_dados)}</small></td>
       <td class="col-pessoa cell-person"><strong>${escapeHtml(d.nome_atual)}</strong><span>${escapeHtml(d.cpf_mascarado)}</span></td>
       <td class="col-tipo"><div class="truncate" title="${escapeHtml(d.tipo_indicio)}">${escapeHtml(d.tipo_indicio)}</div></td>
-      <td class="col-vinculos"><div class="truncate" title="${escapeHtml(resumoVinculos)}">${vinculos}</div></td>
+      <td class="col-vinculos"><div class="truncate" title="${escapeHtml(vinculosCompletos)}">${vinculos}</div></td>
       <td class="col-situacao"><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td class="col-prioridade"><span class="priority-badge ${classePrioridade(d.codigo_prioridade)}">${escapeHtml(prioridade)}</span></td>
       <td class="col-operador">${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
@@ -600,6 +659,8 @@ function atualizarResumoFiltrosAtuais() {
 
   const titulos = {
     DISPONIVEL_PARA_ATRIBUICAO: "Indícios disponíveis para atribuição",
+    PENDENTE: "Indícios aguardando início",
+    PENDENTE: "Indícios aguardando início",
     PENDENTE_DE_TRATAMENTO: "Indícios aguardando início",
     EM_TRATAMENTO: "Indícios em tratamento"
   };
@@ -773,7 +834,7 @@ function registrarEventos() {
       el.semResponsavelCheck.checked = false;
       el.multiplasCheck.checked = false;
       el.analiseCheck.checked = false;
-      if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE_DE_TRATAMENTO", "EM_TRATAMENTO"].includes(t)) {
+      if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE", "EM_TRATAMENTO"].includes(t)) {
         el.situacaoSelect.value = t;
       } else if (t === "SEM_RESPONSAVEL") {
         el.semResponsavelCheck.checked = true;
