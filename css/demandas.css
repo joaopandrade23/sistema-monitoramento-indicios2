@@ -638,3 +638,19 @@
 #atribuicaoOverlay .history-filters { grid-template-columns:minmax(240px,2fr) repeat(5,minmax(145px,1fr)); }
 @media(max-width:1100px){#atribuicaoOverlay .history-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){#atribuicaoOverlay .history-filters{grid-template-columns:1fr}}
+
+/* ASSISTENTES DE OPERACAO ADMINISTRATIVA */
+.admin-operation-modal .modal-header .eyebrow{color:var(--primary)}
+.admin-operation-modal .wizard-main{min-height:430px}
+.admin-operation-modal .wizard-panel{animation:fade .16s ease}
+.admin-operation-modal .wizard-section-heading{margin-bottom:18px}
+.admin-operation-modal .wizard-section-heading span{color:var(--primary);font-size:.72rem;font-weight:800;text-transform:uppercase}
+.admin-operation-modal .wizard-section-heading h3{margin:5px 0}.admin-operation-modal .wizard-section-heading p{margin:0;color:var(--muted)}
+.admin-operation-modal .wizard-step.complete{color:var(--success)}.admin-operation-modal .wizard-step.complete b{background:var(--success);color:#fff}.admin-operation-modal .wizard-step.complete b:after{content:"✓"}.admin-operation-modal .wizard-step.complete b{font-size:0}.admin-operation-modal .wizard-step.complete b:after{font-size:.8rem}
+.admin-operation-modal .wizard-footer{justify-content:space-between}.wizard-footer-nav{display:flex;gap:9px}
+.wizard-summary-list{display:grid;gap:0;margin:0}.wizard-summary-list div{padding:10px 0;border-bottom:1px solid var(--line)}.wizard-summary-list div:last-child{border-bottom:0}.wizard-summary-list dt{color:var(--muted);font-size:.72rem}.wizard-summary-list dd{margin:4px 0 0;font-weight:750}.wizard-summary-list .summary-success{color:var(--success)}
+.review-accept{margin-top:18px;padding:13px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+.admin-operation-modal .collaborator-option span strong,.admin-operation-modal .collaborator-option span small{display:block}.admin-operation-modal .collaborator-option span small{margin-top:3px;color:var(--muted)}
+.admin-operation-modal .preview-panel[data-lote-panel="5"],.admin-operation-modal .preview-panel[data-red-panel="4"]{margin-top:0}
+.confirmation-panel #redistribuicaoConfirmacaoResumo .preview-panel{margin:0}
+@media(max-width:760px){.admin-operation-modal .wizard-footer,.wizard-footer-nav{align-items:stretch;flex-direction:column}.wizard-footer-nav .btn{width:100%}}
