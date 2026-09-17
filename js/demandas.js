@@ -301,58 +301,23 @@ async function confirmarLote() {
   }
 }
 
-/**
- * Indícios concluídos operacionalmente pertencem exclusivamente à tela
- * Concluídas, mesmo quando o ciclo ainda aparece como vigente no banco.
- */
-function indicioConcluidoOperacionalmente(indicio = {}) {
-  const codigo = String(indicio.situacao_operacional || indicio.codigo_status_ciclo || "");
-  return Boolean(indicio.encerrado_em) || [
-    "ENCERRADO_INTERNAMENTE",
-    "VALIDADO_TCU",
-    "CANCELADO"
-  ].includes(codigo);
-}
-
-/** Normaliza os dois códigos históricos usados para a mesma etapa do fluxo. */
-function situacaoAtualNormalizada(indicio = {}) {
-  const codigo = String(indicio.situacao_operacional || indicio.codigo_status_ciclo || "");
-  return codigo === "PENDENTE_DE_TRATAMENTO" ? "PENDENTE" : codigo;
-}
-
 async function carregarResumo() {
   /**
-   * Os quatro indicadores são calculados pelo mesmo contrato da listagem.
-   * Isso evita divergência entre o número do card e o resultado do clique.
+   * O resumo volta a ser calculado integralmente no backend. A RPC
+   * resumo_demandas_gestao agora utiliza o mesmo universo da listagem:
+   * somente indícios atuais, sem estados terminais.
    */
-  const { data, error } = await sb.rpc("listar_demandas_gestao", {
-    p_busca: null,
-    p_situacao_operacional: null,
-    p_id_operador: null,
-    p_id_tipo_indicio: null,
-    p_codigo_prioridade: null,
-    p_codigo_modo: null,
-    p_apenas_multiplas_origens: null,
-    p_apenas_sem_responsavel: null,
-    p_apenas_requer_analise: null,
-    p_ordenacao: "DIAS_ESPERA_DESC",
-    p_pagina: 1,
-    p_tamanho_pagina: 5000,
-    p_situacao_prazo: null
-  });
+  const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
 
-  const atuais = (data?.itens || []).filter(item => !indicioConcluidoOperacionalmente(item));
-  const contar = codigo => atuais.filter(item => situacaoAtualNormalizada(item) === codigo).length;
+  el.cardDisponiveis.textContent = Number(data?.disponiveis_para_atribuicao ?? 0);
+  el.cardPendentes.textContent = Number(data?.pendentes_de_tratamento ?? 0);
+  el.cardEmTratamento.textContent = Number(data?.em_tratamento ?? 0);
+  el.cardSemResponsavel.textContent = Number(data?.sem_responsavel ?? 0);
 
-  el.cardDisponiveis.textContent = contar("DISPONIVEL_PARA_ATRIBUICAO");
-  el.cardPendentes.textContent = contar("PENDENTE");
-  el.cardEmTratamento.textContent = contar("EM_TRATAMENTO");
-  el.cardSemResponsavel.textContent = atuais.filter(item => !item.id_operador_principal && !item.nome_operador_principal).length;
-
-  // Elementos ocultos mantidos apenas para compatibilidade com módulos futuros.
-  el.cardTotal.textContent = atuais.length;
-  el.cardMultiplas.textContent = atuais.filter(item => Number(item.quantidade_origens || 0) > 1).length;
+  // Elementos ocultos permanecem apenas para compatibilidade estrutural.
+  el.cardTotal.textContent = Number(data?.total_demandas ?? 0);
+  el.cardMultiplas.textContent = Number(data?.com_multiplas_origens ?? 0);
 }
 
 function parametrosListagem() {
@@ -381,54 +346,35 @@ async function carregarDemandas() {
   el.demandasTbody.innerHTML = "";
 
   try {
-    const parametros = parametrosListagem();
-    const paginaDesejada = estado.paginacao.pagina;
-    const tamanho = estado.paginacao.tamanho;
-
     /**
-     * A RPC atual ainda pode devolver ciclos encerrados no escopo geral. Para
-     * preservar totais e paginação coerentes, a tela obtém o conjunto filtrado,
-     * exclui terminais e somente então pagina localmente. O limite de 5.000 é
-     * superior ao estoque atual e deve ser revisto se o volume crescer.
+     * A paginação e a exclusão dos estados terminais são executadas no banco.
+     * O frontend envia somente os filtros e consome a página devolvida pela RPC.
      */
-    const { data, error } = await sb.rpc("listar_demandas_gestao", {
-      ...parametros,
-      p_situacao_operacional: parametros.p_situacao_operacional === "PENDENTE" ? "PENDENTE" : parametros.p_situacao_operacional,
-      p_pagina: 1,
-      p_tamanho_pagina: 5000
-    });
+    const { data, error } = await sb.rpc(
+      "listar_demandas_gestao",
+      parametrosListagem()
+    );
     if (error) throw error;
 
-    let filtrados = (data?.itens || []).filter(item => !indicioConcluidoOperacionalmente(item));
+    estado.demandas = data?.itens || [];
 
-    // Compatibilidade: alguns ambientes ainda devolvem PENDENTE_DE_TRATAMENTO.
-    if (estado.filtros.situacao === "PENDENTE") {
-      filtrados = filtrados.filter(item => situacaoAtualNormalizada(item) === "PENDENTE");
-    }
-
-    const total = filtrados.length;
-    const totalPaginas = Math.ceil(total / tamanho);
-    const pagina = Math.min(Math.max(paginaDesejada, 1), Math.max(totalPaginas, 1));
-    const inicio = (pagina - 1) * tamanho;
-    const fim = Math.min(inicio + tamanho, total);
-
-    estado.demandas = filtrados.slice(inicio, fim);
-    estado.paginacao = { pagina, tamanho, total, totalPaginas };
+    const paginacao = data?.paginacao || {};
+    estado.paginacao = {
+      pagina: Number(paginacao.pagina || 1),
+      tamanho: Number(paginacao.tamanho_pagina || estado.paginacao.tamanho || 20),
+      total: Number(paginacao.total_registros || 0),
+      totalPaginas: Number(paginacao.total_paginas || 0)
+    };
 
     renderizarDemandas();
-    renderizarPaginacao({
-      pagina,
-      total_paginas: totalPaginas,
-      total_registros: total,
-      registro_inicial: total ? inicio + 1 : 0,
-      registro_final: fim,
-      possui_pagina_anterior: pagina > 1,
-      possui_proxima_pagina: pagina < totalPaginas
-    });
+    renderizarPaginacao(paginacao);
   } catch (error) {
     console.error(error);
     el.estadoTabela.innerHTML = "<strong>Não foi possível carregar.</strong><span>Tente atualizar a página.</span>";
-    exibirMensagem(mensagemErro(error, "Não foi possível carregar os indícios."), "error");
+    exibirMensagem(
+      mensagemErro(error, "Não foi possível carregar os indícios."),
+      "error"
+    );
   } finally {
     estado.carregando = false;
     atualizarControles();
