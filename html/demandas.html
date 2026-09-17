@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -36,7 +35,7 @@
 <p>Acompanhe o estoque, os prazos, a distribuição do trabalho e o histórico integral da equipe.</p>
 </div>
 <div class="heading-actions">
-<button class="btn" id="atualizarBtn" type="button">↻ Atualizar</button>
+<button class="btn" id="atualizarBtn" type="button">Atualizar dados</button>
 <div class="assignment-menu" id="assignmentMenu">
 <button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">
             Atribuir demandas <span aria-hidden="true">▾</span>
@@ -188,7 +187,6 @@
 <label><input id="multiplasCheck" type="checkbox"/> Apenas múltiplos vínculos</label>
 <label><input id="analiseCheck" type="checkbox"/> Apenas requerem análise</label>
 </div>
-
 <div class="filter-actions"><button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button><button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar filtros</button></div></div>
 </div></section>
 <section class="panel list-panel">
@@ -208,7 +206,9 @@
 </select>
 </label>
 </div>
-<div class="table-scroll">
+
+
+</div><div class="table-scroll">
 <table aria-label="Lista de demandas">
 <thead>
 <tr>
@@ -228,18 +228,15 @@
 </thead>
 <tbody id="demandasTbody"></tbody>
 </table>
-
 </div><div class="empty" id="estadoTabela">
 <strong>Carregando demandas...</strong>
 <span>Aguarde um momento.</span>
-</div>
-<div class="pagination">
+</div><div class="pagination">
 <div class="pagination-info" id="paginacaoInfo">Carregando...</div>
 <div class="pagination-actions">
 <button class="btn" disabled="" id="paginaAnteriorBtn" type="button">Anterior</button>
 <span id="paginaAtualInfo">Página 1</span>
 <button class="btn" disabled="" id="proximaPaginaBtn" type="button">Próxima</button>
-</div>
 </div>
 </div></section>
 </section>
@@ -247,10 +244,10 @@
 <div class="readonly-banner"><strong>Somente leitura</strong><span>Consulte ciclos encerrados, participantes históricos, processos SEI e movimentações.</span></div>
 <section class="concluded-metrics" id="metricasConcluidas"></section>
 <section class="panel filter-panel concluded-filters"><div class="section-toolbar"><div><h2>Filtros das concluídas</h2><p>Use o período de encerramento e os dados históricos para refinar a consulta.</p></div></div><div class="filter-grid"><div class="field"><label for="concluidaBusca">Pessoa, indício ou processo SEI</label><input class="control" id="concluidaBusca" type="search"/></div><div class="field"><label for="concluidaInicio">Conclusão inicial</label><input class="control" id="concluidaInicio" type="date"/></div><div class="field"><label for="concluidaFim">Conclusão final</label><input class="control" id="concluidaFim" type="date"/></div><div class="field"><label for="concluidaTipo">Tipo de indício</label><select class="control" id="concluidaTipo"><option value="">Todos</option></select></div></div><div class="filter-footer"><span></span><div class="filter-actions"><button class="btn btn-ghost" id="limparConcluidasBtn" type="button">Limpar</button><button class="btn btn-primary" id="aplicarConcluidasBtn" type="button">Pesquisar</button></div></div></section>
-<section class="panel"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br/><small id="resumoConcluidas">Consulta do ciclo histórico em modo somente leitura.</small></div><div class="toolbar-actions"><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button><button class="btn" id="exportarConcluidasPdfBtn" type="button">Exportar relatório em PDF</button></div></div><div class="table-state" id="concluidasConteudo">Abra esta aba para carregar os registros.</div><div class="pagination" id="paginacaoConcluidas"><div class="pagination-info" id="infoConcluidas">Nenhum registro carregado</div></div></section>
+<section class="panel concluded-list-panel"><div class="table-toolbar"><div><strong>Demandas concluídas</strong><br/><small id="resumoConcluidas">Consulta do ciclo histórico em modo somente leitura.</small></div><div class="toolbar-actions"><button class="btn" id="exportarConcluidasBtn" type="button">Exportar CSV</button><button class="btn" id="exportarConcluidasPdfBtn" type="button">Exportar relatório em PDF</button></div></div><div class="table-state" id="concluidasConteudo">Abra esta aba para carregar os registros.</div><div class="pagination" id="paginacaoConcluidas"><div class="pagination-info" id="infoConcluidas">Nenhum registro carregado</div></div></section>
 </section>
 </main>
-<div class="overlay" hidden="" id="atribuicaoOverlay"><section aria-labelledby="modalNome" aria-modal="true" class="modal operator-modal" role="dialog" tabindex="-1">
+<div class="overlay" hidden="" id="atribuicaoOverlay"><section aria-describedby="modalTipo" aria-labelledby="modalNome" aria-modal="true" class="modal operator-modal" role="dialog" tabindex="-1">
 <header class="operator-head"><div><span class="eyebrow">Indício <strong id="modalIdentificador"></strong></span><h2 id="modalNome"></h2><div class="head-meta"><span id="modalCpf"></span><span>•</span><span id="modalTipo"></span></div></div><div><span class="badge" id="modalSituacao"></span><button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharModalBtn" type="button">×</button></div></header>
 <div class="context-strip context-strip-6"><div><span>Ciclo</span><strong id="modalCicloResumo">Não informado</strong></div><div><span>Prioridade</span><strong id="modalPrioridade"></strong></div><div><span>Prazo</span><strong id="modalPrazo"></strong></div><div><span>Responsável principal</span><strong id="modalOperador"></strong></div><div><span>Processos SEI</span><strong id="modalProcessosQtd">0</strong></div><div><span>Atualização no e-Pessoal</span><strong id="modalAtualizacaoEPessoal">Não informada</strong></div></div>
 <nav class="tabs"><button class="tab active" data-detail-tab="detalhes" type="button">Detalhes</button><button class="tab" data-detail-tab="equipe" type="button">Equipe e ciclo</button><button class="tab" data-detail-tab="processos" type="button">Processos SEI</button><button class="tab" data-detail-tab="historico" type="button">Histórico integral</button><button class="tab" data-detail-tab="relatorio" type="button">Relatório</button></nav>
@@ -394,5 +391,5 @@
 </div>
 <!-- JavaScript Principal -->
 <script src="../js/demandas.js" type="module"></script>
-</body>
+<div class="overlay" hidden="" id="confirmacaoOverlay"><section aria-labelledby="confirmacaoTitulo" aria-modal="true" class="modal confirm-modal" role="dialog"><header class="modal-header"><h2 id="confirmacaoTitulo">Confirmar ação</h2></header><div class="modal-body" id="confirmacaoCorpo"></div><footer class="modal-footer"><button class="btn" id="confirmacaoCancelar" type="button">Cancelar</button><button class="btn btn-danger" id="confirmacaoOk" type="button">Confirmar</button></footer></section></div></body>
 </html>
