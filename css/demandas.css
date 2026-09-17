@@ -259,3 +259,58 @@
 #secaoDemandasAtuais .metric-validation strong { color: var(--accent); }
 #secaoDemandasAtuais .metric-value-row { align-items: center; }
 #secaoDemandasAtuais .metric-icon-placeholder { display: none !important; }
+
+
+/* ==========================================================================
+   TELA INDÍCIOS CONCLUÍDOS
+   Consulta histórica em somente leitura. O Painel e Indícios atuais não são
+   alterados pelas regras abaixo.
+   ========================================================================== */
+#secaoConcluidasGestao .concluded-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.concluded-metric { --metric-color: var(--primary); min-height: 108px; padding: 15px; border: 1px solid color-mix(in srgb,var(--metric-color) 35%,var(--line)); border-top: 4px solid var(--metric-color); border-radius: 14px; background: linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--metric-color) 8%,var(--surface))); }
+.concluded-metric span,.concluded-metric small { display:block; color:var(--muted); font-size:.78rem; }
+.concluded-metric strong { display:block; margin:7px 0; color:var(--metric-color); font-size:1.65rem; }
+.concluded-metric.tone-internal { --metric-color:#10b981; }
+.concluded-metric.tone-validated { --metric-color:#15803d; }
+.concluded-metric.tone-cancelled { --metric-color:#64748b; }
+#secaoConcluidasGestao .concluded-primary-filters { grid-template-columns:minmax(320px,2fr) repeat(3,minmax(180px,1fr)); }
+#secaoConcluidasGestao .concluded-advanced-filters { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+#secaoConcluidasGestao .concluded-advanced-grid { grid-template-columns:repeat(4,minmax(180px,1fr)); }
+#secaoConcluidasGestao .concluded-table { min-width:1760px; table-layout:fixed; }
+#secaoConcluidasGestao .concluded-col-expand { width:56px; min-width:56px; text-align:center; }
+#secaoConcluidasGestao .concluded-col-indicio { width:125px; }
+#secaoConcluidasGestao .concluded-col-pessoa { width:220px; }
+#secaoConcluidasGestao .concluded-col-tipo { width:250px; }
+#secaoConcluidasGestao .concluded-col-status { width:190px; }
+#secaoConcluidasGestao .concluded-col-responsavel { width:205px; }
+#secaoConcluidasGestao .concluded-col-sei { width:190px; }
+#secaoConcluidasGestao .concluded-col-data { width:165px; }
+#secaoConcluidasGestao .concluded-col-duracao { width:165px; }
+#secaoConcluidasGestao .concluded-col-ciclo { width:100px; }
+#secaoConcluidasGestao .concluded-col-acoes { width:115px; }
+#secaoConcluidasGestao .sticky-concluded-expand { position:sticky; left:0; z-index:4; background:var(--surface); }
+#secaoConcluidasGestao .sticky-concluded-indicio { position:sticky; left:56px; z-index:3; background:var(--surface); box-shadow:8px 0 12px -12px rgba(0,0,0,.55); }
+#secaoConcluidasGestao thead .concluded-col-expand { position:sticky; left:0; z-index:7; background:var(--surface-2); }
+#secaoConcluidasGestao thead .concluded-col-indicio { position:sticky; left:56px; z-index:6; background:var(--surface-2); }
+#secaoConcluidasGestao .sticky-concluded-actions { position:sticky; right:0; z-index:3; background:var(--surface); box-shadow:-8px 0 12px -12px rgba(0,0,0,.55); }
+#secaoConcluidasGestao thead .concluded-col-acoes { position:sticky; right:0; z-index:6; background:var(--surface-2); }
+#secaoConcluidasGestao tr.is-expanded > .sticky-concluded-expand,
+#secaoConcluidasGestao tr.is-expanded > .sticky-concluded-indicio,
+#secaoConcluidasGestao tr.is-expanded > .sticky-concluded-actions { background:var(--primary-soft); }
+#secaoConcluidasGestao tr.is-expanded { background:color-mix(in srgb,var(--primary-soft) 62%,transparent); }
+.concluded-expand-btn { display:grid; place-items:center; width:36px; height:36px; margin:auto; border:1px solid color-mix(in srgb,var(--primary) 42%,var(--line)); border-radius:10px; background:var(--primary-soft); color:var(--primary); font-size:1.15rem; font-weight:900; transition:.18s ease; }
+.concluded-expand-btn:hover:not(:disabled),.concluded-expand-btn.is-expanded { border-color:var(--primary); background:var(--primary); color:#fff; transform:translateY(-1px); }
+.concluded-expand-btn:disabled { opacity:.6; }
+.concluded-clamp { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; white-space:normal; line-height:1.35; }
+#secaoConcluidasGestao .concluded-row-detail td { position:relative; padding:0; background:var(--surface-2); }
+#secaoConcluidasGestao .concluded-expansion { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; width:min(100%,calc(100vw - 70px)); padding:20px; border:0; border-top:3px solid var(--primary); }
+#secaoConcluidasGestao .concluded-expansion article { min-height:170px; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+#secaoConcluidasGestao .concluded-expansion h3 { margin:0 0 14px; color:var(--text); font-size:.95rem; }
+#secaoConcluidasGestao .concluded-expansion p { color:var(--muted); line-height:1.45; }
+#secaoConcluidasGestao .concluded-expansion dl { margin:12px 0 0; }
+#secaoConcluidasGestao .concluded-expansion dl div { margin-top:9px; }
+#secaoConcluidasGestao .concluded-expansion dt { color:var(--muted); font-size:.72rem; text-transform:uppercase; }
+#secaoConcluidasGestao .concluded-expansion dd { margin:2px 0 0; color:var(--text); font-weight:650; }
+.sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+@media(max-width:1100px){#secaoConcluidasGestao .concluded-metrics{grid-template-columns:repeat(2,1fr)}#secaoConcluidasGestao .concluded-primary-filters,#secaoConcluidasGestao .concluded-advanced-grid{grid-template-columns:repeat(2,1fr)}#secaoConcluidasGestao .concluded-expansion{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){#secaoConcluidasGestao .concluded-metrics,#secaoConcluidasGestao .concluded-primary-filters,#secaoConcluidasGestao .concluded-advanced-grid,#secaoConcluidasGestao .concluded-expansion{grid-template-columns:1fr}}
