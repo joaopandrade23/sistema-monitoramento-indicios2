@@ -535,3 +535,70 @@
 #equipeOverlay .team-panel .field { margin-top:14px; }
 #equipeOverlay .modal-footer { justify-content:flex-end; }
 @media(max-width:680px){#equipeOverlay .team-current,#equipeOverlay .team-tabs{grid-template-columns:1fr}}
+
+
+/* ==========================================================================
+   CORREÇÕES DE CONSISTÊNCIA DA ETAPA 2
+   Modal principal e modal secundário utilizam a mesma composição normalizada.
+   ========================================================================== */
+#atribuicaoOverlay .detail-bonds .bond-count {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 29px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--primary) 38%, var(--line));
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: .71rem;
+  font-weight: 850;
+  line-height: 1;
+  cursor: help;
+}
+#atribuicaoOverlay .team-history-summary {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+}
+#atribuicaoOverlay .team-history-summary > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+#atribuicaoOverlay .team-history-summary > div strong {
+  color: var(--primary);
+  font-size: 1.3rem;
+}
+#atribuicaoOverlay .team-history-summary > div span,
+#atribuicaoOverlay .team-history-summary p {
+  color: var(--muted);
+}
+#atribuicaoOverlay .team-history-summary p { margin: 0; line-height: 1.45; }
+#atribuicaoOverlay .team-history-summary .btn { justify-self: start; }
+#atribuicaoOverlay .team-history-summary.is-empty { color: var(--muted); }
+#atribuicaoOverlay .team-audit-note {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+#atribuicaoOverlay .team-layout.is-readonly-layout {
+  grid-template-columns: 1fr;
+}
+#atribuicaoOverlay .team-layout.is-readonly-layout .team-action-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+#atribuicaoOverlay .team-layout.is-readonly-layout .readonly-callout {
+  min-height: 0;
+}
+#equipeOverlay .operator-choice-copy em:empty { display: none; }
