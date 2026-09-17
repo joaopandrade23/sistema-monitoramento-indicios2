@@ -336,3 +336,141 @@
 #secaoConcluidasGestao .concluded-external-detail .concluded-expansion article { min-height:0; }
 #secaoConcluidasGestao .concluded-table-wrap { margin-bottom:0; }
 @media(max-width:760px){#secaoConcluidasGestao .concluded-detail-heading{align-items:flex-start;flex-direction:column}#secaoConcluidasGestao .concluded-detail-heading div{align-items:flex-start;flex-direction:column;gap:3px}}
+
+
+/* ==========================================================================
+   MODAL DE DETALHES | ETAPA 1: ESTRUTURA E CONTEXTO
+   Cabeçalho, contexto do ciclo, navegação, rodapé e somente leitura.
+   As telas já homologadas não são alteradas por este bloco.
+   ========================================================================== */
+#atribuicaoOverlay .operator-modal {
+  width: min(1280px, calc(100vw - 28px));
+  height: min(94vh, 900px);
+  max-height: 94vh;
+}
+#atribuicaoOverlay .detail-modal-head {
+  flex: 0 0 auto;
+  padding: 18px 20px 14px;
+}
+#atribuicaoOverlay .detail-modal-head h2 {
+  margin: 6px 0;
+  line-height: 1.18;
+}
+#atribuicaoOverlay .detail-head-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  max-width: 980px;
+}
+#atribuicaoOverlay .detail-head-meta > span:nth-child(2) { display: none; }
+#atribuicaoOverlay #modalCpf { white-space: nowrap; }
+#atribuicaoOverlay #modalTipo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.35;
+}
+#atribuicaoOverlay .context-strip {
+  flex: 0 0 auto;
+}
+#atribuicaoOverlay .context-strip > div {
+  min-width: 0;
+}
+#atribuicaoOverlay .context-strip strong {
+  display: block;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+#atribuicaoOverlay .context-origin {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .7rem;
+}
+#atribuicaoOverlay .cycle-mode-banner {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: .8rem;
+}
+#atribuicaoOverlay .cycle-mode-banner strong { white-space: nowrap; }
+#atribuicaoOverlay .cycle-mode-banner span { color: var(--muted); }
+#atribuicaoOverlay .cycle-mode-banner.is-readonly {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning-soft) 72%, var(--surface));
+}
+#atribuicaoOverlay .cycle-mode-banner.is-editable {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success-soft) 72%, var(--surface));
+}
+#atribuicaoOverlay .tabs {
+  flex: 0 0 auto;
+  background: var(--surface);
+}
+#atribuicaoOverlay .tab-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+#atribuicaoOverlay .detail-footer-clean {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  background: var(--surface);
+}
+#atribuicaoOverlay .cycles-context-block {
+  margin-bottom: 20px;
+}
+#atribuicaoOverlay .cycle-empty-state,
+#atribuicaoOverlay .cycle-single-summary {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+#atribuicaoOverlay .cycle-empty-state span,
+#atribuicaoOverlay .cycle-single-summary span,
+#atribuicaoOverlay .cycle-single-summary small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+#atribuicaoOverlay .cycle-single-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.4fr) auto auto;
+  align-items: center;
+  gap: 14px;
+}
+#atribuicaoOverlay .cycle-selector {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+#atribuicaoOverlay .cycle-card {
+  min-height: 112px;
+}
+#atribuicaoOverlay .cycle-card.active {
+  background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface));
+}
+#atribuicaoOverlay .readonly-callout {
+  line-height: 1.45;
+}
+#atribuicaoOverlay .readonly-callout strong { display: block; }
+#atribuicaoOverlay .readonly-callout p { margin-bottom: 0; }
+@media (max-width: 1000px) {
+  #atribuicaoOverlay .context-strip { grid-template-columns: repeat(3, 1fr); }
+  #atribuicaoOverlay .cycle-single-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  #atribuicaoOverlay .detail-modal-head { align-items: flex-start; }
+  #atribuicaoOverlay .detail-head-meta { grid-template-columns: 1fr; }
+  #atribuicaoOverlay .context-strip { grid-template-columns: repeat(2, 1fr); }
+  #atribuicaoOverlay .cycle-mode-banner { align-items: flex-start; flex-direction: column; gap: 3px; }
+  #atribuicaoOverlay .cycle-single-summary { grid-template-columns: 1fr; }
+  #atribuicaoOverlay .tab-panel { padding: 16px; }
+}
