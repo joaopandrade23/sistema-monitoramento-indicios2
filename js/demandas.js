@@ -19,11 +19,11 @@ const estado = {
   concluidas: { itens: [], detalhes: new Map(), selecionadas: new Map(), pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   redistribuicao: { criterio: null, previa: null, assinatura: null },
   buscaTimer: null,
-  cardAtivo: "TODAS",
+  cardAtivo: "DISPONIVEL_PARA_ATRIBUICAO",
   paginacao: { pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   filtros: {
     busca: "",
-    situacao: "",
+    situacao: "DISPONIVEL_PARA_ATRIBUICAO",
     idOperador: null,
     idTipoIndicio: null,
     codigoPrioridade: null,
@@ -37,7 +37,7 @@ const estado = {
 
 const ids = [
 "redistributionMenu","redistributionMenuPopover","redistribuirDemandasBtn","redistribuirPorTipoBtn","redistribuirPorCpfBtn","gerenciarEquipeBtn","equipeOverlay","fecharEquipeBtn","cancelarEquipeBtn","equipeResumoAtual","equipeAbaAdicionar","equipeAbaRemover","equipeAbaRedistribuir","equipePainelAdicionar","equipePainelRemover","equipePainelRedistribuir","equipeDisponiveisLista","equipeAtivosLista","equipeConversaoAviso","incluirColaboradoresBtn","remocaoJustificativa","equipeNovoPrincipalSelect","equipeManterAnteriorCheck","equipeRedistribuicaoJustificativa","redistribuirIndividualBtn","equipeAviso","redistribuicaoOverlay","fecharRedistribuicaoBtn","cancelarRedistribuicaoBtn","redistribuicaoTitulo","redistribuicaoCampoTipo","redistribuicaoCampoCpf","redistribuicaoTipoSelect","redistribuicaoCpfInput","redistribuicaoAtualSelect","redistribuicaoNovoSelect","redistribuicaoManterCheck","redistribuicaoJustificativa","redistribuicaoAviso","redistribuicaoPrevia","redistribuicaoResumo","redistribuicaoDetalhes","revisarRedistribuicaoBtn","confirmarRedistribuicaoBtn","loteOperadorLabel",
-"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
+"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardSemResponsavel","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","cardAtencao","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 const idsAusentes = ids.filter(id => !el[id]);
@@ -301,10 +301,14 @@ async function carregarResumo() {
   const { data, error } = await sb.rpc("resumo_demandas_gestao");
   if (error) throw error;
   
-  el.cardTotal.textContent = data?.total_demandas ?? 0;
+  // Indicadores visíveis da tela Demandas atuais.
   el.cardDisponiveis.textContent = data?.disponiveis_para_atribuicao ?? 0;
   el.cardPendentes.textContent = data?.pendentes_de_tratamento ?? 0;
   el.cardEmTratamento.textContent = data?.em_tratamento ?? 0;
+  el.cardAtencao.textContent = data?.requerem_analise ?? data?.com_multiplas_origens ?? 0;
+
+  // Elementos legados permanecem ocultos para compatibilidade com módulos futuros.
+  el.cardTotal.textContent = data?.total_demandas ?? 0;
   el.cardSemResponsavel.textContent = data?.sem_responsavel ?? 0;
   el.cardMultiplas.textContent = data?.com_multiplas_origens ?? 0;
 }
@@ -524,6 +528,21 @@ function atualizarCardAtivo(codigo = "TODAS") {
   });
 }
 
+/** Atualiza o resumo textual dos filtros efetivamente aplicados. */
+function atualizarResumoFiltrosAtuais() {
+  const ativos = [];
+  if (estado.filtros.busca) ativos.push(`Busca: ${estado.filtros.busca}`);
+  if (estado.filtros.situacao) ativos.push(rotuloSituacao(estado.filtros.situacao));
+  if (estado.filtros.idOperador) ativos.push(`Operador: ${el.operadorFiltroSelect.selectedOptions[0]?.textContent || "selecionado"}`);
+  if (estado.filtros.idTipoIndicio) ativos.push(`Tipo: ${el.tipoIndicioFiltroSelect.selectedOptions[0]?.textContent || "selecionado"}`);
+  if (estado.filtros.codigoPrioridade) ativos.push(`Prioridade: ${el.prioridadeFiltroSelect.selectedOptions[0]?.textContent || "selecionada"}`);
+  if (estado.filtros.situacaoPrazo) ativos.push(`Prazo: ${rotuloPainel(estado.filtros.situacaoPrazo)}`);
+  if (estado.filtros.semResponsavel) ativos.push("Sem responsável");
+  if (estado.filtros.multiplas) ativos.push("Com múltiplas origens");
+  if (estado.filtros.requerAnalise) ativos.push("Requerem análise");
+  el.resumoFiltrosAtuais.textContent = ativos.length ? `${ativos.length} filtro(s) ativo(s): ${ativos.join(" · ")}` : "Nenhum filtro ativo";
+}
+
 function aplicarFiltros() {
   estado.filtros = {
     busca: el.buscaInput.value.trim(),
@@ -538,6 +557,7 @@ function aplicarFiltros() {
     requerAnalise: el.analiseCheck.checked ? true : null
   };
   estado.paginacao.pagina = 1;
+  atualizarResumoFiltrosAtuais();
   carregarDemandas();
 }
 
@@ -589,7 +609,7 @@ function exportarRelatorioGestor(){const d=estado.detalhe.dados,item=estado.deta
 function preencherResumoAtribuicao(){const principal=estado.operadores.find(x=>String(x.id_usuario)===el.loteOperadorSelect.value);el.resumoAssistenteAtribuicao.innerHTML=`<dl><div><dt>Escopo</dt><dd>${escapeHtml(estado.lote.criterio||"Não definido")}</dd></div><div><dt>Responsável</dt><dd>${escapeHtml(principal?.nome_exibicao||"Não selecionado")}</dd></div><div><dt>Modo</dt><dd>${escapeHtml(el.loteModoSelect.value||"INDIVIDUAL")}</dd></div><div><dt>Prioridade</dt><dd>${escapeHtml(el.lotePrioridadeSelect.value||"NORMAL")}</dd></div></dl>`}
 
 function registrarEventos() {
-  atualizarCardAtivo("TODAS");
+  atualizarCardAtivo("DISPONIVEL_PARA_ATRIBUICAO");
   el.redistribuirDemandasBtn.addEventListener("click",e=>{e.stopPropagation();alternarMenuRedistribuicao();});
   el.redistribuirPorTipoBtn.addEventListener("click",()=>abrirRedistribuicao("tipo"));
   el.redistribuirPorCpfBtn.addEventListener("click",()=>abrirRedistribuicao("cpf"));
@@ -638,7 +658,12 @@ function registrarEventos() {
   el.atribuirPorCpfBtn.addEventListener("click", () => abrirLote("cpf"));
 
   el.limparSelecaoBtn.addEventListener("click", limparSelecao);
-  el.toggleFiltrosAtuais.addEventListener("click",()=>{el.filtrosAtuaisConteudo.hidden=!el.filtrosAtuaisConteudo.hidden;el.toggleFiltrosAtuais.textContent=el.filtrosAtuaisConteudo.hidden?"Mostrar filtros":"Recolher filtros";el.toggleFiltrosAtuais.setAttribute("aria-expanded",String(!el.filtrosAtuaisConteudo.hidden))});
+  el.toggleFiltrosAtuais.addEventListener("click", () => {
+    const abrir = el.filtrosAvancadosAtuais.hidden;
+    el.filtrosAvancadosAtuais.hidden = !abrir;
+    el.toggleFiltrosAtuais.textContent = abrir ? "Recolher filtros ▴" : "Filtros avançados ▾";
+    el.toggleFiltrosAtuais.setAttribute("aria-expanded", String(abrir));
+  });
   el.acaoAtribuirSelecionadas.addEventListener("click",()=>abrirLote("selecionadas"));
   el.acaoRedistribuirSelecionadas.addEventListener("click",()=>{const d=[...estado.selecionadas.values()][0];if(d){abrirRedistribuicao("cpf");el.redistribuicaoCpfInput.value=d.cpf||""}});
   el.acaoEquipeSelecionada.addEventListener("click",()=>{if(estado.selecionadas.size===1){abrirDetalhe([...estado.selecionadas.values()][0]).then(()=>switchDetailTab("equipe"))}else exibirMensagem("Selecione apenas uma demanda para gerenciar a equipe.","warning")});
@@ -682,6 +707,7 @@ function registrarEventos() {
       if (["DISPONIVEL_PARA_ATRIBUICAO", "PENDENTE_DE_TRATAMENTO", "EM_TRATAMENTO"].includes(t)) el.situacaoSelect.value = t;
       else if (t === "SEM_RESPONSAVEL") el.semResponsavelCheck.checked = true;
       else if (t === "MULTIPLAS_ORIGENS") el.multiplasCheck.checked = true;
+      else if (t === "REQUER_ANALISE") el.analiseCheck.checked = true;
       aplicarFiltros();
     };
     card.addEventListener("click", fn);
@@ -1094,9 +1120,27 @@ async function exportarDemandas(concluidas) {
   const escopo = dom(concluidas ? "escopoExportacaoConcluidas" : "escopoExportacaoAtuais").value;
   const selecionadas = concluidas ? [...estado.concluidas.selecionadas.values()] : [...estado.selecionadas.values()];
   if (escopo === "SELECIONADOS" && !selecionadas.length) { exibirMensagem("Selecione ao menos uma demanda.", "warning"); return; }
+  const exportarTudo = !concluidas && escopo === "TODAS";
   const f = concluidas ? parametrosConcluidas() : parametrosListagem();
-  const args = { p_escopo: escopo, p_ids_indicios: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_indicio)) : null, p_ids_ciclos: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_ciclo_tratamento)).filter(Boolean) : null, p_apenas_concluidas: concluidas, p_busca: f.p_busca || null, p_id_operador: f.p_id_operador || null, p_id_tipo_indicio: f.p_id_tipo_indicio || null, p_codigo_status: concluidas ? f.p_codigo_status : f.p_situacao_operacional, p_codigo_prioridade: f.p_codigo_prioridade || null, p_data_inicial: concluidas ? f.p_data_inicial : null, p_data_final: concluidas ? f.p_data_final : null, p_pagina: concluidas ? estado.concluidas.pagina : estado.paginacao.pagina, p_tamanho_pagina: concluidas ? estado.concluidas.tamanho : estado.paginacao.tamanho };
-  try { const { data, error } = await sb.rpc("exportar_demandas_gestor", args); if (error) throw error; if (!data?.itens?.length) throw Error("Nenhum registro disponível para exportação."); baixarCsv(csvLinhas(data), `demandas_${concluidas ? "concluidas" : "atuais"}_${escopo.toLowerCase()}.csv`); exibirMensagem(`${data.quantidade_registros} registro(s) exportado(s).`, "success"); } catch (e) { exibirMensagem(e.message, "error"); }
+  const args = {
+    // A RPC homologada usa FILTRADOS. Para "Todas", enviamos esse escopo sem filtros.
+    p_escopo: exportarTudo ? "FILTRADOS" : escopo,
+    p_ids_indicios: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_indicio)) : null,
+    p_ids_ciclos: escopo === "SELECIONADOS" ? selecionadas.map(x => Number(x.id_ciclo_tratamento)).filter(Boolean) : null,
+    p_apenas_concluidas: concluidas,
+    p_busca: exportarTudo ? null : (f.p_busca || null),
+    p_id_operador: exportarTudo ? null : (f.p_id_operador || null),
+    p_id_tipo_indicio: exportarTudo ? null : (f.p_id_tipo_indicio || null),
+    p_codigo_status: exportarTudo ? null : (concluidas ? f.p_codigo_status : f.p_situacao_operacional),
+    p_codigo_prioridade: exportarTudo ? null : (f.p_codigo_prioridade || null),
+    p_data_inicial: exportarTudo ? null : (concluidas ? f.p_data_inicial : null),
+    p_data_final: exportarTudo ? null : (concluidas ? f.p_data_final : null),
+    p_pagina: exportarTudo ? 1 : (concluidas ? estado.concluidas.pagina : estado.paginacao.pagina),
+    p_tamanho_pagina: exportarTudo ? 5000 : (concluidas ? estado.concluidas.tamanho : estado.paginacao.tamanho)
+  };
+  try {
+    if (exportarTudo && !window.confirm("Exportar todas as demandas atuais? Os filtros aplicados serão ignorados.")) return;
+    const { data, error } = await sb.rpc("exportar_demandas_gestor", args); if (error) throw error; if (!data?.itens?.length) throw Error("Nenhum registro disponível para exportação."); baixarCsv(csvLinhas(data), `demandas_${concluidas ? "concluidas" : "atuais"}_${escopo.toLowerCase()}.csv`); exibirMensagem(`${data.quantidade_registros} registro(s) exportado(s).`, "success"); } catch (e) { exibirMensagem(e.message, "error"); }
 }
 async function abrirDetalheCompleto(item) {
   await abrirDetalhe(item); if (!estado.detalhe.dados) return;
@@ -1126,7 +1170,14 @@ function prepararNavegacaoGestao() {
   alterarAbaPrincipal("painel");
 }
 async function inicializarAplicacao() {
-  prepararNavegacaoGestao(); registrarEventos();
+  prepararNavegacaoGestao();
+
+  // Filtro inicial da tela: mostra primeiro o estoque realmente atribuível.
+  el.situacaoSelect.value = "DISPONIVEL_PARA_ATRIBUICAO";
+  atualizarCardAtivo("DISPONIVEL_PARA_ATRIBUICAO");
+  atualizarResumoFiltrosAtuais();
+
+  registrarEventos();
   try { await exigirAcesso(); await Promise.all([carregarOperadores(), carregarPrioridades(), carregarResumo(), carregarDemandas()]); await carregarTiposIndicio(); dom("concluidaOperador").innerHTML = '<option value="">Todos</option>' + estado.operadores.map(o=>`<option value="${o.id_usuario}">${escapeHtml(o.nome_exibicao)}</option>`).join(""); dom("concluidaPrioridade").innerHTML = '<option value="">Todas</option>' + estado.prioridades.map(p=>`<option value="${p.codigo_prioridade}">${escapeHtml(p.nome_prioridade)}</option>`).join(""); dom("concluidaTipo").innerHTML = '<option value="">Todos</option>' + estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join(""); }
   catch (error) { console.error(error); if (error.message !== "SESSAO_AUSENTE") exibirMensagem(mensagemErro(error, "Erro ao carregar dados do sistema."), "error"); }
 }
