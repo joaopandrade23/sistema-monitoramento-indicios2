@@ -644,7 +644,7 @@ function renderizarSeletorCiclos(ciclos = [], selecionado = null) {
   }).join("")}</div>`;
 }
 
-async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipe=ciclo.equipe||data.equipe||[];const principal=data.operador_principal||equipe.find(x=>x.papel_principal&&x.participacao_ativa)||{};const colaboradores=data.colaboradores||equipe.filter(x=>!x.papel_principal&&x.participacao_ativa);el.modalCpf.textContent=data.cpf_mascarado||data.cpf||d.cpf_mascarado;el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCard("CPF",data.cpf_mascarado||data.cpf||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`);el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML=processos.length?`<div class="process-list">${processos.map(x=>`<article class="process-detail-card ${x.processo_ativo===false?"inactive":""}"><h3>${escapeHtml(x.numero_processo)} ${x.processo_principal?'<span class="badge badge-primary">Principal</span>':""}</h3><p>${escapeHtml(x.assunto||"Sem assunto")}</p><small>Incluído em ${formatarDataHora(x.incluido_em)}</small></article>`).join("")}</div>`:'<div class="table-state">Nenhum processo SEI vinculado.</div>';try{const{data:hist,error:he}=await sb.rpc("listar_movimentacoes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:ciclo.id_ciclo_tratamento||d.id_ciclo_tratamento||null,p_categoria:null,p_data_inicial:null,p_data_final:null,p_pagina:1,p_tamanho_pagina:200});if(he)throw he;const rows=hist?.itens||[];estado.detalhe.historico=rows;el.painelRelatorioGestor.innerHTML=`<div class="report-cover"><span class="eyebrow">Relatório do indício</span><h3>Tratamento do indício ${escapeHtml(d.identificador_do_indicio)}</h3><p>O relatório reúne identificação, vínculos, ciclos, participantes, processos SEI e histórico operacional, administrativo e automático.</p><button class="btn btn-primary" type="button" data-export-report>Gerar relatório em PDF</button></div><div class="report-sections"><article><strong>Identificação e e-Pessoal</strong><p>Dados da pessoa, vínculos e origem.</p></article><article><strong>Ciclo e participantes</strong><p>Responsável principal, colaboradores e participantes históricos.</p></article><article><strong>Processos SEI</strong><p>Ativos, inativos e processo principal.</p></article><article><strong>Auditoria integral</strong><p>${rows.length} movimentação(ões) no ciclo selecionado.</p></article></div>`;el.painelHistoricoGestor.innerHTML=renderHistoricoConsolidado(rows)}catch(e){el.painelHistoricoGestor.innerHTML=`<div class="status-banner warning">Não foi possível carregar o histórico: ${escapeHtml(e.message)}</div>`}}catch(error){console.error(error);el.modalMensagemDetalhe.textContent=mensagemErro(error,"Não foi possível carregar os detalhes.");el.modalMensagemDetalhe.className="status-banner modal-message error";el.modalMensagemDetalhe.hidden=false;el.painelDetalhesGestor.innerHTML=dSection("Dados disponíveis",dCard("Indício",d.identificador_do_indicio)+dCard("Pessoa",d.nome_atual)+dCard("CPF",d.cpf_mascarado)+dCard("Tipo",d.tipo_indicio,"full"))}}
+async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipeNormalizada=normalizarEquipeDoCiclo(data,d);const principal=equipeNormalizada.principal;const colaboradores=equipeNormalizada.colaboradores;el.modalCpf.textContent=data.cpf_mascarado||data.cpf||d.cpf_mascarado;el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCard("CPF",data.cpf_mascarado||data.cpf||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`);el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML=processos.length?`<div class="process-list">${processos.map(x=>`<article class="process-detail-card ${x.processo_ativo===false?"inactive":""}"><h3>${escapeHtml(x.numero_processo)} ${x.processo_principal?'<span class="badge badge-primary">Principal</span>':""}</h3><p>${escapeHtml(x.assunto||"Sem assunto")}</p><small>Incluído em ${formatarDataHora(x.incluido_em)}</small></article>`).join("")}</div>`:'<div class="table-state">Nenhum processo SEI vinculado.</div>';try{const{data:hist,error:he}=await sb.rpc("listar_movimentacoes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:ciclo.id_ciclo_tratamento||d.id_ciclo_tratamento||null,p_categoria:null,p_data_inicial:null,p_data_final:null,p_pagina:1,p_tamanho_pagina:200});if(he)throw he;const rows=hist?.itens||[];estado.detalhe.historico=rows;el.painelRelatorioGestor.innerHTML=`<div class="report-cover"><span class="eyebrow">Relatório do indício</span><h3>Tratamento do indício ${escapeHtml(d.identificador_do_indicio)}</h3><p>O relatório reúne identificação, vínculos, ciclos, participantes, processos SEI e histórico operacional, administrativo e automático.</p><button class="btn btn-primary" type="button" data-export-report>Gerar relatório em PDF</button></div><div class="report-sections"><article><strong>Identificação e e-Pessoal</strong><p>Dados da pessoa, vínculos e origem.</p></article><article><strong>Ciclo e participantes</strong><p>Responsável principal, colaboradores e participantes históricos.</p></article><article><strong>Processos SEI</strong><p>Ativos, inativos e processo principal.</p></article><article><strong>Auditoria integral</strong><p>${rows.length} movimentação(ões) no ciclo selecionado.</p></article></div>`;el.painelHistoricoGestor.innerHTML=renderHistoricoConsolidado(rows)}catch(e){el.painelHistoricoGestor.innerHTML=`<div class="status-banner warning">Não foi possível carregar o histórico: ${escapeHtml(e.message)}</div>`}}catch(error){console.error(error);el.modalMensagemDetalhe.textContent=mensagemErro(error,"Não foi possível carregar os detalhes.");el.modalMensagemDetalhe.className="status-banner modal-message error";el.modalMensagemDetalhe.hidden=false;el.painelDetalhesGestor.innerHTML=dSection("Dados disponíveis",dCard("Indício",d.identificador_do_indicio)+dCard("Pessoa",d.nome_atual)+dCard("CPF",d.cpf_mascarado)+dCard("Tipo",d.tipo_indicio,"full"))}}
 function fecharDetalhe() {
   estado.detalhe.requisicao++;
   el.atribuicaoOverlay.hidden = true;
@@ -767,23 +767,28 @@ function renderizarEquipe(dados) {
     return;
   }
 
-  const principal = dados.operador_principal || {};
-  const colaboradores = dados.colaboradores || [];
-  const ciclo = dados.ciclo_selecionado || dados;
+  const equipeNormalizada = normalizarEquipeDoCiclo(dados, estado.detalhe.demanda || {});
+  const { principal, colaboradores, ciclo, nomeModo } = equipeNormalizada;
   el.equipeContextoCiclo.innerHTML = `<span>Indício ${escapeHtml(estado.detalhe.demanda?.identificador_do_indicio)}</span><strong>Ciclo ${ciclo.numero_ciclo || contexto.numero || "atual"}</strong>`;
-  el.equipeResumoAtual.innerHTML = `<article><span>Responsável atual</span><strong>${escapeHtml(principal.nome_exibicao, "Não atribuído")}</strong></article><article><span>Modo de trabalho</span><strong>${escapeHtml(dados.modo_trabalho?.nome || dados.modo_trabalho?.codigo || (colaboradores.length ? "Colaborativo" : "Individual"))}</strong><small>${colaboradores.length} ${colaboradores.length === 1 ? "colaborador ativo" : "colaboradores ativos"}</small></article>`;
+  el.equipeResumoAtual.innerHTML = `<article><span>Responsável atual</span><strong>${escapeHtml(principal.nome_exibicao, "Não atribuído")}</strong></article><article><span>Modo de trabalho</span><strong>${escapeHtml(nomeModo)}</strong><small>${colaboradores.length} ${colaboradores.length === 1 ? "colaborador ativo" : "colaboradores ativos"}</small></article>`;
 
-  const ativos = new Set([Number(principal.id_usuario), ...colaboradores.map(item => Number(item.id_usuario))]);
-  const disponiveis = estado.operadores.filter(item => !ativos.has(Number(item.id_usuario)));
-  el.equipeDisponiveisLista.innerHTML = disponiveis.length ? disponiveis.map(item => `<label class="operator-choice"><input type="checkbox" value="${item.id_usuario}"><span class="operator-choice-copy"><strong>${escapeHtml(item.nome_exibicao)}</strong><small>${escapeHtml(item.email_institucional, "E-mail não informado")}</small><em>${escapeHtml(resumoCargaOperador(item))}</em></span></label>`).join("") : '<div class="team-empty-state"><strong>Nenhum operador disponível</strong><span>Todos os operadores disponíveis já participam deste ciclo.</span></div>';
+  const ativosIds = new Set([principal.id_usuario, ...colaboradores.map(item => item.id_usuario)].filter(Boolean).map(Number));
+  const ativosNomes = new Set([principal.nome_exibicao, ...colaboradores.map(item => item.nome_exibicao)].filter(Boolean).map(nome => String(nome).toLowerCase()));
+  const disponiveis = estado.operadores.filter(item => !ativosIds.has(Number(item.id_usuario)) && !ativosNomes.has(String(item.nome_exibicao || "").toLowerCase()));
+  el.equipeDisponiveisLista.innerHTML = disponiveis.length ? disponiveis.map(item => {
+    const carga = resumoCargaOperador(item);
+    return `<label class="operator-choice"><input type="checkbox" value="${item.id_usuario}"><span class="operator-choice-copy"><strong>${escapeHtml(item.nome_exibicao)}</strong>${item.email_institucional ? `<small>${escapeHtml(item.email_institucional)}</small>` : ""}${carga ? `<em>${escapeHtml(carga)}</em>` : ""}</span></label>`;
+  }).join("") : '<div class="team-empty-state"><strong>Nenhum operador disponível</strong><span>Todos os operadores disponíveis já participam deste ciclo.</span></div>';
   el.equipeConversaoAviso.hidden = colaboradores.length > 0;
 
   el.equipeAtivosLista.innerHTML = colaboradores.length ? colaboradores.map(item => `<label class="removal-choice"><input type="radio" name="colaborador-remocao" value="${item.id_usuario}"><span><strong>${escapeHtml(item.nome_exibicao)}</strong><small>${periodoParticipacao(item)}</small></span></label>`).join("") : '<div class="team-empty-state"><strong>Nenhum colaborador ativo</strong><span>Não há participante elegível para remoção.</span></div>';
   el.remocaoJustificativa.closest(".field").hidden = !colaboradores.length;
+  el.confirmarRemocaoColaboradorBtn.hidden = !colaboradores.length;
+  el.equipePainelRemover.querySelector(".team-action-help").hidden = !colaboradores.length;
 
-  const temPrincipal = Boolean(principal.id_usuario);
+  const temPrincipal = Boolean(principal.id_usuario || principal.nome_exibicao);
   el.equipeNovoPrincipalSelect.previousElementSibling.textContent = temPrincipal ? "Novo responsável principal" : "Responsável principal";
-  el.equipeNovoPrincipalSelect.innerHTML = '<option value="">Selecione um operador</option>' + opcoesOperadores(temPrincipal ? [principal.id_usuario] : []);
+  el.equipeNovoPrincipalSelect.innerHTML = '<option value="">Selecione um operador</option>' + opcoesOperadores(principal.id_usuario ? [principal.id_usuario] : []);
   el.equipeManterAnteriorCheck.closest("label").hidden = !temPrincipal;
   el.redistribuirIndividualBtn.textContent = temPrincipal ? "Trocar responsável" : "Definir responsável";
   el.equipeRedistribuicaoJustificativa.placeholder = temPrincipal ? "Informe o motivo da troca" : "Informe o motivo da definição";
@@ -792,7 +797,11 @@ function renderizarEquipe(dados) {
 async function recarregarDetalheEquipe() {
   const id=Number(estado.detalhe.demanda?.id_indicio); if(!id)return;
   const {data,error}=await sb.rpc("obter_detalhes_demanda_modo",{p_id_indicio:id}); if(error)throw error;
-  estado.detalhe.dados=data; renderizarEquipe(data); return data;
+  const cicloSelecionado = estado.detalhe.cicloSelecionado || estado.detalhe.dados?.ciclo_selecionado;
+  estado.detalhe.dados = { ...estado.detalhe.dados, ...data, ciclo_selecionado: cicloSelecionado || data.ciclo_selecionado };
+  renderizarEquipe(estado.detalhe.dados);
+  el.painelEquipeGestor.innerHTML = renderEquipeConsolidada(estado.detalhe.dados, estado.detalhe.demanda);
+  return estado.detalhe.dados;
 }
 async function abrirEquipe() {
   const contexto = estado.detalhe.contextoCiclo;
@@ -805,7 +814,7 @@ async function abrirEquipe() {
 function fecharEquipe(){el.equipeOverlay.hidden=true; if(el.atribuicaoOverlay.hidden)document.body.style.overflow="";}
 async function incluirColaboradores(){try{const ids=[...el.equipeDisponiveisLista.querySelectorAll('input:checked')].map(x=>Number(x.value));if(!ids.length)throw Error("Selecione ao menos um colaborador.");el.incluirColaboradoresBtn.disabled=true;const {data,error}=await sb.rpc("incluir_colaboradores_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_ids_usuarios_colaboradores:ids});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Colaboradores incluídos.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível incluir."),"error");}finally{el.incluirColaboradoresBtn.disabled=false;}}
 async function removerColaborador(id){try{id = Number(id || el.equipeAtivosLista.querySelector('input[name="colaborador-remocao"]:checked')?.value);if(!id)throw Error("Selecione o colaborador que será removido.");const justificativa=el.remocaoJustificativa.value.trim();if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const {data,error}=await sb.rpc("remover_colaborador_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_id_usuario_colaborador:Number(id),p_justificativa:justificativa});if(error)throw error;el.remocaoJustificativa.value="";mostrarAvisoEquipe(data.mensagem||"Colaborador removido.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível remover."),"error");}}
-async function redistribuirIndividual(){try{const dados=estado.detalhe.dados;const demanda=estado.detalhe.demanda;const novo=Number(el.equipeNovoPrincipalSelect.value);const justificativa=el.equipeRedistribuicaoJustificativa.value.trim();if(!novo)throw Error("Selecione o novo responsável.");if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const principalAtual = dados.operador_principal?.id_usuario ? Number(dados.operador_principal.id_usuario) : null;const base={p_criterio:"CPF",p_id_tipo_indicio:null,p_cpf:dados.cpf,p_id_responsavel_atual:principalAtual,p_id_novo_responsavel:novo,p_manter_anterior_como_colaborador:principalAtual ? el.equipeManterAnteriorCheck.checked : false,p_limite_resultados:100};const {data:previa,error:erroPrevia}=await sb.rpc("prever_redistribuicao_demandas",{...base,p_incluir_detalhes:true});if(erroPrevia)throw erroPrevia;const elegiveis=previa?.elegiveis||[];if(elegiveis.length!==1||Number(elegiveis[0].id_indicio)!==Number(demanda.id_indicio))throw Error("A troca individual não pode ser concluída por este fluxo porque o CPF possui outra demanda pendente com o mesmo responsável. Use a redistribuição em lote por CPF.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",{...base,p_limite_resultados:1,p_justificativa:justificativa,p_politica_bloqueios:"EXIGIR_TODAS_ELEGIVEIS"});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Responsabilidade alterada.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível trocar o responsável."),"error");}}
+async function redistribuirIndividual(){try{const dados=estado.detalhe.dados;const demanda=estado.detalhe.demanda;const novo=Number(el.equipeNovoPrincipalSelect.value);const justificativa=el.equipeRedistribuicaoJustificativa.value.trim();if(!novo)throw Error("Selecione o novo responsável.");if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const principalNormalizado = normalizarEquipeDoCiclo(dados, demanda).principal;const principalAtual = principalNormalizado?.id_usuario ? Number(principalNormalizado.id_usuario) : null;const base={p_criterio:"CPF",p_id_tipo_indicio:null,p_cpf:dados.cpf,p_id_responsavel_atual:principalAtual,p_id_novo_responsavel:novo,p_manter_anterior_como_colaborador:principalAtual ? el.equipeManterAnteriorCheck.checked : false,p_limite_resultados:100};const {data:previa,error:erroPrevia}=await sb.rpc("prever_redistribuicao_demandas",{...base,p_incluir_detalhes:true});if(erroPrevia)throw erroPrevia;const elegiveis=previa?.elegiveis||[];if(elegiveis.length!==1||Number(elegiveis[0].id_indicio)!==Number(demanda.id_indicio))throw Error("A troca individual não pode ser concluída por este fluxo porque o CPF possui outra demanda pendente com o mesmo responsável. Use a redistribuição em lote por CPF.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",{...base,p_limite_resultados:1,p_justificativa:justificativa,p_politica_bloqueios:"EXIGIR_TODAS_ELEGIVEIS"});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Responsabilidade alterada.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível trocar o responsável."),"error");}}
 function alternarMenuRedistribuicao(forcar){const abrir=forcar??el.redistributionMenuPopover.hidden;el.redistributionMenuPopover.hidden=!abrir;el.redistribuirDemandasBtn.setAttribute("aria-expanded",String(abrir));}
 function parametrosRedistribuicao(incluirDetalhes=true){const tipo=estado.redistribuicao.criterio==="tipo";return {p_criterio:tipo?"TIPO_INDICIO":"CPF",p_id_tipo_indicio:tipo&&el.redistribuicaoTipoSelect.value?Number(el.redistribuicaoTipoSelect.value):null,p_cpf:tipo?null:el.redistribuicaoCpfInput.value,p_id_responsavel_atual:el.redistribuicaoAtualSelect.value?Number(el.redistribuicaoAtualSelect.value):null,p_id_novo_responsavel:el.redistribuicaoNovoSelect.value?Number(el.redistribuicaoNovoSelect.value):null,p_manter_anterior_como_colaborador:el.redistribuicaoManterCheck.checked,p_limite_resultados:100,...(incluirDetalhes?{p_incluir_detalhes:true}:{p_justificativa:el.redistribuicaoJustificativa.value.trim(),p_politica_bloqueios:"PROCESSAR_ELEGIVEIS"})};}
 function assinaturaRedistribuicao(){const p=parametrosRedistribuicao();delete p.p_incluir_detalhes;return JSON.stringify(p);}
@@ -817,6 +826,83 @@ async function confirmarRedistribuicao(){try{if(estado.redistribuicao.assinatura
 
 function atualizarResumoSelecaoGestor(){const n=estado.selecionadas.size;el.resultadoAtualResumo.textContent = `${estado.paginacao.total || 0} indício${estado.paginacao.total === 1 ? " encontrado" : "s encontrados"}${n ? ` · ${n} selecionado${n > 1 ? "s" : ""}` : ""}`;[el.acaoAtribuirSelecionadas,el.acaoRedistribuirSelecionadas,el.acaoEquipeSelecionada].forEach(x=>x.disabled=!n);}
 function iniciais(nome){return String(nome||"?").split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()}
+/** Retorna o primeiro valor disponível entre aliases de uma entidade. */
+function primeiroValor(objeto = {}, campos = []) {
+  for (const campo of campos) {
+    const valor = objeto?.[campo];
+    if (valor !== null && valor !== undefined && valor !== "") return valor;
+  }
+  return null;
+}
+
+/** Normaliza participante para impedir divergências entre os dois modais. */
+function normalizarParticipante(participante = {}) {
+  return {
+    ...participante,
+    id_usuario: Number(primeiroValor(participante, ["id_usuario", "id_usuario_operador", "id_operador", "id_participante"])) || null,
+    nome_exibicao: primeiroValor(participante, ["nome_exibicao", "nome_operador", "nome", "nome_usuario"]),
+    email_institucional: primeiroValor(participante, ["email_institucional", "email", "email_usuario"]),
+    papel_principal: participante.papel_principal === true || /PRINCIPAL/.test(String(primeiroValor(participante, ["codigo_papel", "nome_papel", "papel"]) || "").toUpperCase()),
+    participacao_ativa: participante.participacao_ativa !== false && !primeiroValor(participante, ["removido_em", "encerrado_em", "finalizado_em"])
+  };
+}
+
+/**
+ * Fonte única para responsável, colaboradores e modo de trabalho.
+ * Prioriza o ciclo selecionado e completa lacunas com o detalhe consolidado.
+ */
+function normalizarEquipeDoCiclo(dados = {}, demanda = {}) {
+  const ciclo = dados.ciclo_selecionado || estado.detalhe.cicloSelecionado || dados;
+  const bruta = [...(ciclo.equipe || []), ...(dados.equipe || [])].map(normalizarParticipante);
+  const unicos = new Map();
+  bruta.forEach(item => {
+    const chave = item.id_usuario ? `id:${item.id_usuario}` : `nome:${String(item.nome_exibicao || "").toLowerCase()}|${papelParticipante(item)}|${periodoParticipacao(item)}`;
+    if (!unicos.has(chave)) unicos.set(chave, item);
+  });
+  const equipe = [...unicos.values()];
+
+  const principalDetalhe = normalizarParticipante(dados.operador_principal || {});
+  const principalEquipe = equipe.find(item => item.papel_principal && item.participacao_ativa)
+    || equipe.filter(item => item.papel_principal).sort((a, b) => String(primeiroValor(b, ["atribuido_em", "iniciado_em", "incluido_em"]) || "").localeCompare(String(primeiroValor(a, ["atribuido_em", "iniciado_em", "incluido_em"]) || "")))[0];
+  const principal = principalDetalhe.id_usuario || principalDetalhe.nome_exibicao
+    ? { ...principalEquipe, ...principalDetalhe }
+    : principalEquipe || normalizarParticipante({
+        id_usuario: demanda.id_operador_principal,
+        nome_exibicao: demanda.nome_operador_principal,
+        papel_principal: true,
+        participacao_ativa: true
+      });
+
+  const colaboradoresDeclarados = (dados.colaboradores || ciclo.colaboradores || []).map(normalizarParticipante);
+  const colaboradoresEquipe = equipe.filter(item => !item.papel_principal && item.participacao_ativa);
+  const colaboradoresMap = new Map();
+  [...colaboradoresDeclarados, ...colaboradoresEquipe].forEach(item => {
+    const chave = item.id_usuario ? `id:${item.id_usuario}` : `nome:${String(item.nome_exibicao || "").toLowerCase()}`;
+    if (!colaboradoresMap.has(chave)) colaboradoresMap.set(chave, item);
+  });
+  const colaboradores = [...colaboradoresMap.values()].filter(item => item.id_usuario !== principal.id_usuario);
+  const historicos = equipe.filter(item => !item.participacao_ativa);
+  const codigoModo = primeiroValor(ciclo.modo_trabalho || {}, ["codigo", "codigo_modo"])
+    || primeiroValor(dados.modo_trabalho || {}, ["codigo", "codigo_modo"])
+    || primeiroValor(ciclo, ["codigo_modo"])
+    || primeiroValor(dados, ["codigo_modo"])
+    || (colaboradores.length ? "COLABORATIVO" : "INDIVIDUAL");
+  const nomeModo = primeiroValor(ciclo.modo_trabalho || {}, ["nome", "nome_modo"])
+    || primeiroValor(dados.modo_trabalho || {}, ["nome", "nome_modo"])
+    || (String(codigoModo).toUpperCase() === "COLABORATIVO" ? "Colaborativo" : "Individual");
+  return { ciclo, equipe, principal, colaboradores, historicos, codigoModo, nomeModo };
+}
+
+/** Remove cartões históricos repetidos sem alterar a auditoria integral. */
+function historicosUnicos(participantes = []) {
+  const mapa = new Map();
+  participantes.forEach(item => {
+    const chave = [item.id_usuario || item.nome_exibicao, papelParticipante(item), periodoParticipacao(item)].join("|");
+    if (!mapa.has(chave)) mapa.set(chave, item);
+  });
+  return [...mapa.values()];
+}
+
 /** Formata intervalo de participação sem produzir datas artificiais. */
 function periodoParticipacao(participante = {}) {
   const inicio = participante.atribuido_em || participante.iniciado_em || participante.incluido_em;
@@ -851,7 +937,7 @@ function resumoCargaOperador(operador = {}) {
   const principal = Number(operador.carga?.como_principal ?? operador.como_principal ?? operador.quantidade_principal ?? 0);
   const colaboracoes = Number(operador.carga?.como_colaborador ?? operador.como_colaborador ?? operador.quantidade_colaboracoes ?? 0);
   const conhecida = operador.carga || ["como_principal","quantidade_principal","como_colaborador","quantidade_colaboracoes"].some(chave => operador[chave] !== undefined);
-  return conhecida ? `${principal} como principal · ${colaboracoes} colaborações` : "Carga não informada pela fonte";
+  return conhecida ? `${principal} como principal · ${colaboracoes} colaborações` : "";
 }
 
 /** Estado adequado para a aba Equipe quando ainda não existe ciclo. */
@@ -860,37 +946,39 @@ function renderEstadoEquipeSemCiclo() {
 }
 
 function renderEquipeConsolidada(dados, demanda) {
-  const ciclo = dados.ciclo_selecionado || dados;
+  const equipeNormalizada = normalizarEquipeDoCiclo(dados, demanda);
+  const { ciclo, principal, colaboradores } = equipeNormalizada;
   const contexto = construirContextoCiclo(demanda, dados, ciclo);
   if (!contexto.possuiCiclo) return renderEstadoEquipeSemCiclo();
 
-  const equipe = ciclo.equipe || dados.equipe || [];
-  const principal = dados.operador_principal || equipe.find(item => item.papel_principal && item.participacao_ativa) || {};
-  const ativos = dados.colaboradores || equipe.filter(item => !item.papel_principal && item.participacao_ativa);
-  const historicos = equipe.filter(item => !item.participacao_ativa);
-
+  const historicos = historicosUnicos(equipeNormalizada.historicos);
+  const encerrado = contexto.somenteLeitura;
+  const papelPrincipal = encerrado ? "Responsável no encerramento" : "Responsável principal ativo";
   const principalHtml = `<article class="primary-member">
     <span class="member-avatar" aria-hidden="true">${iniciais(principal.nome_exibicao)}</span>
-    <div class="member-copy"><strong>${escapeHtml(principal.nome_exibicao || demanda.nome_operador_principal || "Não informado no histórico")}</strong><span>Responsável principal ${principal.participacao_ativa === false ? "histórico" : "ativo"}</span><small>${periodoParticipacao(principal)}</small></div>
+    <div class="member-copy"><strong>${escapeHtml(principal.nome_exibicao || "Não informado no histórico")}</strong><span>${papelPrincipal}</span><small>${periodoParticipacao(principal)}</small></div>
     <span class="badge badge-primary">Principal</span>
   </article>`;
 
-  const ativosHtml = ativos.length ? ativos.map(item => `<article class="member-card active-member"><header><strong>${escapeHtml(item.nome_exibicao || item.nome)}</strong><span class="badge badge-primary">Colaborador</span></header><small>${periodoParticipacao(item)}</small></article>`).join("") : '<p class="team-empty-copy">Nenhum colaborador ativo.</p>';
-  const historicosHtml = historicos.length ? historicos.map(item => `<article class="member-card history"><header><strong>${escapeHtml(item.nome_exibicao || item.nome)}</strong><span>${escapeHtml(papelParticipante(item))}</span></header><small>${periodoParticipacao(item)}</small></article>`).join("") : '<p class="team-empty-copy">Nenhuma participação histórica informada.</p>';
+  const ativosHtml = colaboradores.length ? colaboradores.map(item => `<article class="member-card active-member"><header><strong>${escapeHtml(item.nome_exibicao)}</strong><span class="badge badge-primary">Colaborador</span></header><small>${periodoParticipacao(item)}</small></article>`).join("") : '<p class="team-empty-copy">Nenhum colaborador ativo.</p>';
+  const resumoHistorico = historicos.length
+    ? `<div class="team-history-summary"><div><strong>${historicos.length}</strong><span>${historicos.length === 1 ? "participação anterior registrada" : "participações anteriores registradas"}</span></div><p>Consulte o Histórico integral para acompanhar inclusões, remoções e trocas de responsabilidade.</p><button class="btn btn-ghost btn-sm" type="button" data-open-team-history>Ver alterações da equipe</button></div>`
+    : '<div class="team-history-summary is-empty"><p>Nenhuma participação anterior registrada neste ciclo.</p></div>';
 
   let painelAcoes;
-  if (contexto.somenteLeitura) {
+  if (encerrado) {
     painelAcoes = '<div class="readonly-callout"><strong>Ciclo em somente leitura</strong><p>A equipe deste ciclo não pode mais ser alterada. As mudanças realizadas permanecem disponíveis no histórico integral.</p></div>';
   } else {
-    painelAcoes = `<h3>Gerenciar equipe</h3><p>Escolha uma ação. Somente os campos necessários serão exibidos.</p><div class="team-choice-grid">
+    painelAcoes = `<h3>Ações da equipe</h3><p>Escolha a operação que deseja realizar neste ciclo.</p><div class="team-choice-grid">
       <button class="team-choice" data-team-action="adicionar" type="button"><b>+</b><span><strong>Adicionar colaborador</strong><small>Inclua um operador no ciclo.</small></span></button>
-      <button class="team-choice" data-team-action="remover" type="button" ${ativos.length ? "" : "disabled"}><b>−</b><span><strong>Remover colaborador</strong><small>${ativos.length ? "Exige justificativa." : "Nenhum colaborador ativo."}</small></span></button>
+      <button class="team-choice" data-team-action="remover" type="button" ${colaboradores.length ? "" : "disabled"}><b>−</b><span><strong>Remover colaborador</strong><small>${colaboradores.length ? "Exige justificativa." : "Nenhum colaborador ativo."}</small></span></button>
       <button class="team-choice" data-team-action="redistribuir" type="button"><b>⇄</b><span><strong>Trocar ou promover responsável</strong><small>Promova um colaborador ou escolha outro operador.</small></span></button>
-    </div><div class="impact-box"><strong>Impacto e auditoria</strong><p>Versão do ciclo: ${escapeHtml(ciclo.versao_ciclo || ciclo.versao)}</p><p>A alteração será registrada no histórico integral.</p></div>`;
+    </div><p class="team-audit-note">Todas as alterações serão registradas no Histórico integral. Versão atual do ciclo: <strong>${escapeHtml(ciclo.versao_ciclo || ciclo.versao)}</strong>.</p>`;
   }
 
-  return `<div class="team-layout">
-    <section class="team-column"><h3>Participantes do ciclo</h3>${principalHtml}<h3>Colaboradores ativos</h3><div class="member-cards">${ativosHtml}</div><h3>Participantes históricos</h3><div class="member-cards">${historicosHtml}</div></section>
+  const classeLayout = encerrado ? "team-layout is-readonly-layout" : "team-layout";
+  return `<div class="${classeLayout}">
+    <section class="team-column"><h3>Participantes do ciclo</h3>${principalHtml}<h3>Colaboradores ativos</h3><div class="member-cards">${ativosHtml}</div><h3>Histórico da equipe</h3>${resumoHistorico}</section>
     <aside class="team-action-panel">${painelAcoes}</aside>
   </div>`;
 }
@@ -908,7 +996,18 @@ function registrarEventos() {
   el.gerenciarEquipeBtn.addEventListener("click",()=>switchDetailTab("equipe"));
   el.exportarRelatorioGestorBtn.addEventListener("click",exportarRelatorioGestor);
   el.painelRelatorioGestor.addEventListener("click",e=>{if(e.target.closest("[data-export-report]"))exportarRelatorioGestor()});
-  el.painelEquipeGestor.addEventListener("click",e=>{const b=e.target.closest("[data-team-action]");if(b){abrirEquipe();selecionarAbaEquipe(b.dataset.teamAction)}});
+  el.painelEquipeGestor.addEventListener("click", e => {
+    const historico = e.target.closest("[data-open-team-history]");
+    if (historico) {
+      switchDetailTab("historico");
+      return;
+    }
+    const botao = e.target.closest("[data-team-action]");
+    if (botao) {
+      abrirEquipe();
+      selecionarAbaEquipe(botao.dataset.teamAction);
+    }
+  });
   el.fecharEquipeBtn.addEventListener("click",fecharEquipe); el.cancelarEquipeBtn.addEventListener("click",fecharEquipe);
   el.equipeOverlay.addEventListener("click",e=>{if(e.target===el.equipeOverlay)fecharEquipe();});
   el.equipeAbaAdicionar.addEventListener("click",()=>selecionarAbaEquipe("adicionar")); el.equipeAbaRemover.addEventListener("click",()=>selecionarAbaEquipe("remover")); el.equipeAbaRedistribuir.addEventListener("click",()=>selecionarAbaEquipe("redistribuir"));
@@ -986,8 +1085,9 @@ function registrarEventos() {
     if (!ciclo || !estado.detalhe.dados || !estado.detalhe.demanda) return;
     estado.detalhe.dados.ciclo_selecionado = ciclo;
     const equipe = ciclo.equipe || estado.detalhe.dados.equipe || [];
-    const principal = equipe.find(item => item.papel_principal && item.participacao_ativa) || {};
-    aplicarContextoCicloModal(estado.detalhe.demanda, estado.detalhe.dados, ciclo, estado.detalhe.dados.processos_sei || [], principal);
+    const dadosDoCiclo = { ...estado.detalhe.dados, ciclo_selecionado: ciclo };
+    const principal = normalizarEquipeDoCiclo(dadosDoCiclo, estado.detalhe.demanda).principal;
+    aplicarContextoCicloModal(estado.detalhe.demanda, dadosDoCiclo, ciclo, estado.detalhe.dados.processos_sei || [], principal);
     el.painelEquipeGestor.innerHTML = renderEquipeConsolidada({ ...estado.detalhe.dados, ciclo_selecionado: ciclo }, estado.detalhe.demanda);
     el.painelDetalhesGestor.querySelectorAll("[data-ciclo-selecionar]").forEach(item => {
       const ativo = item === botao;
@@ -1626,8 +1726,7 @@ async function abrirDetalheCompleto(item) {
 
     if (selecionado) {
       dados.ciclo_selecionado = selecionado;
-      const equipe = selecionado.equipe || dados.equipe || [];
-      const principal = dados.operador_principal || equipe.find(participante => participante.papel_principal && participante.participacao_ativa) || {};
+      const principal = normalizarEquipeDoCiclo({ ...dados, ciclo_selecionado: selecionado }, item).principal;
       aplicarContextoCicloModal(item, dados, selecionado, processos, principal);
       el.painelEquipeGestor.innerHTML = renderEquipeConsolidada({ ...dados, ciclo_selecionado: selecionado }, item);
     } else {
