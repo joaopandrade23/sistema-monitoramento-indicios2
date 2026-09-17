@@ -1373,7 +1373,21 @@ function prepararNavegacaoGestao() {
   });
   dom("aplicarConcluidasBtn").addEventListener("click", () => { estado.concluidas.pagina = 1; carregarConcluidas(); }); dom("limparConcluidasBtn").addEventListener("click", () => { ["concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","concluidaOperador","concluidaPrioridade","concluidaStatus"].forEach(id => dom(id).value = ""); estado.concluidas.pagina = 1; carregarConcluidas(); });
   dom("tamanhoPaginaConcluidas").addEventListener("change", e => { estado.concluidas.tamanho = Number(e.target.value); estado.concluidas.pagina = 1; carregarConcluidas(); }); dom("concluidasAnteriorBtn").addEventListener("click", () => { if (estado.concluidas.pagina > 1) { estado.concluidas.pagina--; carregarConcluidas(); } }); dom("concluidasProximaBtn").addEventListener("click", () => { if (estado.concluidas.pagina < estado.concluidas.totalPaginas) { estado.concluidas.pagina++; carregarConcluidas(); } });
-  dom("concluidasConteudo").addEventListener("click", e => { const expandir = e.target.closest("[data-concluida-expandir]"), detalhe = e.target.closest("[data-concluida-detalhe]"); if (expandir) expandirConcluida(expandir.dataset.concluidaExpandir); if (detalhe) { const x = estado.concluidas.itens.find(i => String(i.id_ciclo_tratamento || i.id_indicio) === detalhe.dataset.concluidaDetalhe); abrirDetalheCompleto(x); } }); });
+  dom("concluidasConteudo").addEventListener("click", e => {
+    const expandir = e.target.closest("[data-concluida-expandir]");
+    const detalhe = e.target.closest("[data-concluida-detalhe]");
+
+    if (expandir) {
+      expandirConcluida(expandir.dataset.concluidaExpandir);
+    }
+
+    if (detalhe) {
+      const item = estado.concluidas.itens.find(
+        registro => String(registro.id_ciclo_tratamento || registro.id_indicio) === detalhe.dataset.concluidaDetalhe
+      );
+      abrirDetalheCompleto(item);
+    }
+  });
   alterarAbaPrincipal("painel");
 }
 async function inicializarAplicacao() {
