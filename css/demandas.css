@@ -248,3 +248,14 @@
   font-size: .7rem;
   font-weight: 800;
 }
+
+
+/* ==========================================================================
+   HOMOLOGAÇÃO DA TELA INDÍCIOS ATUAIS
+   O quarto card representa a etapa externa do fluxo. "Sem responsável"
+   permanece como filtro combinável, evitando duplicação com "Disponíveis".
+   ========================================================================== */
+#secaoDemandasAtuais .metric-validation { --accent: #06b6d4; }
+#secaoDemandasAtuais .metric-validation strong { color: var(--accent); }
+#secaoDemandasAtuais .metric-value-row { align-items: center; }
+#secaoDemandasAtuais .metric-icon-placeholder { display: none !important; }
