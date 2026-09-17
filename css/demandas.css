@@ -118,3 +118,44 @@
 .capacity-row {
   width: 100%;
 }
+
+
+/* ==========================================================================
+   TELA DEMANDAS ATUAIS
+   Este bloco altera somente filtros, indicadores, tabela e ações desta tela.
+   ========================================================================== */
+#secaoDemandasAtuais .quick-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#secaoDemandasAtuais .current-primary-filters { grid-template-columns: minmax(320px, 2fr) repeat(3, minmax(180px, 1fr)); }
+#secaoDemandasAtuais .advanced-filters { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+#secaoDemandasAtuais .current-advanced-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+#secaoDemandasAtuais .advanced-filters .check-row { margin-top: 12px; }
+#secaoDemandasAtuais .active-filter-summary { flex: 1; color: var(--muted); font-size: .82rem; line-height: 1.4; }
+#secaoDemandasAtuais .table-toolbar { align-items: flex-start; }
+#secaoDemandasAtuais .toolbar-actions { justify-content: flex-end; flex-wrap: wrap; }
+#secaoDemandasAtuais .toolbar-actions .assignment-menu { display: block; }
+#secaoDemandasAtuais .pagination-actions { flex-wrap: wrap; }
+#secaoDemandasAtuais .pagination .table-page-size { margin-right: 8px; }
+#secaoDemandasAtuais .table-scroll table { min-width: 1660px; }
+#secaoDemandasAtuais th:nth-child(2) { width: 115px; }
+#secaoDemandasAtuais th:nth-child(3) { width: 210px; }
+#secaoDemandasAtuais th:nth-child(4) { width: 240px; }
+#secaoDemandasAtuais th:nth-child(5) { width: 210px; }
+#secaoDemandasAtuais th:nth-child(6) { width: 190px; }
+#secaoDemandasAtuais th:nth-child(7) { width: 120px; }
+#secaoDemandasAtuais th:nth-child(8) { width: 180px; }
+#secaoDemandasAtuais th:nth-child(9) { width: 150px; }
+#secaoDemandasAtuais th:nth-child(10) { width: 190px; }
+#secaoDemandasAtuais th:nth-child(11) { width: 105px; }
+#secaoDemandasAtuais .truncate { display: -webkit-box; max-width: none; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; white-space: normal; }
+#secaoDemandasAtuais td:nth-child(6) .badge { max-width: 178px; white-space: normal; line-height: 1.2; }
+#secaoDemandasAtuais td:nth-child(7) { font-weight: 700; }
+@media (max-width: 1050px) {
+  #secaoDemandasAtuais .current-primary-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #secaoDemandasAtuais .current-advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  #secaoDemandasAtuais .quick-metrics,
+  #secaoDemandasAtuais .current-primary-filters,
+  #secaoDemandasAtuais .current-advanced-grid { grid-template-columns: 1fr; }
+  #secaoDemandasAtuais .filter-footer { align-items: stretch; }
+}
