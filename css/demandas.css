@@ -99,3 +99,22 @@
   .capacity-bar { grid-column: 2 / 4; }
   .capacity-numbers:nth-last-child(2), .capacity-numbers:nth-last-child(3) { display: none; }
 }
+
+
+/* Ajustes da revisão do Painel: contenção do bloco de capacidade. */
+#cargaOperadoresGestao {
+  display: block;
+  min-height: auto;
+}
+#cargaOperadoresGestao .team-management-summary,
+#cargaOperadoresGestao .team-capacity-list,
+#cargaOperadoresGestao .chart-footnote {
+  width: 100%;
+}
+#cargaOperadoresGestao .chart-footnote {
+  clear: both;
+  position: static;
+}
+.capacity-row {
+  width: 100%;
+}
