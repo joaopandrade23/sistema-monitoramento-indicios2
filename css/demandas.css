@@ -654,3 +654,26 @@
 .admin-operation-modal .preview-panel[data-lote-panel="5"],.admin-operation-modal .preview-panel[data-red-panel="4"]{margin-top:0}
 .confirmation-panel #redistribuicaoConfirmacaoResumo .preview-panel{margin:0}
 @media(max-width:760px){.admin-operation-modal .wizard-footer,.wizard-footer-nav{align-items:stretch;flex-direction:column}.wizard-footer-nav .btn{width:100%}}
+
+/* REFINAMENTO FINAL DOS FLUXOS DE ATRIBUICAO E REDISTRIBUICAO */
+.admin-operation-modal{width:min(1120px,calc(100vw - 28px));max-height:92vh}
+.admin-operation-modal .wizard-main{min-height:0;padding:4px 2px 18px}
+.admin-operation-modal .wizard-layout{align-items:start;padding:24px;gap:24px}
+.admin-operation-modal .wizard-panel{padding:2px 0}
+.admin-operation-modal .wizard-section-heading{margin-bottom:22px}
+.admin-operation-modal .assignment-grid{gap:18px}
+.admin-operation-modal .field{gap:8px}
+.admin-operation-modal .scope-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.admin-operation-modal .scope-card{display:flex;min-height:92px;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text);text-align:left}
+.admin-operation-modal .scope-card strong{font-size:.93rem}.admin-operation-modal .scope-card span{color:var(--muted);font-size:.78rem;line-height:1.4}
+.admin-operation-modal .scope-card.active{border-color:var(--primary);background:var(--primary-soft);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 18%,transparent)}
+.admin-operation-modal .scope-detail-slot{min-height:110px;padding:18px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.admin-operation-modal .scope-empty-state{display:grid;place-items:center;min-height:72px;color:var(--muted);text-align:center}
+.admin-operation-modal .scope-result-card strong,.admin-operation-modal .scope-result-card span{display:block}.admin-operation-modal .scope-result-card span{margin-top:5px;color:var(--muted)}
+.admin-operation-modal .wizard-summary{top:0;padding:18px}
+.admin-operation-modal .status-banner:empty{display:none}
+.admin-operation-modal .deadline-choice{display:grid;gap:14px;margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.admin-operation-modal .preview-panel{margin-top:0}
+.admin-operation-modal .wizard-footer{padding:14px 20px}
+#assignmentMenuPopover,#redistributionMenuPopover{display:none!important}
+@media(max-width:900px){.admin-operation-modal .scope-card-grid{grid-template-columns:1fr}.admin-operation-modal .wizard-layout{padding:18px}}
