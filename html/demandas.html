@@ -294,28 +294,28 @@
 </div>
 <!-- Modal de gerenciamento da equipe -->
 <div class="overlay" hidden="" id="equipeOverlay">
-<section aria-labelledby="equipeTitulo" aria-modal="true" class="modal team-modal" role="dialog">
+<section aria-labelledby="equipeTitulo" aria-modal="true" class="modal team-modal team-management-modal" role="dialog">
 <header class="modal-header">
-<div><span class="eyebrow">Equipe da demanda</span><h2 id="equipeTitulo">Gerenciar equipe e responsabilidade</h2></div>
+<div><span class="eyebrow">Equipe do ciclo</span><h2 id="equipeTitulo">Gerenciar equipe</h2></div>
 <button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharEquipeBtn" type="button">×</button>
 </header>
 <div class="modal-body">
-<div class="team-current" id="equipeResumoAtual"></div>
+<div class="team-modal-context" id="equipeContextoCiclo"></div><div class="team-current" id="equipeResumoAtual"></div>
 <div class="team-tabs" role="tablist">
-<button class="team-tab is-active" id="equipeAbaAdicionar" type="button">Adicionar colaboradores</button>
-<button class="team-tab" id="equipeAbaRemover" type="button">Remover colaboradores</button>
-<button class="team-tab" id="equipeAbaRedistribuir" type="button">Trocar responsável</button>
+<button aria-controls="equipePainelAdicionar" aria-selected="true" class="team-tab is-active" id="equipeAbaAdicionar" role="tab" type="button">Adicionar colaborador</button>
+<button aria-controls="equipePainelRemover" aria-selected="false" class="team-tab" id="equipeAbaRemover" role="tab" type="button">Remover colaborador</button>
+<button aria-controls="equipePainelRedistribuir" aria-selected="false" class="team-tab" id="equipeAbaRedistribuir" role="tab" type="button">Trocar responsável</button>
 </div>
-<section class="team-panel" id="equipePainelAdicionar">
+<section aria-labelledby="equipeAbaAdicionar" class="team-panel" id="equipePainelAdicionar">
 <div class="collaborator-options" id="equipeDisponiveisLista"></div>
 <div class="status-banner warning" hidden="" id="equipeConversaoAviso">A inclusão do primeiro colaborador alterará o modo para Colaborativo.</div>
 <button class="btn btn-primary" id="incluirColaboradoresBtn" type="button">Adicionar selecionados</button>
 </section>
-<section class="team-panel" hidden="" id="equipePainelRemover">
-<div class="member-list" id="equipeAtivosLista"></div>
+<section aria-labelledby="equipeAbaRemover" class="team-panel" hidden="" id="equipePainelRemover">
+<div class="member-list" id="equipeAtivosLista"></div><p class="team-action-help">Selecione o colaborador e informe a justificativa antes de remover.</p>
 <div class="field"><label for="remocaoJustificativa">Justificativa da remoção</label><textarea class="control textarea" id="remocaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da remoção"></textarea></div>
-</section>
-<section class="team-panel" hidden="" id="equipePainelRedistribuir">
+<button class="btn btn-danger" id="confirmarRemocaoColaboradorBtn" type="button">Remover colaborador</button></section>
+<section aria-labelledby="equipeAbaRedistribuir" class="team-panel" hidden="" id="equipePainelRedistribuir">
 <div class="field"><label for="equipeNovoPrincipalSelect">Novo responsável principal</label><select class="control" id="equipeNovoPrincipalSelect"><option value="">Selecione</option></select></div>
 <label class="check-option compact"><input id="equipeManterAnteriorCheck" type="checkbox"/><span>Manter o responsável atual como colaborador</span></label>
 <div class="field"><label for="equipeRedistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="equipeRedistribuicaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da troca"></textarea></div>
