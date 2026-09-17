@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -36,40 +37,8 @@
 </div>
 <div class="heading-actions">
 <button class="btn" id="atualizarBtn" type="button">Atualizar dados</button>
-<div class="assignment-menu" id="assignmentMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">
-            Atribuir demandas <span aria-hidden="true">▾</span>
-</button>
-<div class="assignment-menu-popover" hidden="" id="assignmentMenuPopover" role="menu">
-<button disabled="" id="atribuirSelecionadasBtn" role="menuitem" type="button">
-<strong>Atribuir selecionadas</strong>
-<span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
-</button>
-<button id="atribuirPorTipoBtn" role="menuitem" type="button">
-<strong>Atribuir por tipo de indício</strong>
-<span>Escolher um tipo e revisar o conjunto</span>
-</button>
-<button id="atribuirPorCpfBtn" role="menuitem" type="button">
-<strong>Atribuir por CPF</strong>
-<span>Localizar as demandas de uma pessoa</span>
-</button>
-</div>
-</div>
-<div class="assignment-menu" id="redistributionMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">
-            Redistribuir demandas <span aria-hidden="true">▾</span>
-</button>
-<div class="assignment-menu-popover" hidden="" id="redistributionMenuPopover" role="menu">
-<button id="redistribuirPorTipoBtn" role="menuitem" type="button">
-<strong>Redistribuir por tipo de indício</strong>
-<span>Somente pendências do responsável atual</span>
-</button>
-<button id="redistribuirPorCpfBtn" role="menuitem" type="button">
-<strong>Redistribuir por CPF</strong>
-<span>Somente indícios pendentes da pessoa</span>
-</button>
-</div>
-</div>
+
+
 </div>
 </section>
 <div aria-live="polite" class="status-banner" hidden="" id="mensagem" role="status"></div>
@@ -92,14 +61,7 @@
 </section>
 <section class="main-section" hidden="" id="secaoDemandasAtuais">
 <section aria-label="Resumo das demandas" class="quick-metrics">
-<article class="metric clickable metric-total" data-card-filter="TODAS" tabindex="0">
-<span>Total de demandas</span>
-<div class="metric-value-row">
-<strong id="cardTotal">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">01</span>
-</div>
-<small>Todas as demandas atuais</small>
-</article>
+
 <article class="metric clickable metric-available" data-card-filter="DISPONIVEL_PARA_ATRIBUICAO" tabindex="0">
 <span>Disponíveis para atribuição</span>
 <div class="metric-value-row">
@@ -124,33 +86,23 @@
 </div>
 <small>Com tratamento iniciado</small>
 </article>
-<article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-<span>Sem responsável</span>
+
+<article class="metric clickable metric-links" data-card-filter="REQUER_ANALISE" tabindex="0">
+<span>Requerem atenção</span>
 <div class="metric-value-row">
-<strong id="cardSemResponsavel">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">05</span>
-</div>
-<small>Sem operador principal</small>
-</article>
-<article class="metric clickable metric-links" data-card-filter="MULTIPLAS_ORIGENS" tabindex="0">
-<span>Com múltiplos vínculos</span>
-<div class="metric-value-row">
-<strong id="cardMultiplas">...</strong>
+<strong id="cardAtencao">...</strong>
 <span aria-hidden="true" class="metric-icon-placeholder">06</span>
 </div>
-<small>Com mais de um vínculo</small>
+<small>Inconsistências ou múltiplas origens</small>
 </article>
-</section>
-<section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="true" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Recolher filtros</button></div><div id="filtrosAtuaisConteudo">
-<div class="filter-grid">
-<div class="field">
+</section><div aria-hidden="true" hidden=""><span id="cardTotal"></span><span id="cardSemResponsavel"></span><span id="cardMultiplas"></span></div>
+<section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="false" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Filtros avançados ▾</button></div><div id="filtrosAtuaisConteudo"><div class="filter-grid current-primary-filters"><div class="field">
 <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
 <input autocomplete="off" class="control" id="buscaInput" maxlength="120" placeholder="Digite para pesquisar" type="search"/>
-</div>
-<div class="field">
+</div><div class="field">
 <label for="situacaoSelect">Situação operacional</label>
 <select class="control" id="situacaoSelect">
-<option value="">Todas</option>
+<option value="">Todas as situações</option>
 <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
 <option value="PENDENTE_DE_TRATAMENTO">Pendente de tratamento</option>
 <option value="EM_TRATAMENTO">Em tratamento</option>
@@ -158,16 +110,11 @@
 <option value="VALIDADO_TCU">Validado pelo TCU</option>
 <option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
 </select>
-</div>
-<div class="field">
+</div><div class="field">
 <label for="operadorFiltroSelect">Operador principal</label>
-<select class="control" id="operadorFiltroSelect"><option value="">Todos</option></select>
-</div>
-<div class="field"><label for="tipoIndicioFiltroSelect">Tipo de indício</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select></div>
-<div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option></select></div>
-<div class="field"><label for="situacaoPrazoSelect">Situação do prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todas</option><option value="SEM_PRAZO">Sem prazo</option><option value="PRAZO_VENCIDO">Prazo vencido</option><option value="VENCE_HOJE">Vence hoje</option><option value="VENCE_EM_ATE_3_DIAS">Vence em até 3 dias</option><option value="VENCE_EM_ATE_7_DIAS">Vence entre 4 e 7 dias</option><option value="DENTRO_DO_PRAZO">Mais de 7 dias</option></select></div>
-<div class="field">
-<label for="ordenacaoSelect">Ordenar por</label>
+<select class="control" id="operadorFiltroSelect"><option value="">Todos os operadores</option></select>
+</div><div class="field"><label for="tipoIndicioFiltroSelect">Tipo de indício</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select></div></div><div class="advanced-filters" hidden="" id="filtrosAvancadosAtuais"><div class="filter-grid current-advanced-grid"><div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option></select></div><div class="field"><label for="situacaoPrazoSelect">Prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todas</option><option value="SEM_PRAZO">Sem prazo</option><option value="PRAZO_VENCIDO">Prazo vencido</option><option value="VENCE_HOJE">Vence hoje</option><option value="VENCE_EM_ATE_3_DIAS">Vence em até 3 dias</option><option value="VENCE_EM_ATE_7_DIAS">Vence entre 4 e 7 dias</option><option value="DENTRO_DO_PRAZO">Mais de 7 dias</option></select></div><div class="field">
+<label for="ordenacaoSelect">Ordenação</label>
 <select class="control" id="ordenacaoSelect">
 <option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
 <option value="DIAS_ESPERA_ASC">Menor tempo de espera</option>
@@ -179,14 +126,14 @@
 <option value="IDENTIFICADOR_ASC">Identificador crescente</option>
 <option value="IDENTIFICADOR_DESC">Identificador decrescente</option>
 </select>
-</div>
-</div>
-<div class="filter-footer">
-<div class="check-row">
-<label><input id="semResponsavelCheck" type="checkbox"/> Apenas sem responsável</label>
-<label><input id="multiplasCheck" type="checkbox"/> Apenas múltiplos vínculos</label>
-<label><input id="analiseCheck" type="checkbox"/> Apenas requerem análise</label>
-</div>
+</div></div><div class="check-row">
+<label><input id="semResponsavelCheck" type="checkbox"/> Sem responsável</label>
+<label><input id="multiplasCheck" type="checkbox"/> Com múltiplas origens</label>
+<label><input id="analiseCheck" type="checkbox"/> Requerem análise</label>
+</div></div>
+
+<div class="filter-footer"><div aria-live="polite" class="active-filter-summary" id="resumoFiltrosAtuais">1 filtro ativo: Disponível para atribuição</div>
+
 <div class="filter-actions"><button class="btn btn-ghost" id="limparFiltrosBtn" type="button">Limpar filtros</button><button class="btn btn-primary" id="aplicarFiltrosBtn" type="button">Aplicar filtros</button></div></div>
 </div></section>
 <section class="panel list-panel">
@@ -196,18 +143,41 @@
 <button class="btn btn-ghost btn-sm" hidden="" id="verSelecionadasBtn" type="button">Ver selecionadas</button>
 <button class="btn btn-ghost btn-sm" hidden="" id="limparSelecaoBtn" type="button">Limpar seleção</button>
 </div>
-<div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Itens selecionados</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
-<label class="field table-page-size">
-<span>Por página</span>
-<select class="control" id="tamanhoPaginaSelect">
-<option value="20">20</option>
-<option value="50">50</option>
-<option value="100">100</option>
-</select>
-</label>
+<div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Itens selecionados</option><option value="TODAS">Todas as demandas</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" hidden="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" hidden="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" hidden="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
+
+<div class="assignment-menu" id="assignmentMenu">
+<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">
+            Atribuir demandas <span aria-hidden="true">▾</span>
+</button>
+<div class="assignment-menu-popover" hidden="" id="assignmentMenuPopover" role="menu">
+<button disabled="" id="atribuirSelecionadasBtn" role="menuitem" type="button">
+<strong>Atribuir selecionadas</strong>
+<span id="atribuirSelecionadasHint">Selecione ao menos uma demanda</span>
+</button>
+<button id="atribuirPorTipoBtn" role="menuitem" type="button">
+<strong>Atribuir por tipo de indício</strong>
+<span>Escolher um tipo e revisar o conjunto</span>
+</button>
+<button id="atribuirPorCpfBtn" role="menuitem" type="button">
+<strong>Atribuir por CPF</strong>
+<span>Localizar as demandas de uma pessoa</span>
+</button>
 </div>
-
-
+</div><div class="assignment-menu" id="redistributionMenu">
+<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">
+            Redistribuir demandas <span aria-hidden="true">▾</span>
+</button>
+<div class="assignment-menu-popover" hidden="" id="redistributionMenuPopover" role="menu">
+<button id="redistribuirPorTipoBtn" role="menuitem" type="button">
+<strong>Redistribuir por tipo de indício</strong>
+<span>Somente pendências do responsável atual</span>
+</button>
+<button id="redistribuirPorCpfBtn" role="menuitem" type="button">
+<strong>Redistribuir por CPF</strong>
+<span>Somente indícios pendentes da pessoa</span>
+</button>
+</div>
+</div></div>
 </div><div class="table-scroll">
 <table aria-label="Lista de demandas">
 <thead>
@@ -222,7 +192,7 @@
 <th>Situação</th>
 <th>Prioridade</th>
 <th>Operador</th>
-<th>Prazo</th><th title="Atualização mais recente recebida do sistema e-Pessoal.">Atualização no e-Pessoal</th>
+<th>Prazo</th><th title="Atualização mais recente recebida do sistema e-Pessoal.">Atualização na origem</th>
 <th>Ações</th>
 </tr>
 </thead>
@@ -233,7 +203,14 @@
 <span>Aguarde um momento.</span>
 </div><div class="pagination">
 <div class="pagination-info" id="paginacaoInfo">Carregando...</div>
-<div class="pagination-actions">
+<div class="pagination-actions"><label class="field table-page-size">
+<span>Por página</span>
+<select class="control" id="tamanhoPaginaSelect">
+<option value="20">20</option>
+<option value="50">50</option>
+<option value="100">100</option>
+</select>
+</label>
 <button class="btn" disabled="" id="paginaAnteriorBtn" type="button">Anterior</button>
 <span id="paginaAtualInfo">Página 1</span>
 <button class="btn" disabled="" id="proximaPaginaBtn" type="button">Próxima</button>
