@@ -63,7 +63,7 @@
 <span>Disponíveis para atribuição</span>
 <div class="metric-value-row">
 <strong id="cardDisponiveis">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">02</span>
+
 </div>
 <small>Aguardando distribuição</small>
 </article>
@@ -71,7 +71,7 @@
 <span>Aguardando início</span>
 <div class="metric-value-row">
 <strong id="cardPendentes">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">03</span>
+
 </div>
 <small>Indícios atribuídos ainda não iniciados</small>
 </article>
@@ -79,37 +79,36 @@
 <span>Em tratamento</span>
 <div class="metric-value-row">
 <strong id="cardEmTratamento">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">04</span>
+
 </div>
 <small>Indícios com tratamento iniciado</small>
 </article>
-<article class="metric clickable metric-unassigned" data-card-filter="SEM_RESPONSAVEL" tabindex="0">
-<span>Sem responsável</span>
+<article class="metric clickable metric-validation" data-card-filter="AGUARDANDO_VALIDACAO_TCU" tabindex="0">
+<span>Aguardando validação do TCU</span>
 <div class="metric-value-row">
-<strong id="cardSemResponsavel">...</strong>
-<span aria-hidden="true" class="metric-icon-placeholder">05</span>
+<strong id="cardAguardandoValidacao">...</strong>
+
 </div>
-<small>Indícios sem operador principal</small>
+<small>Indícios dependentes de validação externa</small>
 </article>
 </section><div aria-hidden="true" hidden=""><span id="cardTotal"></span><span id="cardMultiplas"></span></div>
-<section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize demandas por pessoa, situação, equipe e características operacionais.</p></div><button aria-expanded="false" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Filtros avançados ▾</button></div><div id="filtrosAtuaisConteudo"><div class="filter-grid current-primary-filters"><div class="field">
+<section aria-label="Filtros" class="panel filter-panel"><div class="section-toolbar"><div><h2>Filtros</h2><p>Localize indícios por pessoa, situação, responsável e características operacionais.</p></div><button aria-expanded="false" class="btn btn-ghost" id="toggleFiltrosAtuais" type="button">Filtros avançados ▾</button></div><div id="filtrosAtuaisConteudo"><div class="filter-grid current-primary-filters"><div class="field">
 <label for="buscaInput">Buscar por nome, CPF completo ou identificador</label>
 <input autocomplete="off" class="control" id="buscaInput" maxlength="120" placeholder="Digite para pesquisar" type="search"/>
 </div><div class="field">
 <label for="situacaoSelect">Situação operacional</label>
 <select class="control" id="situacaoSelect">
-<option value="">Todas as situações</option>
+<option value="">Todas as situações atuais</option>
 <option value="DISPONIVEL_PARA_ATRIBUICAO">Disponível para atribuição</option>
 <option value="PENDENTE">Aguardando início</option>
 <option value="EM_TRATAMENTO">Em tratamento</option>
 <option value="AGUARDANDO_VALIDACAO_TCU">Aguardando validação do TCU</option>
 
-<option value="ESTADO_MISTO_REQUER_ANALISE">Requer análise</option>
 </select>
 </div><div class="field">
 <label for="operadorFiltroSelect">Operador principal</label>
 <select class="control" id="operadorFiltroSelect"><option value="">Todos os operadores</option></select>
-</div><div class="field"><label for="tipoIndicioFiltroSelect">Tipo de indício</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select></div></div><div class="advanced-filters" hidden="" id="filtrosAvancadosAtuais"><div class="filter-grid current-advanced-grid"><div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option></select></div><div class="field"><label for="situacaoPrazoSelect">Prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todas</option><option value="SEM_PRAZO">Sem prazo</option><option value="PRAZO_VENCIDO">Prazo vencido</option><option value="VENCE_HOJE">Vence hoje</option><option value="VENCE_EM_ATE_3_DIAS">Vence em até 3 dias</option><option value="VENCE_EM_ATE_7_DIAS">Vence entre 4 e 7 dias</option><option value="DENTRO_DO_PRAZO">Mais de 7 dias</option></select></div><div class="field">
+</div><div class="field"><label for="tipoIndicioFiltroSelect">Tipo de indício</label><select class="control" id="tipoIndicioFiltroSelect"><option value="">Todos os tipos</option></select></div></div><div class="advanced-filters" hidden="" id="filtrosAvancadosAtuais"><div class="filter-grid current-advanced-grid"><div class="field"><label for="prioridadeFiltroSelect">Prioridade</label><select class="control" id="prioridadeFiltroSelect"><option value="">Todas as prioridades</option><option value="SEM_PRIORIDADE">Sem prioridade</option></select></div><div class="field"><label for="situacaoPrazoSelect">Prazo</label><select class="control" id="situacaoPrazoSelect"><option value="">Todos os prazos</option><option value="SEM_PRAZO">Sem prazo</option><option value="PRAZO_VENCIDO">Prazo vencido</option><option value="VENCE_HOJE">Vence hoje</option><option value="VENCE_EM_ATE_3_DIAS">Vence em até 3 dias</option><option value="VENCE_EM_ATE_7_DIAS">Vence entre 4 e 7 dias</option><option value="DENTRO_DO_PRAZO">Mais de 7 dias</option></select></div><div class="field">
 <label for="ordenacaoSelect">Ordenação</label>
 <select class="control" id="ordenacaoSelect">
 <option value="DIAS_ESPERA_DESC">Maior tempo de espera</option>
