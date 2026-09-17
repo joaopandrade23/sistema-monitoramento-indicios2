@@ -314,3 +314,25 @@
 .sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
 @media(max-width:1100px){#secaoConcluidasGestao .concluded-metrics{grid-template-columns:repeat(2,1fr)}#secaoConcluidasGestao .concluded-primary-filters,#secaoConcluidasGestao .concluded-advanced-grid{grid-template-columns:repeat(2,1fr)}#secaoConcluidasGestao .concluded-expansion{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){#secaoConcluidasGestao .concluded-metrics,#secaoConcluidasGestao .concluded-primary-filters,#secaoConcluidasGestao .concluded-advanced-grid,#secaoConcluidasGestao .concluded-expansion{grid-template-columns:1fr}}
+
+
+/* ==========================================================================
+   HOMOLOGAÇÃO DE INDÍCIOS CONCLUÍDOS
+   A expansão fica fora da rolagem horizontal e o número do ciclo passa a ser
+   contexto do indício, não uma coluna comparativa.
+   ========================================================================== */
+#secaoConcluidasGestao .concluded-filter-summary { margin:12px 0 0; color:var(--muted); font-size:.8rem; line-height:1.4; }
+#secaoConcluidasGestao .concluded-table { min-width:1600px; }
+#secaoConcluidasGestao .concluded-col-indicio small { display:block; margin-top:4px; color:var(--muted); font-size:.7rem; font-weight:600; }
+#secaoConcluidasGestao .concluded-col-duracao { width:190px; }
+#secaoConcluidasGestao .concluded-col-ciclo { display:none; }
+#secaoConcluidasGestao .concluded-external-detail { width:100%; border-top:3px solid var(--primary); background:var(--surface-2); }
+#secaoConcluidasGestao .concluded-external-detail[hidden] { display:none!important; }
+#secaoConcluidasGestao .concluded-detail-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 20px 0; }
+#secaoConcluidasGestao .concluded-detail-heading div { display:flex; align-items:baseline; gap:10px; }
+#secaoConcluidasGestao .concluded-detail-heading span { color:var(--muted); font-size:.78rem; }
+#secaoConcluidasGestao .concluded-detail-heading strong { color:var(--primary); }
+#secaoConcluidasGestao .concluded-external-detail .concluded-expansion { width:100%; padding:14px 20px 20px; border-top:0; }
+#secaoConcluidasGestao .concluded-external-detail .concluded-expansion article { min-height:0; }
+#secaoConcluidasGestao .concluded-table-wrap { margin-bottom:0; }
+@media(max-width:760px){#secaoConcluidasGestao .concluded-detail-heading{align-items:flex-start;flex-direction:column}#secaoConcluidasGestao .concluded-detail-heading div{align-items:flex-start;flex-direction:column;gap:3px}}
