@@ -16,7 +16,7 @@ const estado = {
   carregando: false,
   atribuindo: false,
   prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null }, detalhe: { requisicao: 0, demanda: null, dados: null, historico: [] },
-  concluidas: { itens: [], detalhes: new Map(), pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
+  concluidas: { itens: [], detalhes: new Map(), expandida: null, pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   redistribuicao: { criterio: null, previa: null, assinatura: null },
   buscaTimer: null,
   cardAtivo: "DISPONIVEL_PARA_ATRIBUICAO",
@@ -37,7 +37,7 @@ const estado = {
 
 const ids = [
 "redistributionMenu","redistributionMenuPopover","redistribuirDemandasBtn","redistribuirPorTipoBtn","redistribuirPorCpfBtn","gerenciarEquipeBtn","equipeOverlay","fecharEquipeBtn","cancelarEquipeBtn","equipeResumoAtual","equipeAbaAdicionar","equipeAbaRemover","equipeAbaRedistribuir","equipePainelAdicionar","equipePainelRemover","equipePainelRedistribuir","equipeDisponiveisLista","equipeAtivosLista","equipeConversaoAviso","incluirColaboradoresBtn","remocaoJustificativa","equipeNovoPrincipalSelect","equipeManterAnteriorCheck","equipeRedistribuicaoJustificativa","redistribuirIndividualBtn","equipeAviso","redistribuicaoOverlay","fecharRedistribuicaoBtn","cancelarRedistribuicaoBtn","redistribuicaoTitulo","redistribuicaoCampoTipo","redistribuicaoCampoCpf","redistribuicaoTipoSelect","redistribuicaoCpfInput","redistribuicaoAtualSelect","redistribuicaoNovoSelect","redistribuicaoManterCheck","redistribuicaoJustificativa","redistribuicaoAviso","redistribuicaoPrevia","redistribuicaoResumo","redistribuicaoDetalhes","revisarRedistribuicaoBtn","confirmarRedistribuicaoBtn","loteOperadorLabel",
-"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardAguardandoValidacao","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","toggleFiltrosConcluidas","filtrosAvancadosConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
+"usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardAguardandoValidacao","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","toggleFiltrosConcluidas","filtrosAvancadosConcluidas","resumoFiltrosConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
 ]
 const el = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 const idsAusentes = ids.filter(id => !el[id]);
@@ -1187,8 +1187,25 @@ async function totalConcluidasPorStatus(codigoStatus) {
   return Number(data?.paginacao?.total_registros || 0);
 }
 
+/** Resume o universo histórico que alimenta cards, tabela e relatório. */
+function atualizarResumoFiltrosConcluidas() {
+  const filtros = [];
+  if (dom("concluidaBusca").value.trim()) filtros.push(`Busca: ${dom("concluidaBusca").value.trim()}`);
+  if (dom("concluidaInicio").value) filtros.push(`A partir de ${formatarData(dom("concluidaInicio").value)}`);
+  if (dom("concluidaFim").value) filtros.push(`Até ${formatarData(dom("concluidaFim").value)}`);
+  if (dom("concluidaStatus").value) filtros.push(dom("concluidaStatus").selectedOptions[0]?.textContent || "Situação final");
+  if (dom("concluidaTipo").value) filtros.push(`Tipo: ${dom("concluidaTipo").selectedOptions[0]?.textContent}`);
+  if (dom("concluidaOperador").value) filtros.push(`Responsável: ${dom("concluidaOperador").selectedOptions[0]?.textContent}`);
+  if (dom("concluidaPrioridade").value) filtros.push(`Prioridade: ${dom("concluidaPrioridade").selectedOptions[0]?.textContent}`);
+  dom("resumoFiltrosConcluidas").textContent = filtros.length
+    ? `${filtros.length} filtro${filtros.length > 1 ? "s" : ""} ativo${filtros.length > 1 ? "s" : ""}: ${filtros.join(" · ")}`
+    : "Todo o histórico";
+}
+
 async function carregarConcluidas() {
   const alvo = dom("concluidasConteudo");
+  atualizarResumoFiltrosConcluidas();
+  estado.concluidas.expandida = null;
   alvo.innerHTML = '<div class="table-state">Carregando indícios concluídos...</div>';
   try {
     const parametros = parametrosConcluidas();
@@ -1238,13 +1255,12 @@ async function carregarConcluidas() {
       <th class="concluded-col-sei">Processo SEI</th>
       <th class="concluded-col-data">Concluído em</th>
       <th class="concluded-col-duracao">Tempo de tratamento</th>
-      <th class="concluded-col-ciclo">Ciclo</th>
       <th class="concluded-col-acoes">Ações</th>
     </tr></thead><tbody>${estado.concluidas.itens.map(x => {
       const chave = String(x.id_ciclo_tratamento || x.id_indicio);
       return `<tr data-concluida-linha="${chave}">
         <td class="concluded-col-expand sticky-concluded-expand"><button class="concluded-expand-btn" type="button" data-concluida-expandir="${chave}" aria-expanded="false" aria-label="Expandir resumo do ciclo" title="Expandir resumo do ciclo"><span aria-hidden="true">⌄</span></button></td>
-        <td class="concluded-col-indicio sticky-concluded-indicio"><strong>${escapeHtml(x.identificador_do_indicio)}</strong></td>
+        <td class="concluded-col-indicio sticky-concluded-indicio"><strong>${escapeHtml(x.identificador_do_indicio)}</strong><small>Ciclo ${x.numero_ciclo || "-"}</small></td>
         <td class="concluded-col-pessoa cell-person"><strong>${escapeHtml(x.nome_atual)}</strong><span>${escapeHtml(x.cpf_mascarado)}</span></td>
         <td class="concluded-col-tipo"><div class="concluded-clamp" title="${escapeHtml(x.tipo_indicio)}">${escapeHtml(x.tipo_indicio)}</div></td>
         <td class="concluded-col-status"><span class="badge ${classeSituacao(x.codigo_status_ciclo)}">${escapeHtml(x.nome_status_ciclo)}</span></td>
@@ -1252,49 +1268,65 @@ async function carregarConcluidas() {
         <td class="concluded-col-sei">${escapeHtml(x.processo_sei_principal, "Não vinculado")}</td>
         <td class="concluded-col-data">${formatarDataHora(x.encerrado_em)}</td>
         <td class="concluded-col-duracao">${duracaoCiclo(x)}</td>
-        <td class="concluded-col-ciclo">Ciclo ${x.numero_ciclo || "-"}</td>
         <td class="concluded-col-acoes sticky-concluded-actions"><button class="btn btn-secondary" type="button" data-concluida-detalhe="${chave}">Detalhes</button></td>
-      </tr>
-      <tr class="concluded-row-detail" data-concluida-expansao="${chave}" hidden><td colspan="11"><div class="concluded-expansion" data-concluida-conteudo="${chave}"><div class="table-state">Carregando resumo do ciclo...</div></div></td></tr>`;
-    }).join("")}</tbody></table></div>`;
+      </tr>`;
+    }).join("")}</tbody></table></div>
+      <section class="concluded-external-detail" id="concluidaExpansaoPainel" hidden aria-live="polite"></section>`;
   } catch (error) {
     alvo.innerHTML = `<div class="status-banner error">${escapeHtml(mensagemErro(error, error.message || "Não foi possível carregar os indícios concluídos."))}</div>`;
   }
 }
 
 async function expandirConcluida(chave) {
-  const linha = document.querySelector(`[data-concluida-expansao="${chave}"]`);
-  const principal = document.querySelector(`[data-concluida-linha="${chave}"]`);
+  const painel = dom("concluidaExpansaoPainel");
   const botao = document.querySelector(`[data-concluida-expandir="${chave}"]`);
-  if (!linha || !botao) return;
+  const linha = document.querySelector(`[data-concluida-linha="${chave}"]`);
+  if (!painel || !botao || !linha) return;
 
-  const abrir = linha.hidden;
-  linha.hidden = !abrir;
-  principal?.classList.toggle("is-expanded", abrir);
-  botao.classList.toggle("is-expanded", abrir);
-  botao.setAttribute("aria-expanded", String(abrir));
-  botao.setAttribute("aria-label", abrir ? "Recolher resumo do ciclo" : "Expandir resumo do ciclo");
-  botao.setAttribute("title", abrir ? "Recolher resumo do ciclo" : "Expandir resumo do ciclo");
-  botao.querySelector("span").textContent = abrir ? "⌃" : "⌄";
-  if (!abrir) return;
+  const recolher = estado.concluidas.expandida === chave;
+  document.querySelectorAll("[data-concluida-expandir]").forEach(controle => {
+    controle.classList.remove("is-expanded");
+    controle.setAttribute("aria-expanded", "false");
+    controle.setAttribute("aria-label", "Expandir resumo do ciclo");
+    controle.setAttribute("title", "Expandir resumo do ciclo");
+    controle.querySelector("span").textContent = "⌄";
+  });
+  document.querySelectorAll("[data-concluida-linha]").forEach(registro => registro.classList.remove("is-expanded"));
+
+  if (recolher) {
+    painel.hidden = true;
+    painel.innerHTML = "";
+    estado.concluidas.expandida = null;
+    return;
+  }
+
+  estado.concluidas.expandida = chave;
+  linha.classList.add("is-expanded");
+  botao.classList.add("is-expanded");
+  botao.setAttribute("aria-expanded", "true");
+  botao.setAttribute("aria-label", "Recolher resumo do ciclo");
+  botao.setAttribute("title", "Recolher resumo do ciclo");
+  botao.querySelector("span").textContent = "⌃";
+  painel.hidden = false;
 
   const item = estado.concluidas.itens.find(x => String(x.id_ciclo_tratamento || x.id_indicio) === chave);
-  const alvo = linha.querySelector(`[data-concluida-conteudo="${chave}"]`);
   if (!item) return;
+
+  const cabecalho = `<header class="concluded-detail-heading"><div><span>Indício ${escapeHtml(item.identificador_do_indicio)}</span><strong>Ciclo ${item.numero_ciclo || "-"}</strong></div><button class="btn btn-ghost" type="button" data-recolher-concluida="${chave}">Recolher resumo</button></header>`;
   if (estado.concluidas.detalhes.has(chave)) {
-    alvo.innerHTML = renderResumoCiclo(estado.concluidas.detalhes.get(chave));
+    painel.innerHTML = cabecalho + `<div class="concluded-expansion">${renderResumoCiclo(estado.concluidas.detalhes.get(chave))}</div>`;
     return;
   }
 
   botao.disabled = true;
-  alvo.innerHTML = '<div class="table-state">Carregando resumo do ciclo...</div>';
+  painel.innerHTML = cabecalho + '<div class="table-state">Carregando resumo do ciclo...</div>';
   try {
     const { data, error } = await sb.rpc("relatorio_ciclo_demanda_gestor", { p_id_ciclo_tratamento: Number(item.id_ciclo_tratamento) });
     if (error) throw error;
     estado.concluidas.detalhes.set(chave, data);
-    alvo.innerHTML = renderResumoCiclo(data);
+    painel.innerHTML = cabecalho + `<div class="concluded-expansion">${renderResumoCiclo(data)}</div>`;
   } catch (error) {
-    alvo.innerHTML = `<div class="status-banner error">Não foi possível carregar o resumo do ciclo. ${escapeHtml(error.message, "")}</div>`;
+    painel.innerHTML = cabecalho + `<div class="status-banner error">Não foi possível carregar o resumo do ciclo. ${escapeHtml(error.message, "")}</div>`;
   } finally {
     botao.disabled = false;
   }
@@ -1310,7 +1342,7 @@ function renderResumoCiclo(relatorio) {
   const ultima = historico.map(x => x.realizada_em).filter(Boolean).sort().at(-1);
   return `
     <article><h3>Resumo do ciclo</h3><strong>${escapeHtml(c.nome_status_ciclo)}</strong><p>${escapeHtml(c.resultado_encerramento)}</p><dl><div><dt>Iniciado em</dt><dd>${formatarDataHora(c.iniciado_em || c.aberto_em)}</dd></div><div><dt>Concluído em</dt><dd>${formatarDataHora(c.encerrado_em)}</dd></div></dl></article>
-    <article><h3>Participantes do ciclo</h3><dl><div><dt>Responsável principal</dt><dd>${escapeHtml(principal?.nome_exibicao, "Não informado")}</dd></div><div><dt>Colaboradores</dt><dd>${pluralizarConcluidas(colaboradores.length, "participante adicional", "participantes adicionais")}</dd></div></dl></article>
+    <article><h3>Participantes do ciclo</h3><dl><div><dt>Participante principal registrado</dt><dd>${escapeHtml(principal?.nome_exibicao, "Não informado")}</dd></div><div><dt>Colaboradores</dt><dd>${pluralizarConcluidas(colaboradores.length, "participante adicional", "participantes adicionais")}</dd></div></dl></article>
     <article><h3>Processos SEI</h3>${processos.length ? `<strong>${escapeHtml(processos.find(x => x.processo_principal)?.numero_processo || processos[0]?.numero_processo)}</strong><p>${processos.length > 1 ? pluralizarConcluidas(processos.length - 1, "vínculo adicional", "vínculos adicionais") : "Processo principal do ciclo"}</p>` : '<p>Nenhum processo vinculado neste ciclo.</p>'}</article>
     <article><h3>Auditoria do ciclo</h3><strong>${pluralizarConcluidas(historico.length, "movimentação registrada", "movimentações registradas")}</strong><p>${ultima ? `Última movimentação: ${formatarDataHora(ultima)}` : "Sem data de movimentação disponível."}</p><small>Abra os detalhes para consultar o histórico completo.</small></article>`;
 }
@@ -1375,10 +1407,15 @@ function prepararNavegacaoGestao() {
   dom("tamanhoPaginaConcluidas").addEventListener("change", e => { estado.concluidas.tamanho = Number(e.target.value); estado.concluidas.pagina = 1; carregarConcluidas(); }); dom("concluidasAnteriorBtn").addEventListener("click", () => { if (estado.concluidas.pagina > 1) { estado.concluidas.pagina--; carregarConcluidas(); } }); dom("concluidasProximaBtn").addEventListener("click", () => { if (estado.concluidas.pagina < estado.concluidas.totalPaginas) { estado.concluidas.pagina++; carregarConcluidas(); } });
   dom("concluidasConteudo").addEventListener("click", e => {
     const expandir = e.target.closest("[data-concluida-expandir]");
+    const recolher = e.target.closest("[data-recolher-concluida]");
     const detalhe = e.target.closest("[data-concluida-detalhe]");
 
     if (expandir) {
       expandirConcluida(expandir.dataset.concluidaExpandir);
+    }
+
+    if (recolher) {
+      expandirConcluida(recolher.dataset.recolherConcluida);
     }
 
     if (detalhe) {
