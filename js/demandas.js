@@ -1195,10 +1195,10 @@ function registrarEventos() {
     el.toggleFiltrosAtuais.textContent = abrir ? "Recolher filtros ▴" : "Filtros avançados ▾";
     el.toggleFiltrosAtuais.setAttribute("aria-expanded", String(abrir));
   });
-  el.acaoAtribuirSelecionadas.addEventListener("click",()=>abrirLote();selecionarEscopoAtribuicao("selecionadas"));
+  el.acaoAtribuirSelecionadas.addEventListener("click",()=>{abrirLote();selecionarEscopoAtribuicao("selecionadas");});
   el.acaoRedistribuirSelecionadas.addEventListener("click",()=>{const d=[...estado.selecionadas.values()][0];if(d){abrirRedistribuicao();selecionarEscopoRedistribuicao("cpf");el.redistribuicaoCpfInput.value=d.cpf||""}});
   el.acaoEquipeSelecionada.addEventListener("click",()=>{if(estado.selecionadas.size===1){abrirDetalhe([...estado.selecionadas.values()][0]).then(()=>switchDetailTab("equipe"))}else exibirMensagem("Selecione apenas uma demanda para gerenciar a equipe.","warning")});
-  el.verSelecionadasBtn.addEventListener("click", () => abrirLote();selecionarEscopoAtribuicao("selecionadas"));
+  el.verSelecionadasBtn.addEventListener("click",()=>{abrirLote();selecionarEscopoAtribuicao("selecionadas");});
   el.selecionarPaginaCheck.addEventListener("change", e => selecionarPagina(e.target.checked));
 
   el.demandasTbody.addEventListener("click", e => {
