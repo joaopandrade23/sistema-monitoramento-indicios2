@@ -474,3 +474,64 @@
   #atribuicaoOverlay .cycle-single-summary { grid-template-columns: 1fr; }
   #atribuicaoOverlay .tab-panel { padding: 16px; }
 }
+
+
+/* ==========================================================================
+   MODAL DE DETALHES | ETAPA 2: DETALHES E EQUIPE
+   Hierarquia dos dados, vínculos, participantes e gerenciamento do ciclo.
+   ========================================================================== */
+#atribuicaoOverlay .detail-card.classified-text strong { line-height:1.45; }
+#atribuicaoOverlay .detail-card.narrative-text strong { font-weight:550; line-height:1.55; }
+#atribuicaoOverlay .detail-bonds strong { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+#atribuicaoOverlay .detail-bond-primary { min-width:0; }
+#atribuicaoOverlay .team-no-cycle-state { display:grid; place-items:start; min-height:220px; padding:24px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2); }
+#atribuicaoOverlay .team-no-cycle-state strong { color:var(--warning); font-size:1.05rem; }
+#atribuicaoOverlay .team-no-cycle-state p { margin:8px 0 2px; }
+#atribuicaoOverlay .team-no-cycle-state small { color:var(--muted); }
+#atribuicaoOverlay .team-column > h3 { margin:22px 0 12px; }
+#atribuicaoOverlay .team-column > h3:first-child { margin-top:0; }
+#atribuicaoOverlay .member-copy { min-width:0; }
+#atribuicaoOverlay .member-copy strong,#atribuicaoOverlay .member-copy span,#atribuicaoOverlay .member-copy small { display:block; }
+#atribuicaoOverlay .member-copy span { margin-top:3px; color:var(--muted); font-size:.78rem; }
+#atribuicaoOverlay .member-copy small { margin-top:8px; color:var(--muted); }
+#atribuicaoOverlay .member-copy p { display:none; }
+#atribuicaoOverlay .member-card { min-height:96px; }
+#atribuicaoOverlay .member-card header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+#atribuicaoOverlay .member-card header strong { min-width:0; line-height:1.35; }
+#atribuicaoOverlay .member-card header span { flex:0 0 auto; color:var(--muted); font-size:.73rem; }
+#atribuicaoOverlay .member-card > small { display:block; margin-top:14px; color:var(--muted); }
+#atribuicaoOverlay .team-empty-copy { grid-column:1/-1; margin:4px 0; color:var(--muted); }
+#atribuicaoOverlay .team-action-panel .readonly-callout { min-height:132px; }
+#atribuicaoOverlay .team-choice { align-items:flex-start; padding:14px; }
+#atribuicaoOverlay .team-choice b { display:grid; place-items:center; flex:0 0 28px; width:28px; height:28px; border-radius:8px; background:var(--primary-soft); color:var(--primary); }
+#atribuicaoOverlay .team-choice span,#atribuicaoOverlay .team-choice strong,#atribuicaoOverlay .team-choice small { display:block; }
+#atribuicaoOverlay .team-choice small { margin-top:3px; color:var(--muted); line-height:1.35; }
+
+#equipeOverlay .team-management-modal { display:flex; flex-direction:column; width:min(760px,calc(100vw - 28px)); max-height:92vh; overflow:hidden; }
+#equipeOverlay .modal-body { overflow-y:auto; }
+#equipeOverlay .team-modal-context { display:flex; align-items:baseline; gap:8px; margin-bottom:12px; color:var(--muted); }
+#equipeOverlay .team-modal-context strong { color:var(--primary); }
+#equipeOverlay .team-current { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+#equipeOverlay .team-current article { padding:12px; border:1px solid var(--line); border-radius:11px; background:var(--surface-2); }
+#equipeOverlay .team-current span,#equipeOverlay .team-current strong,#equipeOverlay .team-current small { display:block; }
+#equipeOverlay .team-current span,#equipeOverlay .team-current small { color:var(--muted); font-size:.75rem; }
+#equipeOverlay .team-current strong { margin:4px 0; }
+#equipeOverlay .team-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; padding:5px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); }
+#equipeOverlay .team-tab { min-height:42px; padding:8px 10px; border:0; border-radius:9px; background:transparent; color:var(--muted); font-weight:700; }
+#equipeOverlay .team-tab.is-active { background:var(--primary); color:#fff; box-shadow:var(--shadow); }
+#equipeOverlay .team-panel { padding-top:16px; }
+#equipeOverlay .collaborator-options { max-height:310px; }
+#equipeOverlay .operator-choice,#equipeOverlay .removal-choice { display:flex; align-items:flex-start; gap:11px; padding:12px; border:1px solid var(--line); border-radius:11px; background:var(--surface-2); cursor:pointer; }
+#equipeOverlay .operator-choice:has(input:checked),#equipeOverlay .removal-choice:has(input:checked) { border-color:var(--primary); background:var(--primary-soft); box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 18%,transparent); }
+#equipeOverlay .operator-choice input,#equipeOverlay .removal-choice input { margin-top:4px; accent-color:var(--primary); }
+#equipeOverlay .operator-choice-copy,#equipeOverlay .operator-choice-copy strong,#equipeOverlay .operator-choice-copy small,#equipeOverlay .operator-choice-copy em,#equipeOverlay .removal-choice span,#equipeOverlay .removal-choice strong,#equipeOverlay .removal-choice small { display:block; }
+#equipeOverlay .operator-choice-copy { min-width:0; }
+#equipeOverlay .operator-choice-copy small,#equipeOverlay .removal-choice small { margin-top:3px; color:var(--muted); }
+#equipeOverlay .operator-choice-copy em { margin-top:7px; color:var(--primary); font-size:.72rem; font-style:normal; }
+#equipeOverlay .team-empty-state { padding:18px; border:1px dashed var(--line); border-radius:11px; text-align:center; color:var(--muted); }
+#equipeOverlay .team-empty-state strong,#equipeOverlay .team-empty-state span { display:block; }
+#equipeOverlay .team-empty-state strong { color:var(--text); }
+#equipeOverlay .team-action-help { color:var(--muted); font-size:.78rem; }
+#equipeOverlay .team-panel .field { margin-top:14px; }
+#equipeOverlay .modal-footer { justify-content:flex-end; }
+@media(max-width:680px){#equipeOverlay .team-current,#equipeOverlay .team-tabs{grid-template-columns:1fr}}
