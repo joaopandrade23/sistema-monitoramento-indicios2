@@ -384,7 +384,7 @@ function renderizarDemandas() {
       <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td>${escapeHtml(d.nome_prioridade, "Ainda não definida")}</td>
       <td>${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
-      <td><strong>${d.prazo_em?formatarData(d.prazo_em):"Sem prazo"}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo||"")}">${escapeHtml(d.situacao_prazo?rotuloGenerico(d.situacao_prazo):"Não definido")}</span></td><td><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>via e-Pessoal · ${Number(d.dias_de_espera||0)} dia(s) no estoque</small></td>
+      <td><strong>${d.prazo_em?formatarData(d.prazo_em):"Sem prazo"}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo||"")}">${escapeHtml(d.situacao_prazo?rotuloPainel(d.situacao_prazo):"Não definido")}</span></td><td><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>via e-Pessoal · ${Number(d.dias_de_espera||0)} dia(s) no estoque</small></td>
       <td><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Detalhes</button></td>
     </tr>`;
   }).join("");
@@ -1022,13 +1022,26 @@ async function carregarPainelGestao() {
       total
     });
 
-    /* Atividade: união das ações operacionais e administrativas disponíveis. */
-    const atividades = [...(data?.atividades_por_tipo || []), ...(data?.movimentacoes_administrativas || [])];
-    renderizarBarrasGerenciais("graficoMovimentacoesGestao", atividades, {
-      campoRotulo: "nome_movimentacao"
+    /*
+     * Distribuição por operador: substitui a contagem de atos administrativos,
+     * que é menos útil para decisão imediata, por uma visão de balanceamento da
+     * carteira principal. A área detalhada abaixo permanece responsável pelos
+     * indicadores de concentração, colaboração e risco de prazo.
+     */
+    const carteiraPorOperador = (data?.carga_operadores || [])
+      .map(operador => ({
+        nome_operador: operador.nome_exibicao,
+        codigo_operador: operador.codigo_usuario || operador.email_institucional,
+        quantidade: Number(operador.carga?.como_principal || 0)
+      }))
+      .sort((a, b) => b.quantidade - a.quantidade);
+    renderizarBarrasGerenciais("graficoMovimentacoesGestao", carteiraPorOperador, {
+      campoRotulo: "nome_operador",
+      campoCodigo: "codigo_operador",
+      total: carteiraPorOperador.reduce((soma, item) => soma + item.quantidade, 0)
     });
 
-    /* Equipe: substitui cartões isolados por leitura de capacidade e risco. */
+    /* Equipe: leitura detalhada de capacidade, concentração e risco de prazo. */
     renderizarCapacidadeEquipe(data?.carga_operadores || [], total);
   } catch (error) {
     exibirMensagem(mensagemErro(error, error.message || "Não foi possível carregar o painel."), "error");
