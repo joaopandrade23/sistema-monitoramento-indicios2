@@ -133,8 +133,7 @@
 </div>
 <div class="toolbar-actions"><label class="field table-page-size"><span>Exportar</span><select class="control" id="escopoExportacaoAtuais"><option value="PAGINA">Página atual</option><option value="FILTRADOS">Resultados filtrados</option><option value="SELECIONADOS">Indícios selecionados</option><option value="TODAS">Todos os indícios atuais</option></select></label><button class="btn" id="exportarAtuaisBtn" type="button">Exportar CSV</button><button class="btn btn-primary" disabled="" hidden="" id="acaoAtribuirSelecionadas" type="button">Atribuir</button><button class="btn" disabled="" hidden="" id="acaoRedistribuirSelecionadas" type="button">Redistribuir</button><button class="btn" disabled="" hidden="" id="acaoEquipeSelecionada" type="button">Gerenciar equipe</button>
 <div class="assignment-menu" id="assignmentMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">Atribuir indícios <span aria-hidden="true">▾</span>
-</button>
+<button aria-expanded="false" aria-haspopup="dialog" class="btn btn-primary assignment-menu-trigger" id="atribuirDemandasBtn" type="button">Atribuir indícios</button>
 <div class="assignment-menu-popover" hidden="" id="assignmentMenuPopover" role="menu">
 <button disabled="" id="atribuirSelecionadasBtn" role="menuitem" type="button">
 <strong>Atribuir selecionados</strong>
@@ -150,8 +149,7 @@
 </button>
 </div>
 </div><div class="assignment-menu" id="redistributionMenu">
-<button aria-expanded="false" aria-haspopup="menu" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">Redistribuir indícios <span aria-hidden="true">▾</span>
-</button>
+<button aria-expanded="false" aria-haspopup="dialog" class="btn btn-secondary assignment-menu-trigger" id="redistribuirDemandasBtn" type="button">Redistribuir indícios</button>
 <div class="assignment-menu-popover" hidden="" id="redistributionMenuPopover" role="menu">
 <button id="redistribuirPorTipoBtn" role="menuitem" type="button">
 <strong>Redistribuir por tipo de indício</strong>
@@ -229,7 +227,15 @@
 <button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharLoteBtn" type="button">×</button>
 </header>
 <div class="wizard-steps" id="loteWizardSteps"><button class="wizard-step active" data-lote-step="1"><b>1</b><span>Escopo</span></button><button class="wizard-step" data-lote-step="2"><b>2</b><span>Equipe</span></button><button class="wizard-step" data-lote-step="3"><b>3</b><span>Prioridade e prazo</span></button><button class="wizard-step" data-lote-step="4"><b>4</b><span>Processo SEI</span></button><button class="wizard-step" data-lote-step="5"><b>5</b><span>Revisão</span></button></div><div class="modal-body wizard-layout"><div class="wizard-main">
-<div class="batch-step" data-lote-panel="1" hidden="" id="loteEtapaSelecionadas">
+<section class="wizard-panel scope-stage" data-lote-scope-chooser="">
+<div class="wizard-section-heading"><span>Etapa 1</span><h3>Escolha o escopo da atribuição</h3><p>Selecione uma única origem para o conjunto de indícios.</p></div>
+<div aria-label="Escopo da atribuição" class="scope-card-grid" role="radiogroup">
+<button class="scope-card" data-assignment-scope="selecionadas" type="button"><strong>Indícios selecionados</strong><span id="scopeSelectedCount">Use a seleção atual da tabela.</span></button>
+<button class="scope-card" data-assignment-scope="cpf" type="button"><strong>Por CPF</strong><span>Localize os indícios elegíveis de uma pessoa.</span></button>
+<button class="scope-card" data-assignment-scope="tipo" type="button"><strong>Por tipo de indício</strong><span>Localize todos os indícios elegíveis de um tipo.</span></button>
+<button class="scope-card" data-assignment-scope="filtrados" type="button"><strong>Resultados filtrados</strong><span>Use o resultado atual da listagem.</span></button>
+</div><div class="scope-detail-slot" data-assignment-scope-slot=""><div class="scope-empty-state">Selecione um escopo para continuar.</div></div>
+</section><div class="batch-step scope-source-panel" data-lote-panel="1" hidden="" id="loteEtapaSelecionadas">
 <div class="batch-summary">
 <strong id="loteQuantidade">0</strong>
 <span>demandas selecionadas</span>
@@ -237,22 +243,22 @@
 <div class="selected-list" id="loteSelecionadasLista"></div>
 </div>
 <section class="batch-step wizard-panel" data-lote-panel="2" hidden=""><div class="wizard-section-heading"><span>Etapa 2</span><h3>Equipe responsável</h3><p>Defina o responsável principal e o modo de atuação do lote.</p></div><div class="assignment-grid"><div class="field principal-field">
-<label for="loteOperadorSelect" id="loteOperadorLabel">Operador responsável</label>
+<label for="loteOperadorSelect" id="loteOperadorLabel">Responsável principal</label>
 <select class="control" id="loteOperadorSelect">
 <option value="">Selecione um operador</option>
 </select>
 </div><div class="field mode-field">
-<label for="loteModoSelect">1. Modo de trabalho</label>
+<label for="loteModoSelect">Modo de trabalho</label>
 <select class="control" id="loteModoSelect">
 <option value="INDIVIDUAL">Individual</option>
 <option value="COLABORATIVO">Colaborativo</option>
 </select>
 <small id="loteModoAjuda">Uma pessoa será responsável pelo ciclo.</small>
 </div><div class="field detail-wide collaborators-field" hidden="" id="loteColaboradoresField">
-<span class="field-label">3. Equipe colaboradora</span>
+<span class="field-label">Colaboradores</span>
 <div aria-label="Selecione os colaboradores" class="collaborator-options" id="loteColaboradoresLista" role="group"></div>
 <small>Selecione pelo menos uma pessoa diferente do operador principal.</small>
-</div></div></section><section class="batch-step wizard-panel" data-lote-panel="3" hidden=""><div class="wizard-section-heading"><span>Etapa 3</span><h3>Prioridade e prazo</h3><p>Configure as condições administrativas aplicadas aos ciclos criados.</p></div><div class="assignment-grid"><div class="field"><label for="lotePrioridadeSelect">Prioridade inicial</label><select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select></div><div class="field"><label for="lotePrazoCheck">Prazo</label><label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"/><span>Definir prazo para o lote</span></label></div><div class="field" hidden="" id="lotePrazoField"><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"/></div></div></section><div class="batch-step" data-lote-panel="1" hidden="" id="loteEtapaTipo">
+</div></div></section><section class="batch-step wizard-panel" data-lote-panel="3" hidden=""><div class="wizard-section-heading"><span>Etapa 3</span><h3>Prioridade e prazo</h3><p>Configure as condições administrativas aplicadas aos ciclos criados.</p></div><div class="assignment-grid"><div class="field"><label for="lotePrioridadeSelect">Prioridade inicial</label><select class="control" id="lotePrioridadeSelect"><option value="NORMAL">Normal</option></select></div><div class="field"><label for="lotePrazoCheck">Prazo</label><label class="check-option compact"><input id="lotePrazoCheck" type="checkbox"/><span>Aplicar prazo aos indícios</span></label></div><div class="field" hidden="" id="lotePrazoField"><label for="lotePrazoInput">Data limite</label><input class="control" id="lotePrazoInput" type="date"/></div></div></section><div class="batch-step scope-source-panel" data-lote-panel="1" hidden="" id="loteEtapaTipo">
 <div class="field">
 <label for="loteTipoSelect">Tipo de indício</label>
 <select class="control" id="loteTipoSelect">
@@ -261,15 +267,14 @@
 </div>
 <p class="modal-note">A prévia localizará todas as demandas elegíveis do tipo selecionado.</p>
 </div>
-<div class="batch-step" data-lote-panel="1" hidden="" id="loteEtapaCpf">
+<div class="batch-step scope-source-panel" data-lote-panel="1" hidden="" id="loteEtapaCpf">
 <div class="field">
 <label for="loteCpfInput">CPF</label>
 <input autocomplete="off" class="control" id="loteCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"/>
 </div>
 <p class="modal-note">O CPF será usado somente como critério de busca e não será gravado integralmente na auditoria.</p>
 </div>
-
-<section class="assignment-section sei-step batch-step wizard-panel" data-lote-panel="4" hidden=""><h3>Processo SEI opcional</h3><label class="check-option compact"><input id="loteVincularSei" type="checkbox"/><span>Vincular processo SEI às demandas atribuídas com sucesso</span></label><div class="assignment-grid" hidden="" id="loteSeiCampos"><div class="field"><label for="loteSeiNumero">Número do processo</label><input class="control" id="loteSeiNumero" placeholder="00000.000000/0000-00"/></div><div class="field"><label for="loteSeiAssunto">Assunto</label><input class="control" id="loteSeiAssunto"/></div><div class="field detail-wide"><label for="loteSeiObservacao">Observação</label><textarea class="control textarea" id="loteSeiObservacao"></textarea></div><label class="check-option compact detail-wide"><input checked="" id="loteSeiPrincipal" type="checkbox"/><span>Definir como processo principal</span></label></div></section><div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
+<section class="assignment-section sei-step batch-step wizard-panel" data-lote-panel="4" hidden=""><h3>Processo SEI opcional</h3><label class="check-option compact"><input id="loteVincularSei" type="checkbox"/><span>Vincular o processo aos indícios atribuídos com sucesso</span></label><div class="assignment-grid" hidden="" id="loteSeiCampos"><div class="field"><label for="loteSeiNumero">Número do processo</label><input class="control" id="loteSeiNumero" placeholder="00000.000000/0000-00"/></div><div class="field"><label for="loteSeiAssunto">Assunto</label><input class="control" id="loteSeiAssunto"/></div><div class="field detail-wide"><label for="loteSeiObservacao">Observação</label><textarea class="control textarea" id="loteSeiObservacao"></textarea></div><label class="check-option compact detail-wide"><input checked="" id="loteSeiPrincipal" type="checkbox"/><span>Definir como processo principal</span></label></div></section><div class="status-banner" id="loteAviso">Configure a atribuição e gere a prévia antes de confirmar.</div>
 <section aria-live="polite" class="preview-panel batch-step wizard-panel" data-lote-panel="5" hidden="" id="lotePrevia">
 <div class="preview-metrics" id="lotePreviaResumo"></div>
 <div class="participants-preview" id="lotePreviaParticipantes"></div>
@@ -319,12 +324,22 @@
 <div><span class="eyebrow">Fluxo de redistribuição</span><h2 id="redistribuicaoTitulo">Redistribuir indícios</h2></div>
 <button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharRedistribuicaoBtn" type="button">×</button>
 </header>
-<div class="wizard-steps" id="redistribuicaoWizardSteps"><button class="wizard-step active" data-red-step="1"><b>1</b><span>Critério</span></button><button class="wizard-step" data-red-step="2"><b>2</b><span>Responsáveis</span></button><button class="wizard-step" data-red-step="3"><b>3</b><span>Regras</span></button><button class="wizard-step" data-red-step="4"><b>4</b><span>Prévia</span></button><button class="wizard-step" data-red-step="5"><b>5</b><span>Confirmação</span></button></div><div class="modal-body wizard-layout"><div class="wizard-main"><section class="wizard-panel" data-red-panel="1"><div class="scope-options"><button class="scope-option active" type="button">Por critério</button><button class="scope-option" type="button">Indícios selecionados</button><button class="scope-option" type="button">Um indício</button><button class="scope-option" type="button">Resultados filtrados</button></div><div class="field" id="redistribuicaoCampoTipo"><label for="redistribuicaoTipoSelect">Tipo de indício</label><select class="control" id="redistribuicaoTipoSelect"><option value="">Selecione um tipo</option></select></div><div class="field" hidden="" id="redistribuicaoCampoCpf"><label for="redistribuicaoCpfInput">CPF</label><input class="control" id="redistribuicaoCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"/></div></section><section class="wizard-panel" data-red-panel="2" hidden=""><div class="wizard-section-heading"><span>Etapa 2</span><h3>Responsabilidade</h3><p>Defina a origem da carteira e o novo responsável principal.</p></div><div class="assignment-grid"><div class="field"><label for="redistribuicaoAtualSelect">Responsável atual</label><select class="control" id="redistribuicaoAtualSelect"><option value="">Selecione</option></select></div><div class="field"><label for="redistribuicaoNovoSelect">Novo responsável</label><select class="control" id="redistribuicaoNovoSelect"><option value="">Selecione</option></select></div></div></section><section class="wizard-panel" data-red-panel="3" hidden=""><div class="wizard-section-heading"><span>Etapa 3</span><h3>Regras da redistribuição</h3><p>A justificativa será registrada no histórico de cada ciclo alterado.</p></div><label class="check-option compact detail-wide"><input id="redistribuicaoManterCheck" type="checkbox"/><span>Manter o responsável anterior como colaborador</span></label><div class="field detail-wide"><label for="redistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="redistribuicaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da redistribuição"></textarea></div><div class="readonly-callout"><strong>Prioridade e prazo preservados</strong><p>A redistribuição altera somente a responsabilidade principal e a composição definida.</p></div></section>
-
-
-
+<div class="wizard-steps" id="redistribuicaoWizardSteps"><button class="wizard-step active" data-red-step="1"><b>1</b><span>Escopo</span></button><button class="wizard-step" data-red-step="2"><b>2</b><span>Responsabilidade</span></button><button class="wizard-step" data-red-step="3"><b>3</b><span>Justificativa e prazo</span></button><button class="wizard-step" data-red-step="4"><b>4</b><span>Revisão</span></button><button class="wizard-step" data-red-step="5"><b>5</b><span>Confirmação</span></button></div><div class="modal-body wizard-layout"><div class="wizard-main"><section class="wizard-panel" data-red-panel="1"><div class="wizard-section-heading"><span>Etapa 1</span><h3>Escolha o escopo da redistribuição</h3><p>Somente o formulário correspondente ao escopo escolhido será exibido.</p></div>
+<div aria-label="Escopo da redistribuição" class="scope-card-grid" role="radiogroup">
+<button class="scope-card" data-redistribution-scope="selecionadas" type="button"><strong>Indícios selecionados</strong><span>Use a seleção atual da tabela.</span></button>
+<button class="scope-card" data-redistribution-scope="indicio" type="button"><strong>Um indício</strong><span>Informe um identificador específico.</span></button>
+<button class="scope-card" data-redistribution-scope="cpf" type="button"><strong>Por CPF</strong><span>Localize os ciclos elegíveis de uma pessoa.</span></button>
+<button class="scope-card" data-redistribution-scope="tipo" type="button"><strong>Por tipo de indício</strong><span>Localize a carteira por tipo.</span></button>
+<button class="scope-card" data-redistribution-scope="filtrados" type="button"><strong>Resultados filtrados</strong><span>Use os filtros atuais da listagem.</span></button>
+</div>
+<div class="scope-detail-slot" data-redistribution-scope-slot="">
+<div class="field" data-red-scope-field="tipo" hidden=""><label for="redistribuicaoTipoSelect">Tipo de indício</label><select class="control" id="redistribuicaoTipoSelect"><option value="">Selecione um tipo</option></select></div>
+<div class="field" data-red-scope-field="cpf" hidden=""><label for="redistribuicaoCpfInput">CPF</label><input class="control" id="redistribuicaoCpfInput" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"/></div>
+<div class="field" data-red-scope-field="indicio" hidden=""><label for="redistribuicaoIndicioInput">Número do indício</label><input class="control" id="redistribuicaoIndicioInput" inputmode="numeric" placeholder="Informe o identificador"/></div>
+<div class="scope-empty-state" data-red-scope-empty="">Selecione um escopo para continuar.</div>
+</div></section><section class="wizard-panel" data-red-panel="2" hidden=""><div class="wizard-section-heading"><span>Etapa 2</span><h3>Responsabilidade</h3><p>Defina a origem da carteira e o novo responsável principal.</p></div><div class="assignment-grid"><div class="field"><label for="redistribuicaoAtualSelect">Responsável atual</label><select class="control" id="redistribuicaoAtualSelect"><option value="">Selecione</option></select></div><div class="field"><label for="redistribuicaoNovoSelect">Novo responsável</label><select class="control" id="redistribuicaoNovoSelect"><option value="">Selecione</option></select></div></div></section><section class="wizard-panel" data-red-panel="3" hidden=""><div class="wizard-section-heading"><span>Etapa 3</span><h3>Justificativa e prazo</h3><p>Registre o motivo da redistribuição e defina se os prazos serão preservados.</p></div><label class="check-option compact detail-wide"><input id="redistribuicaoManterCheck" type="checkbox"/><span>Manter o responsável anterior como colaborador</span></label><div class="field detail-wide"><label for="redistribuicaoJustificativa">Justificativa</label><textarea class="control textarea" id="redistribuicaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo da redistribuição"></textarea></div><div class="deadline-choice"><span class="field-label">Prazo dos ciclos</span><label class="check-option compact"><input id="redistribuicaoNovoPrazoCheck" type="checkbox"/><span>Definir novo prazo para os indícios redistribuídos</span></label><div class="field" hidden="" id="redistribuicaoNovoPrazoField"><label for="redistribuicaoNovoPrazoInput">Nova data limite</label><input class="control" id="redistribuicaoNovoPrazoInput" type="date"/><small>As prioridades atuais serão preservadas.</small></div></div></section>
 <div class="status-banner" id="redistribuicaoAviso">Configure os filtros e gere a prévia.</div>
-<section class="preview-panel wizard-panel" data-red-panel="4" hidden="" id="redistribuicaoPrevia"><div class="preview-metrics" id="redistribuicaoResumo"></div><div id="redistribuicaoDetalhes"></div></section><section class="wizard-panel confirmation-panel" data-red-panel="5" hidden=""><div class="wizard-section-heading"><span>Etapa 5</span><h3>Confirmar redistribuição</h3><p>Revise o resumo final antes de executar a operação.</p></div><div id="redistribuicaoConfirmacaoResumo"></div><label class="check-option review-accept"><input id="redistribuicaoConfirmacaoCheck" type="checkbox"/><span>Revisei a prévia e confirmo a redistribuição dos indícios elegíveis.</span></label></section></div><aside class="wizard-summary"><h3>Resumo da redistribuição</h3><div id="resumoAssistenteRedistribuicao"><p>Defina o critério e os responsáveis.</p></div></aside></div>
+<section class="preview-panel wizard-panel" data-red-panel="4" hidden="" id="redistribuicaoPrevia"><div class="wizard-section-heading"><span>Etapa 4</span><h3>Revisão da redistribuição</h3><p>Confira os elegíveis, impedidos e o impacto do novo prazo.</p></div><div class="preview-metrics" id="redistribuicaoResumo"></div><div id="redistribuicaoDetalhes"></div></section><section class="wizard-panel confirmation-panel" data-red-panel="5" hidden=""><div class="wizard-section-heading"><span>Etapa 5</span><h3>Confirmar redistribuição</h3><p>Revise o resumo final antes de executar a operação.</p></div><div id="redistribuicaoConfirmacaoResumo"></div><label class="check-option review-accept"><input id="redistribuicaoConfirmacaoCheck" type="checkbox"/><span>Revisei a prévia e confirmo a redistribuição dos indícios elegíveis.</span></label></section></div><aside class="wizard-summary"><h3>Resumo da redistribuição</h3><div id="resumoAssistenteRedistribuicao"><p>Defina o critério e os responsáveis.</p></div></aside></div>
 <footer class="modal-footer wizard-footer"><button class="btn" id="cancelarRedistribuicaoBtn" type="button">Cancelar</button><div class="wizard-footer-nav"><button class="btn" hidden="" id="voltarRedistribuicaoBtn" type="button">Voltar</button><button class="btn btn-primary" id="revisarRedistribuicaoBtn" type="button">Continuar</button><button class="btn btn-primary" disabled="" hidden="" id="confirmarRedistribuicaoBtn" type="button">Confirmar redistribuição</button></div></footer>
 </section>
 </div>
