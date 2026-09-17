@@ -384,7 +384,7 @@ function renderizarDemandas() {
       <td><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td>${escapeHtml(d.nome_prioridade, "Ainda não definida")}</td>
       <td>${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
-      <td><strong>${d.prazo_em?formatarData(d.prazo_em):"Sem prazo"}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo||"")}">${escapeHtml(d.situacao_prazo?gl(d.situacao_prazo):"Não definido")}</span></td><td><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>via e-Pessoal · ${Number(d.dias_de_espera||0)} dia(s) no estoque</small></td>
+      <td><strong>${d.prazo_em?formatarData(d.prazo_em):"Sem prazo"}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo||"")}">${escapeHtml(d.situacao_prazo?rotuloGenerico(d.situacao_prazo):"Não definido")}</span></td><td><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>via e-Pessoal · ${Number(d.dias_de_espera||0)} dia(s) no estoque</small></td>
       <td><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Detalhes</button></td>
     </tr>`;
   }).join("");
