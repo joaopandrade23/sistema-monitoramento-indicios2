@@ -692,3 +692,24 @@
 #redistribuicaoPrevia #redistribuicaoCarteiras{margin:0}
 @media(max-width:900px){.admin-operation-modal .scope-card-grid,.destination-grid,.review-definition-list{grid-template-columns:1fr}.compact-indication-list article{grid-template-columns:1fr}.impact-metrics{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:560px){.impact-metrics{grid-template-columns:1fr}.portfolio-list article{align-items:flex-start;flex-direction:column}}
+
+/* AJUSTE FINAL DOS ASSISTENTES: TRATAMENTO INTERNO E FLUXO VISUAL */
+.admin-operation-modal .wizard-layout{scroll-behavior:smooth;scroll-padding-bottom:110px}
+.admin-operation-modal .wizard-main{padding-bottom:32px}
+.selected-scope-summary strong:empty{display:none}.selected-scope-summary span{font-size:1rem}
+#loteAlternarSelecionadasBtn{margin-top:12px}
+.assignment-confirmation-section,.redistribution-confirmation-section{clear:both;margin-top:24px!important;margin-bottom:8px}
+.assignment-confirmation-section .review-accept,.redistribution-confirmation-section .review-accept{display:flex;align-items:flex-start;width:100%;margin:0;padding:16px;overflow:visible;background:var(--surface-2)}
+.assignment-confirmation-section .review-accept input,.redistribution-confirmation-section .review-accept input{flex:0 0 auto;width:18px;height:18px;margin:2px 10px 0 0;accent-color:var(--primary)}
+.assignment-confirmation-section .review-accept span,.redistribution-confirmation-section .review-accept span{min-width:0;white-space:normal;overflow:visible;line-height:1.5}
+#lotePrevia{display:grid;gap:24px;padding-bottom:24px}#lotePrevia .preview-ok{margin-top:0}
+.scope-diagnosis-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 22px}.scope-diagnosis-summary article{padding:13px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}.scope-diagnosis-summary span,.scope-diagnosis-summary strong{display:block}.scope-diagnosis-summary span{min-height:34px;color:var(--muted);font-size:.72rem;line-height:1.35}.scope-diagnosis-summary strong{margin-top:5px;font-size:1.35rem}.scope-diagnosis-summary .success{border-color:color-mix(in srgb,var(--success) 42%,var(--line))}.scope-diagnosis-summary .success strong{color:var(--success)}
+.portfolio-heading{margin-bottom:12px}.portfolio-heading h4{margin:0 0 4px}.portfolio-heading p{margin:0;color:var(--muted);font-size:.78rem}.portfolio-list article{align-items:flex-start}.portfolio-list article strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4;overflow-wrap:anywhere}.portfolio-list article span{white-space:normal}
+.impact-placeholder{padding:15px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);text-align:center}
+.operation-outcome{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px;border:1px solid color-mix(in srgb,var(--success) 40%,var(--line));border-radius:13px;background:var(--success-soft)}.operation-outcome strong,.operation-outcome span{display:block}.operation-outcome strong{color:var(--success);font-size:1.08rem}.operation-outcome span{color:var(--muted)}
+.transfer-destination{margin-top:16px;padding:15px;border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:11px;background:var(--primary-soft)}.transfer-destination span,.transfer-destination strong,.transfer-destination small{display:block}.transfer-destination span,.transfer-destination small{color:var(--muted);font-size:.75rem}.transfer-destination strong{margin:5px 0;line-height:1.4}
+.full-width-review{gap:24px}.full-width-review .review-section{margin:0}
+#redistribuicaoPrevia .blocked-summary span{display:flex;align-items:center;gap:5px;white-space:normal}
+@media(min-width:1001px){#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])){grid-template-columns:1fr}#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])) .wizard-summary{display:none}}
+@media(max-width:900px){.scope-diagnosis-summary{grid-template-columns:repeat(2,1fr)}.operation-outcome{flex-direction:column}}
+@media(max-width:560px){.scope-diagnosis-summary{grid-template-columns:1fr}}
