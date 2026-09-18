@@ -90,10 +90,23 @@ function classeSituacao(c) {
 }
 
 function mensagemErro(error, fallback) {
-  const m = error?.message || fallback;
-  if (/JWT|session|auth/i.test(m)) return "Sua sessão não é mais válida.";
-  if (/PERFIL_NAO_AUTORIZADO|permission|42501/i.test(m)) return "Seu perfil não possui permissão.";
-  return fallback;
+  const bruto=String(error?.message||error?.details||fallback||"");
+  const codigo=bruto.match(/[A-Z][A-Z0-9_]{4,}/)?.[0]||"";
+  const traducoes={
+    PRAZO_ANTERIOR_A_DATA_ATUAL:"A nova data limite não pode ser anterior à data atual. Escolha a data de hoje ou uma data futura.",
+    DATA_PRAZO_NAO_ENCONTRADA:"A data selecionada não está disponível no calendário do sistema.",
+    JUSTIFICATIVA_NAO_INFORMADA:"Informe a justificativa da redistribuição.",
+    JUSTIFICATIVA_MUITO_CURTA:"A justificativa deve possuir pelo menos 10 caracteres.",
+    NOVO_RESPONSAVEL_NAO_INFORMADO:"Selecione o novo responsável principal.",
+    NOVO_RESPONSAVEL_NAO_DISPONIVEL:"O responsável selecionado não está disponível para receber indícios.",
+    NENHUMA_DEMANDA_ELEGIVEL:"Nenhum indício está elegível para redistribuição em lote.",
+    CICLO_NAO_ENCONTRADO_OU_NAO_PERMITE_MOVIMENTACAO:"O Ciclo de Tratamento Interno não está disponível para alteração.",
+    VERSAO_DESATUALIZADA:"O Ciclo de Tratamento Interno foi alterado por outra operação. Atualize a página e tente novamente."
+  };
+  if(traducoes[codigo])return traducoes[codigo];
+  if(/JWT|session|auth/i.test(bruto))return "Sua sessão não é mais válida.";
+  if(/PERFIL_NAO_AUTORIZADO|permission|42501/i.test(bruto))return "Seu perfil não possui permissão.";
+  return fallback||bruto||"Não foi possível concluir a operação.";
 }
 
 async function exigirAcesso() {
@@ -191,7 +204,7 @@ function assinaturaParametrosLote(p) {
 
 function validarLote(p) {
   if (!p.p_id_usuario_operador) throw Error("Selecione um operador principal.");
-  if (p.p_criterio === "SELECIONADAS" && !p.p_ids_indicios?.length) throw Error("Selecione ao menos uma demanda.");
+  if (p.p_criterio === "SELECIONADAS" && !p.p_ids_indicios?.length) throw Error("Selecione ao menos um indício.");
   if (p.p_criterio === "TIPO_INDICIO" && !p.p_id_tipo_indicio) throw Error("Selecione um tipo de indício.");
   if (p.p_criterio === "CPF" && String(p.p_cpf || "").replace(/\D/g, "").length !== 11) throw Error("Informe um CPF com 11 dígitos.");
   if (el.lotePrazoCheck.checked && !el.lotePrazoInput.value) throw Error("Informe a data limite.");
@@ -437,7 +450,7 @@ function renderizarDemandas() {
 }
 
 function renderizarPaginacao(p) {
-  el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros}` : "Nenhuma demanda";
+  el.paginacaoInfo.textContent = p.total_registros ? `Exibindo ${p.registro_inicial} a ${p.registro_final} de ${p.total_registros}` : "Nenhum indício";
   el.paginaAtualInfo.textContent = `Página ${p.pagina || 1} de ${p.total_paginas || 0}`;
   el.paginaAnteriorBtn.disabled = !p.possui_pagina_anterior;
   el.proximaPaginaBtn.disabled = !p.possui_proxima_pagina;
@@ -563,7 +576,7 @@ function rotulosContextoCiclo(contexto, ciclo = {}) {
     };
   }
   return {
-    ciclo: `Ciclo ${contexto.numero || "não informado"}${contexto.versao ? ` · versão ${contexto.versao}` : ""}`,
+    ciclo: `Ciclo de Tratamento Interno ${contexto.numero || "não informado"}${contexto.versao ? ` · versão ${contexto.versao}` : ""}`,
     prioridade: ciclo.nome_prioridade || "Não definida",
     prazo: ciclo.prazo_em ? formatarDataHora(ciclo.prazo_em) : "Sem prazo definido",
     responsavel: null,
@@ -598,12 +611,12 @@ function aplicarContextoCicloModal(demanda, dados, ciclo, processos = [], princi
   el.modalModoLeitura.hidden = false;
   el.modalModoLeitura.className = `cycle-mode-banner ${contexto.editavel ? "is-editable" : "is-readonly"}`;
   if (!contexto.possuiCiclo) {
-    el.modalModoLeitura.innerHTML = "<strong>Sem tratamento interno</strong><span>A equipe será definida na atribuição inicial do indício.</span>";
+    el.modalModoLeitura.innerHTML = "<strong>Sem Ciclo de Tratamento Interno</strong><span>A equipe será definida na atribuição inicial do indício.</span>";
   } else if (contexto.somenteLeitura) {
     const data = ciclo.encerrado_em ? ` em ${formatarDataHora(ciclo.encerrado_em)}` : "";
-    el.modalModoLeitura.innerHTML = `<strong>Tratamento interno em somente leitura</strong><span>Este ciclo foi encerrado${data} e não permite alterações.</span>`;
+    el.modalModoLeitura.innerHTML = `<strong>Ciclo de Tratamento Interno em somente leitura</strong><span>Este Ciclo de Tratamento Interno foi concluído${data} e não permite alterações.</span>`;
   } else {
-    el.modalModoLeitura.innerHTML = "<strong>Tratamento interno atual e editável</strong><span>As alterações permitidas serão registradas no histórico integral.</span>";
+    el.modalModoLeitura.innerHTML = "<strong>Ciclo de Tratamento Interno atual e editável</strong><span>As alterações permitidas serão registradas no histórico integral.</span>";
   }
 }
 
@@ -616,12 +629,12 @@ function renderizarSeletorCiclos(ciclos = [], selecionado = null) {
     const ciclo = ciclos[0];
     const estadoCiclo = interpretarCiclo(ciclo);
     const situacao = ciclo.nome_status_ciclo || rotuloSituacao(ciclo.codigo_status_ciclo);
-    return `<div class="cycle-single-summary"><div><span>Ciclo selecionado</span><strong>Ciclo ${ciclo.numero_ciclo || "-"}${ciclo.versao_ciclo || ciclo.versao ? ` · versão ${ciclo.versao_ciclo || ciclo.versao}` : ""}</strong></div><div><span>Período</span><strong>${formatarDataHora(ciclo.aberto_em || ciclo.iniciado_em)} a ${formatarDataHora(ciclo.encerrado_em)}</strong></div><span class="badge ${classeSituacao(ciclo.codigo_status_ciclo)}">${escapeHtml(situacao)}</span><small>${estadoCiclo.somenteLeitura ? "Somente leitura" : "Editável"}</small></div>`;
+    return `<div class="cycle-single-summary"><div><span>Ciclo de Tratamento Interno selecionado</span><strong>Ciclo ${ciclo.numero_ciclo || "-"}${ciclo.versao_ciclo || ciclo.versao ? ` · versão ${ciclo.versao_ciclo || ciclo.versao}` : ""}</strong></div><div><span>Período</span><strong>${formatarDataHora(ciclo.aberto_em || ciclo.iniciado_em)} a ${formatarDataHora(ciclo.encerrado_em)}</strong></div><span class="badge ${classeSituacao(ciclo.codigo_status_ciclo)}">${escapeHtml(situacao)}</span><small>${estadoCiclo.somenteLeitura ? "Somente leitura" : "Editável"}</small></div>`;
   }
   return `<div class="cycle-selector">${ciclos.map(ciclo => {
     const estadoCiclo = interpretarCiclo(ciclo);
     const ativo = Number(ciclo.id_ciclo_tratamento) === Number(selecionado?.id_ciclo_tratamento);
-    const contexto = estadoCiclo.concluidoOperacionalmente ? "Concluído" : estadoCiclo.cicloVigente ? "Ciclo atual" : "Histórico";
+    const contexto = estadoCiclo.concluidoOperacionalmente ? "Concluído" : estadoCiclo.cicloVigente ? "Ciclo de Tratamento Interno atual" : "Histórico";
     return `<button class="cycle-card ${ativo ? "active" : ""}" type="button" data-ciclo-selecionar="${ciclo.id_ciclo_tratamento}" aria-pressed="${ativo}"><header><strong>Ciclo ${ciclo.numero_ciclo}</strong><span class="badge ${classeSituacao(ciclo.codigo_status_ciclo)}">${escapeHtml(ciclo.nome_status_ciclo || rotuloSituacao(ciclo.codigo_status_ciclo))}</span></header><small>${formatarDataHora(ciclo.aberto_em || ciclo.iniciado_em)} a ${formatarDataHora(ciclo.encerrado_em)}</small><span>${contexto} · ${estadoCiclo.somenteLeitura ? "Somente leitura" : "Editável"}</span></button>`;
   }).join("")}</div>`;
 }
@@ -787,7 +800,7 @@ async function abrirEquipe() {
 function fecharEquipe(){el.equipeOverlay.hidden=true; if(el.atribuicaoOverlay.hidden)document.body.style.overflow="";}
 async function incluirColaboradores(){try{const ids=[...el.equipeDisponiveisLista.querySelectorAll('input:checked')].map(x=>Number(x.value));if(!ids.length)throw Error("Selecione ao menos um colaborador.");el.incluirColaboradoresBtn.disabled=true;const {data,error}=await sb.rpc("incluir_colaboradores_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_ids_usuarios_colaboradores:ids});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Colaboradores incluídos.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível incluir."),"error");}finally{el.incluirColaboradoresBtn.disabled=false;}}
 async function removerColaborador(id){try{id = Number(id || el.equipeAtivosLista.querySelector('input[name="colaborador-remocao"]:checked')?.value);if(!id)throw Error("Selecione o colaborador que será removido.");const justificativa=el.remocaoJustificativa.value.trim();if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const {data,error}=await sb.rpc("remover_colaborador_ciclo",{p_id_indicio:Number(estado.detalhe.demanda.id_indicio),p_id_usuario_colaborador:Number(id),p_justificativa:justificativa});if(error)throw error;el.remocaoJustificativa.value="";mostrarAvisoEquipe(data.mensagem||"Colaborador removido.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível remover."),"error");}}
-async function redistribuirIndividual(){try{const dados=estado.detalhe.dados;const demanda=estado.detalhe.demanda;const novo=Number(el.equipeNovoPrincipalSelect.value);const justificativa=el.equipeRedistribuicaoJustificativa.value.trim();if(!novo)throw Error("Selecione o novo responsável.");if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const principalNormalizado = normalizarEquipeDoCiclo(dados, demanda).principal;const principalAtual = principalNormalizado?.id_usuario ? Number(principalNormalizado.id_usuario) : null;const base={p_criterio:"CPF",p_id_tipo_indicio:null,p_cpf:dados.cpf,p_id_responsavel_atual:principalAtual,p_id_novo_responsavel:novo,p_manter_anterior_como_colaborador:principalAtual ? el.equipeManterAnteriorCheck.checked : false,p_limite_resultados:100};const {data:previa,error:erroPrevia}=await sb.rpc("prever_redistribuicao_demandas",{...base,p_incluir_detalhes:true});if(erroPrevia)throw erroPrevia;const elegiveis=previa?.elegiveis||[];if(elegiveis.length!==1||Number(elegiveis[0].id_indicio)!==Number(demanda.id_indicio))throw Error("A troca individual não pode ser concluída por este fluxo porque o CPF possui outra demanda pendente com o mesmo responsável. Use a redistribuição em lote por CPF.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",{...base,p_limite_resultados:1,p_justificativa:justificativa,p_politica_bloqueios:"EXIGIR_TODAS_ELEGIVEIS"});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Responsabilidade alterada.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível trocar o responsável."),"error");}}
+async function redistribuirIndividual(){try{const dados=estado.detalhe.dados;const demanda=estado.detalhe.demanda;const novo=Number(el.equipeNovoPrincipalSelect.value);const justificativa=el.equipeRedistribuicaoJustificativa.value.trim();if(!novo)throw Error("Selecione o novo responsável.");if(justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const principalNormalizado = normalizarEquipeDoCiclo(dados, demanda).principal;const principalAtual = principalNormalizado?.id_usuario ? Number(principalNormalizado.id_usuario) : null;const base={p_criterio:"CPF",p_id_tipo_indicio:null,p_cpf:dados.cpf,p_id_responsavel_atual:principalAtual,p_id_novo_responsavel:novo,p_manter_anterior_como_colaborador:principalAtual ? el.equipeManterAnteriorCheck.checked : false,p_limite_resultados:100};const {data:previa,error:erroPrevia}=await sb.rpc("prever_redistribuicao_demandas",{...base,p_incluir_detalhes:true});if(erroPrevia)throw erroPrevia;const elegiveis=previa?.elegiveis||[];if(elegiveis.length!==1||Number(elegiveis[0].id_indicio)!==Number(demanda.id_indicio))throw Error("A troca individual não pode ser concluída por este fluxo porque o CPF possui outra indício pendente com o mesmo responsável. Use a redistribuição em lote por CPF.");const {data,error}=await sb.rpc("redistribuir_demandas_lote",{...base,p_limite_resultados:1,p_justificativa:justificativa,p_politica_bloqueios:"EXIGIR_TODAS_ELEGIVEIS"});if(error)throw error;mostrarAvisoEquipe(data.mensagem||"Responsabilidade alterada.","success");await recarregarDetalheEquipe();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){mostrarAvisoEquipe(mensagemErro(e,e.message||"Não foi possível trocar o responsável."),"error");}}
 function alternarMenuRedistribuicao(forcar){const abrir=forcar??el.redistributionMenuPopover.hidden;el.redistributionMenuPopover.hidden=!abrir;el.redistribuirDemandasBtn.setAttribute("aria-expanded",String(abrir));}
 function parametrosDiagnosticoRedistribuicao(pagina=1){
   const porTipo=estado.redistribuicao.escopo==="tipo";
@@ -803,28 +816,43 @@ function classificarDiagnosticoRedistribuicao(d){
 async function diagnosticarEscopoRedistribuicao(){
   el.redistribuicaoCarteiras.innerHTML='<div class="scope-empty-state">Localizando indícios e responsáveis principais...</div>';
   el.redistribuicaoDiagnosticoResumo.hidden=true;
-  let pagina=1,itens=[],totalPaginas=1;
-  do{const{data,error}=await sb.rpc("listar_demandas_gestao",parametrosDiagnosticoRedistribuicao(pagina));if(error)throw error;itens.push(...(data?.itens||[]));totalPaginas=Number(data?.paginacao?.total_paginas||1);pagina++;}while(pagina<=totalPaginas);
-  if(estado.redistribuicao.escopo==="cpf"){const cpf=String(el.redistribuicaoCpfInput.value).replace(/\D/g,"");itens=itens.filter(x=>String(x.cpf_normalizado||x.cpf||"").replace(/\D/g,"")===cpf);}
-  const grupos={PENDENTE_NAO_INICIADO:[],TRATAMENTO_INICIADO:[],NAO_ATRIBUIDO:[],TRATAMENTO_CONCLUIDO:[],OUTRO_IMPEDIMENTO:[]};
-  itens.forEach(x=>grupos[classificarDiagnosticoRedistribuicao(x)].push(x));
-  const mapa=new Map();
-  grupos.PENDENTE_NAO_INICIADO.forEach(x=>{const id=Number(x.id_operador_principal);if(!mapa.has(id))mapa.set(id,{id_usuario:id,nome_exibicao:x.nome_operador_principal||"Responsável não informado",quantidade:0});mapa.get(id).quantidade++;});
-  estado.redistribuicao.diagnostico={itens,grupos,responsaveis:[...mapa.values()]};
+  const base=parametrosRedistribuicao();
+  let melhor=null;
+  for(const operador of estado.operadores){
+    const tentativa={...base,p_id_novo_responsavel:Number(operador.id_usuario),p_incluir_detalhes:true};
+    const {data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",tentativa);
+    if(error)throw error;
+    const jaDestino=(data?.bloqueadas||[]).filter(x=>x.codigo==="NOVO_RESPONSAVEL_JA_E_PRINCIPAL").length;
+    const candidato={data,jaDestino};
+    if(!melhor||candidato.jaDestino<melhor.jaDestino)melhor=candidato;
+    if(jaDestino===0)break;
+  }
+  if(!melhor)throw Error("Não foi possível diagnosticar a carteira.");
+  const data=melhor.data,r=data.resumo||{};
+  const responsaveis=(data.responsaveis_atuais||[]).filter(x=>x.id_usuario!==null);
+  const pendentes=responsaveis.reduce((s,x)=>s+Number(x.quantidade_elegivel||0),0);
+  estado.redistribuicao.diagnostico={...data,pendentes,responsaveis};
   renderizarDiagnosticoRedistribuicao();
   return estado.redistribuicao.diagnostico;
 }
 function renderizarDiagnosticoRedistribuicao(){
-  const d=estado.redistribuicao.diagnostico;if(!d)return;const g=d.grupos;
+  const d=estado.redistribuicao.diagnostico;if(!d)return;
+  const r=d.resumo||{},responsaveis=d.responsaveis||[];
   el.redistribuicaoDiagnosticoResumo.hidden=false;
-  el.redistribuicaoDiagnosticoResumo.innerHTML=`<article><span>Localizados</span><strong>${d.itens.length}</strong></article><article class="success"><span>Pendentes e ainda não iniciados</span><strong>${g.PENDENTE_NAO_INICIADO.length}</strong></article><article><span>Tratamentos internos já iniciados</span><strong>${g.TRATAMENTO_INICIADO.length}</strong></article><article><span>Ainda não atribuídos</span><strong>${g.NAO_ATRIBUIDO.length}</strong></article>`;
-  el.redistribuicaoCarteiras.innerHTML=d.responsaveis.length?`<div class="portfolio-heading"><h4>Responsáveis principais atuais</h4><p>${d.responsaveis.length} ${d.responsaveis.length===1?"carteira identificada":"carteiras identificadas"}</p></div><div class="portfolio-list">${d.responsaveis.map(x=>`<article><div><strong>${escapeHtml(x.nome_exibicao)}</strong><span>${x.quantidade} ${x.quantidade===1?"indício pendente e ainda não iniciado":"indícios pendentes e ainda não iniciados"}</span></div></article>`).join("")}</div>`:'<div class="scope-empty-state">Nenhum responsável principal com indício pendente e ainda não iniciado.</div>';
+  el.redistribuicaoDiagnosticoResumo.innerHTML=`<article><span>Localizados</span><strong>${Number(r.quantidade_localizada||0)}</strong></article><article class="success"><span>Pendentes e ainda não iniciados</span><strong>${Number(d.pendentes||0)}</strong></article><article><span>Ciclos de Tratamento Interno já iniciados</span><strong>${Number(r.quantidade_tratamento_iniciado||0)}</strong></article><article><span>Ainda não atribuídos</span><strong>${(d.bloqueadas||[]).filter(x=>x.codigo==="DEMANDA_SEM_CICLO_ATIVO").length}</strong></article>`;
+  el.redistribuicaoCarteiras.innerHTML=responsaveis.length?`<div class="portfolio-heading"><h4>Responsáveis principais atuais</h4><p>${responsaveis.length} ${responsaveis.length===1?"carteira identificada":"carteiras identificadas"}</p></div><div class="portfolio-list">${responsaveis.map(x=>`<article><div><strong>${escapeHtml(x.nome_exibicao)}</strong><span>${Number(x.quantidade_elegivel||0)} ${Number(x.quantidade_elegivel||0)===1?"indício pendente e ainda não iniciado":"indícios pendentes e ainda não iniciados"}</span></div></article>`).join("")}</div>`:'<div class="scope-empty-state">Nenhum responsável principal com indício pendente e ainda não iniciado.</div>';
 }
 function parametrosRedistribuicao(incluirDetalhes=true){const e=estado.redistribuicao.escopo;const base={p_criterio:e==="tipo"?"TIPO_INDICIO":"CPF",p_id_tipo_indicio:e==="tipo"&&el.redistribuicaoTipoSelect.value?Number(el.redistribuicaoTipoSelect.value):null,p_cpf:e==="cpf"?el.redistribuicaoCpfInput.value:null,p_id_novo_responsavel:el.redistribuicaoNovoSelect.value?Number(el.redistribuicaoNovoSelect.value):null,p_manter_anteriores_como_colaboradores:el.redistribuicaoManterCheck.checked,p_novo_prazo_em:el.redistribuicaoNovoPrazoCheck.checked&&el.redistribuicaoNovoPrazoInput.value?`${el.redistribuicaoNovoPrazoInput.value}T23:59:59-03:00`:null,p_limite_resultados:100};return incluirDetalhes?{...base,p_incluir_detalhes:true}:{...base,p_justificativa:el.redistribuicaoJustificativa.value.trim(),p_politica_bloqueios:"PROCESSAR_ELEGIVEIS"};}
 function assinaturaRedistribuicao(){const p=parametrosRedistribuicao();delete p.p_incluir_detalhes;return JSON.stringify(p);}
 function abrirRedistribuicao(){estado.redistribuicao={criterio:null,escopo:null,previa:null,assinatura:null,etapa:1,diagnostico:null};el.redistribuicaoTitulo.textContent="Redistribuição em lote";preencherSeletoresTipos();el.redistribuicaoNovoSelect.innerHTML='<option value="">Selecione um operador</option>'+opcoesOperadores();document.querySelectorAll("[data-redistribution-scope]").forEach(b=>b.classList.remove("active"));document.querySelectorAll("[data-red-scope-field]").forEach(x=>x.hidden=true);document.querySelector("[data-red-scope-empty]").hidden=false;el.redistribuicaoJustificativa.value="";el.redistribuicaoManterCheck.checked=false;el.redistribuicaoNovoPrazoCheck.checked=false;el.redistribuicaoNovoPrazoField.hidden=true;el.redistribuicaoConfirmacaoCheck.checked=false;el.redistribuicaoCarteiras.innerHTML='<div class="scope-empty-state">O diagnóstico do escopo será exibido aqui.</div>';el.redistribuicaoImpactoDestino.innerHTML="";limparAvisoOperacao(el.redistribuicaoAviso);mostrarEtapaRedistribuicao(1);el.redistribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";}
 function fecharRedistribuicao(){el.redistribuicaoOverlay.hidden=true;document.body.style.overflow="";}
-function renderizarPreviaRedistribuicao(data){
+function renderizarImpactoDestinoRedistribuicao(data){
+  const n=data?.novo_responsavel||{},r=data?.resumo||{};
+  renderizarImpactoDestinoRedistribuicao(data);
+  el.redistribuicaoImpactoDestino.innerHTML=`<div class="impact-metrics"><article><span>Carga atual</span><strong>${Number(n.carga_atual_principal||0)}</strong></article><article><span>A receber</span><strong>+${Number(n.quantidade_a_receber||0)}</strong></article><article><span>Carga estimada</span><strong>${Number(n.carga_estimada_principal||0)}</strong></article></div>`;
+  const carteiras=(data?.responsaveis_atuais||[]).filter(x=>Number(x.quantidade_elegivel||0)>0);
+  el.redistribuicaoCarteiras.innerHTML=carteiras.length?`<div class="portfolio-heading"><h4>Carteiras de origem</h4><p>Responsáveis principais dos indícios que serão redistribuídos</p></div><div class="portfolio-list">${carteiras.map(x=>`<article><div><strong>${escapeHtml(x.nome_exibicao)}</strong><span>${Number(x.quantidade_elegivel||0)} ${Number(x.quantidade_elegivel||0)===1?"indício":"indícios"}</span></div></article>`).join("")}</div>`:'<div class="scope-empty-state">Nenhuma carteira elegível para o destino selecionado.</div>';
+}function renderizarPreviaRedistribuicao(data){
   const r=data.resumo||{},carteiras=(data.responsaveis_atuais||[]).filter(x=>Number(x.quantidade_elegivel||0)>0),bloqueadas=data.bloqueadas||[],novo=data.novo_responsavel||{},localizados=Number(r.quantidade_localizada||0),elegiveis=Number(r.quantidade_elegivel||0),semAlteracao=localizados-elegiveis;
   el.redistribuicaoResumo.innerHTML=[["Localizados",localizados,"neutral"],["Serão redistribuídos",elegiveis,"success"],["Tratamentos internos já iniciados",r.quantidade_tratamento_iniciado||0,"danger"],["Outros impedimentos",r.quantidade_outros_impedimentos||0,"warning"]].map(x=>`<div class="preview-metric ${x[2]}"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join("");
   el.redistribuicaoCarteiras.innerHTML=carteiras.length?`<div class="portfolio-heading"><h4>Carteiras de origem</h4><p>Responsáveis principais dos indícios que serão redistribuídos</p></div><div class="portfolio-list">${carteiras.map(x=>`<article><div><strong>${escapeHtml(x.nome_exibicao)}</strong><span>${Number(x.quantidade_elegivel||0)} ${Number(x.quantidade_elegivel||0)===1?"indício":"indícios"}</span></div></article>`).join("")}</div>`:'<div class="scope-empty-state">Nenhuma carteira elegível encontrada.</div>';
@@ -834,7 +862,7 @@ function renderizarPreviaRedistribuicao(data){
   el.redistribuicaoConfirmacaoTexto.textContent=`Revisei os dados e confirmo a redistribuição em lote de ${elegiveis} ${elegiveis===1?"indício elegível":"indícios elegíveis"}.`;
   atualizarResumoRedistribuicao();
 }
-async function revisarRedistribuicao(){try{const p=parametrosRedistribuicao();if(!p.p_id_novo_responsavel)throw Error("Selecione o novo responsável.");if(p.p_criterio==="TIPO_INDICIO"&&!p.p_id_tipo_indicio)throw Error("Selecione o tipo de indício.");if(p.p_criterio==="CPF"&&String(p.p_cpf||"").replace(/\D/g,"").length!==11)throw Error("Informe um CPF com 11 dígitos.");const{data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",p);if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.diagnostico=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();renderizarPreviaRedistribuicao(data);el.redistribuicaoAviso.textContent=data.pode_confirmar?"Prévia pronta. Somente ciclos elegíveis serão alterados.":"Nenhum ciclo elegível para redistribuição em lote.";el.redistribuicaoAviso.className=`status-banner ${data.pode_confirmar?"success":"warning"}`;el.redistribuicaoAviso.hidden=false;}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível gerar a prévia.");el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}}
+async function revisarRedistribuicao(){try{const p=parametrosRedistribuicao();if(!p.p_id_novo_responsavel)throw Error("Selecione o novo responsável.");if(p.p_criterio==="TIPO_INDICIO"&&!p.p_id_tipo_indicio)throw Error("Selecione o tipo de indício.");if(p.p_criterio==="CPF"&&String(p.p_cpf||"").replace(/\D/g,"").length!==11)throw Error("Informe um CPF com 11 dígitos.");const{data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",p);if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.diagnostico=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();renderizarPreviaRedistribuicao(data);el.redistribuicaoAviso.textContent=data.pode_confirmar?"Prévia pronta. Somente Ciclos de Tratamento Interno elegíveis serão alterados.":"Nenhum Ciclo de Tratamento Interno está elegível para redistribuição em lote.";el.redistribuicaoAviso.className=`status-banner ${data.pode_confirmar?"success":"warning"}`;el.redistribuicaoAviso.hidden=false;}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível gerar a prévia.");el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}}
 async function confirmarRedistribuicao(){try{if(estado.redistribuicao.assinatura!==assinaturaRedistribuicao())throw Error("A configuração mudou. Gere uma nova prévia.");const p=parametrosRedistribuicao(false);if(p.p_justificativa.length<10)throw Error("Informe uma justificativa com pelo menos 10 caracteres.");const{data,error}=await sb.rpc("redistribuir_demandas_lote_v2",p);if(error)throw error;exibirMensagem(data.mensagem||"Redistribuição em lote concluída.",data.codigo_resultado==="REDISTRIBUICAO_EM_LOTE_PARCIAL"?"warning":"success");fecharRedistribuicao();await Promise.all([carregarResumo(),carregarDemandas()]);}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message||"Não foi possível confirmar a redistribuição em lote.");el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}}
 
 
@@ -932,7 +960,7 @@ function papelParticipante(participante = {}) {
   const codigo = String(participante.codigo_papel || participante.nome_papel || "").toUpperCase();
   if (participante.papel_principal === true || codigo.includes("PRINCIPAL")) return "Responsável principal";
   if (codigo.includes("COLABOR")) return "Colaborador";
-  return participante.nome_papel || "Participante do ciclo";
+  return participante.nome_papel || "Participante do Ciclo de Tratamento Interno";
 }
 
 /** Renderiza vínculo principal e contagem adicional no padrão homologado. */
@@ -967,7 +995,7 @@ function resumoCargaOperador(operador = {}) {
 
 /** Estado adequado para a aba Equipe quando ainda não existe ciclo. */
 function renderEstadoEquipeSemCiclo() {
-  return `<div class="team-no-cycle-state"><strong>Sem tratamento interno</strong><p>A equipe será definida durante a atribuição inicial do indício.</p><small>Nenhuma ação de equipe está disponível antes da abertura do ciclo.</small></div>`;
+  return `<div class="team-no-cycle-state"><strong>Sem Ciclo de Tratamento Interno</strong><p>A equipe será definida durante a atribuição inicial do indício.</p><small>Nenhuma ação de equipe está disponível antes da abertura do ciclo.</small></div>`;
 }
 
 function renderEquipeConsolidada(dados, demanda) {
@@ -992,7 +1020,7 @@ function renderEquipeConsolidada(dados, demanda) {
 
   let painelAcoes;
   if (encerrado) {
-    painelAcoes = '<div class="readonly-callout"><strong>Tratamento interno em somente leitura</strong><p>A equipe deste ciclo não pode mais ser alterada. As mudanças realizadas permanecem disponíveis no histórico integral.</p></div>';
+    painelAcoes = '<div class="readonly-callout"><strong>Ciclo de Tratamento Interno em somente leitura</strong><p>A equipe deste ciclo não pode mais ser alterada. As mudanças realizadas permanecem disponíveis no histórico integral.</p></div>';
   } else {
     painelAcoes = `<h3>Ações da equipe</h3><p>Escolha a operação que deseja realizar neste ciclo.</p><div class="team-choice-grid">
       <button class="team-choice" data-team-action="adicionar" type="button"><b>+</b><span><strong>Adicionar colaborador</strong><small>Inclua um operador no ciclo.</small></span></button>
@@ -1003,7 +1031,7 @@ function renderEquipeConsolidada(dados, demanda) {
 
   const classeLayout = encerrado ? "team-layout is-readonly-layout" : "team-layout";
   return `<div class="${classeLayout}">
-    <section class="team-column"><h3>Participantes do tratamento</h3>${principalHtml}<h3>Colaboradores ativos</h3><div class="member-cards">${ativosHtml}</div><h3>Histórico da equipe</h3>${resumoHistorico}</section>
+    <section class="team-column"><h3>Participantes do Ciclo de Tratamento Interno</h3>${principalHtml}<h3>Colaboradores ativos</h3><div class="member-cards">${ativosHtml}</div><h3>Histórico da equipe</h3>${resumoHistorico}</section>
     <aside class="team-action-panel">${painelAcoes}</aside>
   </div>`;
 }
@@ -1050,9 +1078,9 @@ function descricaoHistoricoGestor(item, rotulo) {
 }
 
 function renderHistoricoConsolidado(rows) {
-  if (!rows.length) return '<div class="history-empty-state"><div><strong>Nenhuma movimentação registrada neste ciclo.</strong><p>Se outro ciclo estiver disponível, selecione-o para consultar o histórico correspondente.</p></div></div>';
+  if (!rows.length) return '<div class="history-empty-state"><div><strong>Nenhuma movimentação registrada neste Ciclo de Tratamento Interno.</strong><p>Se outro ciclo estiver disponível, selecione-o para consultar o histórico correspondente.</p></div></div>';
   const tipos = [...new Map(rows.map(item => { const meta = rotuloHistoricoGestor(item); return [item.codigo_movimentacao || meta[0], meta[0]]; })).entries()].sort((a,b) => a[1].localeCompare(b[1], "pt-BR"));
-  return `<div class="history-filters"><div class="field"><label for="historySearchInput">Buscar no histórico</label><input class="control" id="historySearchInput" name="historySearchInput" data-history-search placeholder="Descrição, executor ou processo SEI"></div><div class="field"><label for="historyCategorySelect">Categoria</label><select class="control" id="historyCategorySelect" name="historyCategorySelect" data-history-category><option value="">Todas as categorias</option><option value="HUMANA">Atividade humana</option><option value="ADMINISTRATIVA">Ação administrativa</option><option value="AUTOMATICA">Evento automático</option><option value="ORIGEM">Atualização da origem</option></select></div><div class="field"><label for="historyTypeSelect">Tipo de registro</label><select class="control" id="historyTypeSelect" name="historyTypeSelect" data-history-type><option value="">Todos os tipos</option>${tipos.map(([codigo,nome]) => `<option value="${escapeHtml(codigo)}">${escapeHtml(nome)}</option>`).join("")}</select></div><div class="field"><label for="historyOrderSelect">Ordenação</label><select class="control" id="historyOrderSelect" name="historyOrderSelect" data-history-order><option value="DESC">Mais recentes primeiro</option><option value="ASC">Mais antigos primeiro</option></select></div><div class="field"><label for="historyStartInput">Data inicial</label><input class="control" id="historyStartInput" name="historyStartInput" data-history-start type="date"></div><div class="field"><label for="historyEndInput">Data final</label><input class="control" id="historyEndInput" name="historyEndInput" data-history-end type="date"></div></div><div class="history-summary-line"><strong data-history-count></strong><span>Histórico do ciclo selecionado</span></div><div class="timeline" data-history-list></div>`;
+  return `<div class="history-filters"><div class="field"><label for="historySearchInput">Buscar no histórico</label><input class="control" id="historySearchInput" name="historySearchInput" data-history-search placeholder="Descrição, executor ou processo SEI"></div><div class="field"><label for="historyCategorySelect">Categoria</label><select class="control" id="historyCategorySelect" name="historyCategorySelect" data-history-category><option value="">Todas as categorias</option><option value="HUMANA">Atividade humana</option><option value="ADMINISTRATIVA">Ação administrativa</option><option value="AUTOMATICA">Evento automático</option><option value="ORIGEM">Atualização da origem</option></select></div><div class="field"><label for="historyTypeSelect">Tipo de registro</label><select class="control" id="historyTypeSelect" name="historyTypeSelect" data-history-type><option value="">Todos os tipos</option>${tipos.map(([codigo,nome]) => `<option value="${escapeHtml(codigo)}">${escapeHtml(nome)}</option>`).join("")}</select></div><div class="field"><label for="historyOrderSelect">Ordenação</label><select class="control" id="historyOrderSelect" name="historyOrderSelect" data-history-order><option value="DESC">Mais recentes primeiro</option><option value="ASC">Mais antigos primeiro</option></select></div><div class="field"><label for="historyStartInput">Data inicial</label><input class="control" id="historyStartInput" name="historyStartInput" data-history-start type="date"></div><div class="field"><label for="historyEndInput">Data final</label><input class="control" id="historyEndInput" name="historyEndInput" data-history-end type="date"></div></div><div class="history-summary-line"><strong data-history-count></strong><span>Histórico do Ciclo de Tratamento Interno selecionado</span></div><div class="timeline" data-history-list></div>`;
 }
 function categoriaHistorico(item) {
   if (item.evento_automatico) return "AUTOMATICA";
@@ -1095,7 +1123,7 @@ function atualizarSelecionadasLote(){
 function renderizarContextoEscopoAtribuicao(revisao=false){const e=estado.lote.escopo;if(e==="selecionadas")return `<div class="scope-review-copy"><strong>${estado.selecionadas.size} ${estado.selecionadas.size===1?"indício selecionado":"indícios selecionados"}</strong>${listaSelecionadasHtml(false)}</div>`;if(e==="tipo")return `<div class="scope-review-copy"><span>Por tipo de indício</span><strong>${escapeHtml(el.loteTipoSelect.selectedOptions[0]?.textContent||"Não selecionado")}</strong></div>`;if(e==="cpf")return `<div class="scope-review-copy"><span>Por CPF</span><strong>${escapeHtml(mascararCpf(el.loteCpfInput.value))}</strong></div>`;return '<span>Escopo não definido</span>';}
 function mascararCpf(v){const n=String(v||"").replace(/\D/g,"");return n.length===11?`***.${n.slice(3,6)}.${n.slice(6,9)}-**`:"CPF não informado";}
 function atualizarContextoLote(){const etapa=estado.lote.etapa;el.loteEscopoContexto.hidden=etapa===1||!estado.lote.escopo;if(el.loteEscopoContexto.hidden)return;el.loteEscopoContextoTitulo.textContent=nomeCriterioLote();el.loteEscopoContextoDetalhe.innerHTML=renderizarContextoEscopoAtribuicao();}
-function rotuloBloqueioRedistribuicao(c){return ({TRATAMENTO_JA_INICIADO:"Tratamento interno já iniciado",DEMANDA_SEM_CICLO_ATIVO:"Ainda não atribuído",CICLO_CONCLUIDO:"Tratamento interno concluído",DEMANDA_NAO_ESTA_PENDENTE_DE_TRATAMENTO:"Não está pendente de início",CICLO_NAO_PERMITE_MOVIMENTACAO:"Tratamento interno sem permissão de alteração",CICLO_SEM_PRINCIPAL_ATIVO:"Tratamento interno sem responsável principal",NOVO_RESPONSAVEL_JA_E_PRINCIPAL:"Já pertence ao novo responsável",LIMITE_DO_LOTE_EXCEDIDO:"Fora do limite desta operação"})[c]||c||"Impedimento";}
+function rotuloBloqueioRedistribuicao(c){return ({TRATAMENTO_JA_INICIADO:"Ciclo de Tratamento Interno já iniciado",DEMANDA_SEM_CICLO_ATIVO:"Ainda não atribuído",CICLO_CONCLUIDO:"Ciclo de Tratamento Interno concluído",DEMANDA_NAO_ESTA_PENDENTE_DE_TRATAMENTO:"Não está pendente de início",CICLO_NAO_PERMITE_MOVIMENTACAO:"Ciclo de Tratamento Interno sem permissão de alteração",CICLO_SEM_PRINCIPAL_ATIVO:"Ciclo de Tratamento Interno sem responsável principal",NOVO_RESPONSAVEL_JA_E_PRINCIPAL:"Já pertence ao novo responsável",LIMITE_DO_LOTE_EXCEDIDO:"Fora do limite desta operação"})[c]||c||"Impedimento";}
 function nomeCriterioLote() { return ({ selecionadas:"Indícios selecionados", tipo:"Por tipo de indício", cpf:"Por CPF" })[estado.lote.criterio] || "Não definido"; }
 function selecionarEscopoAtribuicao(escopo) {
   const mudou=estado.lote.escopo&&estado.lote.escopo!==escopo;
@@ -1182,10 +1210,10 @@ function registrarEventos() {
   el.remocaoJustificativa.addEventListener("input", () => { el.equipeAviso.hidden = true; });
   el.confirmarRemocaoColaboradorBtn.addEventListener("click",() => removerColaborador());
   el.redistribuirIndividualBtn.addEventListener("click",redistribuirIndividual);
-  el.redistribuicaoNovoSelect.addEventListener("change",()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;el.redistribuicaoImpactoDestino.innerHTML=el.redistribuicaoNovoSelect.value?'<div class="impact-placeholder">O impacto definitivo será calculado na revisão.</div>':'<div class="impact-placeholder">Selecione o destino para calcular o impacto.</div>';atualizarResumoRedistribuicao();});
+  el.redistribuicaoNovoSelect.addEventListener("change",async()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;if(!el.redistribuicaoNovoSelect.value){el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Selecione o destino para calcular o impacto.</div>';atualizarResumoRedistribuicao();return;}el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Calculando impacto...</div>';try{const{data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",parametrosRedistribuicao());if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();renderizarImpactoDestinoRedistribuicao(data);atualizarResumoRedistribuicao();}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message);el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}});
   el.fecharRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao); el.cancelarRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao);
   el.redistribuicaoOverlay.addEventListener("click",e=>{if(e.target===el.redistribuicaoOverlay)fecharRedistribuicao();});
-  el.revisarRedistribuicaoBtn.addEventListener("click",avancarRedistribuicao); el.voltarRedistribuicaoBtn.addEventListener("click",()=>mostrarEtapaRedistribuicao(estado.redistribuicao.etapa-1)); el.redistribuicaoConfirmacaoCheck.addEventListener("change",()=>mostrarEtapaRedistribuicao(5)); el.confirmarRedistribuicaoBtn.addEventListener("click",confirmarRedistribuicao);
+  el.revisarRedistribuicaoBtn.addEventListener("click",avancarRedistribuicao); el.voltarRedistribuicaoBtn.addEventListener("click",()=>mostrarEtapaRedistribuicao(estado.redistribuicao.etapa-1)); el.redistribuicaoConfirmacaoCheck.addEventListener("change",()=>{el.confirmarRedistribuicaoBtn.disabled=!estado.redistribuicao.previa?.pode_confirmar||!el.redistribuicaoConfirmacaoCheck.checked;}); el.confirmarRedistribuicaoBtn.addEventListener("click",confirmarRedistribuicao);
   [el.redistribuicaoTipoSelect,el.redistribuicaoCpfInput,el.redistribuicaoNovoSelect,el.redistribuicaoManterCheck].forEach(x=>x.addEventListener("change",()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;el.redistribuicaoPrevia.hidden=true;el.confirmarRedistribuicaoBtn.disabled=true;}));
 
   document.querySelectorAll("[data-assignment-scope]").forEach(b=>b.addEventListener("click",()=>selecionarEscopoAtribuicao(b.dataset.assignmentScope)));
@@ -1511,7 +1539,7 @@ function renderizarRiscoPrazos(dados, totalEstoque) {
   const risco = todos.filter(item => item.faixa !== "NAO_SE_APLICA");
   renderizarBarrasGerenciais("graficoPrazosGestao", risco, { campoRotulo: "faixa", total: totalEstoque });
   if (naoAplicavel) {
-    alvo.insertAdjacentHTML("beforeend", `<p class="chart-footnote"><strong>${Number(naoAplicavel.quantidade || 0)}</strong> demanda(s) sem prazo aplicável foram retiradas das barras para preservar a leitura do risco.</p>`);
+    alvo.insertAdjacentHTML("beforeend", `<p class="chart-footnote"><strong>${Number(naoAplicavel.quantidade || 0)}</strong> indício(s) sem prazo aplicável foram retiradas das barras para preservar a leitura do risco.</p>`);
   }
 }
 
@@ -1563,7 +1591,7 @@ function renderizarCapacidadeEquipe(operadores, totalEstoque) {
   const desequilibrio = maior - menor;
   alvo.innerHTML = `
     <div class="team-management-summary">
-      <article><span>Carteira média</span><strong>${media.toFixed(1)}</strong><small>Demandas principais por operador</small></article>
+      <article><span>Carteira média</span><strong>${media.toFixed(1)}</strong><small>Indícios principais por operador</small></article>
       <article><span>Amplitude da distribuição</span><strong>${desequilibrio}</strong><small>Diferença entre maior e menor carteira</small></article>
       <article><span>Maior concentração</span><strong>${formatarPercentual(concentracao)}</strong><small>Parcela da carteira distribuída em um operador</small></article>
       <article><span>Exposição a atraso</span><strong>${vencidas}</strong><small>Demandas vencidas sob responsabilidade</small></article>
@@ -1581,7 +1609,7 @@ function renderizarCapacidadeEquipe(operadores, totalEstoque) {
         <div class="capacity-numbers risk"><strong>${operador.vencidas}</strong><small>vencidas</small></div>
       </article>`;
     }).join("")}</div>
-    <p class="chart-footnote">O estoque total possui <strong>${Number(totalEstoque || 0)}</strong> demanda(s). A lista destaca apenas a carteira já distribuída entre operadores.</p>`;
+    <p class="chart-footnote">O estoque total possui <strong>${Number(totalEstoque || 0)}</strong> indício(s). A lista destaca apenas a carteira já distribuída entre operadores.</p>`;
 }
 
 /**
@@ -1608,7 +1636,7 @@ async function carregarPainelGestao() {
     /* Cards respondem às primeiras perguntas gerenciais da entrada da página. */
     const indicadores = [
       { titulo: "Estoque sem responsável", valor: semResponsavel, detalhe: `${formatarPercentual(percentual(semResponsavel, total))} do estoque aguarda distribuição`, tom: "warning" },
-      { titulo: "Cobertura de atribuição", valor: formatarPercentual(cobertura), detalhe: `${atribuidas} de ${total} demanda(s) com responsável`, tom: cobertura < 80 ? "danger" : "success" },
+      { titulo: "Cobertura de atribuição", valor: formatarPercentual(cobertura), detalhe: `${atribuidas} de ${total} indício(s) com responsável`, tom: cobertura < 80 ? "danger" : "success" },
       { titulo: "Trabalho em execução", valor: emExecucao, detalhe: `${Number(cards.aguardando_inicio || 0)} aguardando início e ${Number(cards.em_analise || 0)} em tratamento`, tom: "primary" },
       { titulo: "Risco de prazo", valor: riscoPrazo, detalhe: `${Number(cards.prazo_vencido || 0)} vencida(s) e ${Number(cards.prazo_proximo || 0)} próxima(s)`, tom: Number(cards.prazo_vencido || 0) ? "danger" : "warning" },
       { titulo: "Entregas no período", valor: entregas, detalhe: "Tratamentos encerrados no intervalo selecionado", tom: "success" },
@@ -1849,10 +1877,10 @@ function renderResumoCiclo(relatorio) {
   const colaboradores = equipe.filter(x => x !== principal);
   const ultima = historico.map(x => x.realizada_em).filter(Boolean).sort().at(-1);
   return `
-    <article><h3>Resumo do ciclo</h3><strong>${escapeHtml(c.nome_status_ciclo)}</strong><p>${escapeHtml(c.resultado_encerramento)}</p><dl><div><dt>Iniciado em</dt><dd>${formatarDataHora(c.iniciado_em || c.aberto_em)}</dd></div><div><dt>Concluído em</dt><dd>${formatarDataHora(c.encerrado_em)}</dd></div></dl></article>
-    <article><h3>Participantes do tratamento</h3><dl><div><dt>Participante principal registrado</dt><dd>${escapeHtml(principal?.nome_exibicao, "Não informado")}</dd></div><div><dt>Colaboradores</dt><dd>${pluralizarConcluidas(colaboradores.length, "participante adicional", "participantes adicionais")}</dd></div></dl></article>
-    <article><h3>Processos SEI</h3>${processos.length ? `<strong>${escapeHtml(processos.find(x => x.processo_principal)?.numero_processo || processos[0]?.numero_processo)}</strong><p>${processos.length > 1 ? pluralizarConcluidas(processos.length - 1, "vínculo adicional", "vínculos adicionais") : "Processo principal do ciclo"}</p>` : '<p>Nenhum processo vinculado neste ciclo.</p>'}</article>
-    <article><h3>Auditoria do ciclo</h3><strong>${pluralizarConcluidas(historico.length, "movimentação registrada", "movimentações registradas")}</strong><p>${ultima ? `Última movimentação: ${formatarDataHora(ultima)}` : "Sem data de movimentação disponível."}</p><small>Abra os detalhes para consultar o histórico completo.</small></article>`;
+    <article><h3>Resumo do Ciclo de Tratamento Interno</h3><strong>${escapeHtml(c.nome_status_ciclo)}</strong><p>${escapeHtml(c.resultado_encerramento)}</p><dl><div><dt>Iniciado em</dt><dd>${formatarDataHora(c.iniciado_em || c.aberto_em)}</dd></div><div><dt>Concluído em</dt><dd>${formatarDataHora(c.encerrado_em)}</dd></div></dl></article>
+    <article><h3>Participantes do Ciclo de Tratamento Interno</h3><dl><div><dt>Participante principal registrado</dt><dd>${escapeHtml(principal?.nome_exibicao, "Não informado")}</dd></div><div><dt>Colaboradores</dt><dd>${pluralizarConcluidas(colaboradores.length, "participante adicional", "participantes adicionais")}</dd></div></dl></article>
+    <article><h3>Processos SEI</h3>${processos.length ? `<strong>${escapeHtml(processos.find(x => x.processo_principal)?.numero_processo || processos[0]?.numero_processo)}</strong><p>${processos.length > 1 ? pluralizarConcluidas(processos.length - 1, "vínculo adicional", "vínculos adicionais") : "Processo principal do Ciclo de Tratamento Interno"}</p>` : '<p>Nenhum processo vinculado neste Ciclo de Tratamento Interno.</p>'}</article>
+    <article><h3>Auditoria do Ciclo de Tratamento Interno</h3><strong>${pluralizarConcluidas(historico.length, "movimentação registrada", "movimentações registradas")}</strong><p>${ultima ? `Última movimentação: ${formatarDataHora(ultima)}` : "Sem data de movimentação disponível."}</p><small>Abra os detalhes para consultar o histórico completo do Ciclo de Tratamento Interno.</small></article>`;
 }
 
 function csvLinhas(payload) { const colunas = payload?.colunas || []; return [colunas, ...(payload?.itens || []).map(item => colunas.map(c => item[c]))]; }
@@ -1860,7 +1888,7 @@ function baixarCsv(linhas, nome) { const q = v => `"${String(v ?? "").replaceAll
 async function exportarDemandas(concluidas) {
   const escopo = dom(concluidas ? "escopoExportacaoConcluidas" : "escopoExportacaoAtuais").value;
   const selecionadas = concluidas ? [] : [...estado.selecionadas.values()];
-  if (escopo === "SELECIONADOS" && !selecionadas.length) { exibirMensagem("Selecione ao menos uma demanda.", "warning"); return; }
+  if (escopo === "SELECIONADOS" && !selecionadas.length) { exibirMensagem("Selecione ao menos um indício.", "warning"); return; }
   const exportarTudo = !concluidas && escopo === "TODAS";
   const f = concluidas ? parametrosConcluidas() : parametrosListagem();
   const args = {
@@ -1905,7 +1933,7 @@ async function abrirDetalheCompleto(item) {
       aplicarContextoCicloModal(item, dados, {}, processos, {});
     }
 
-    const bloco = `<section class="cycles-context-block"><h3 class="section-title">Ciclos do indício</h3>${renderizarSeletorCiclos(estado.detalhe.ciclos, selecionado)}</section>`;
+    const bloco = `<section class="cycles-context-block"><h3 class="section-title">Ciclos de Tratamento Interno do indício</h3>${renderizarSeletorCiclos(estado.detalhe.ciclos, selecionado)}</section>`;
     el.painelDetalhesGestor.insertAdjacentHTML("afterbegin", bloco);
   } catch (error) {
     console.error(error);
