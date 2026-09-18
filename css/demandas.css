@@ -857,3 +857,37 @@
 #secaoDemandasAtuais tbody tr.is-selected .deadline-label {
   box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
 }
+
+
+/* Revelacao controlada do CPF no modal de detalhes */
+#atribuicaoOverlay .cpf-detail-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+#atribuicaoOverlay .cpf-toggle {
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--primary) 32%, var(--line));
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: .7rem;
+  font-weight: 780;
+  line-height: 1;
+  white-space: nowrap;
+}
+#atribuicaoOverlay .cpf-toggle:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface));
+}
+#atribuicaoOverlay .cpf-toggle[aria-pressed="true"] {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 35%, var(--line));
+  background: var(--warning-soft);
+}
+#atribuicaoOverlay .cpf-detail-card strong {
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+}
