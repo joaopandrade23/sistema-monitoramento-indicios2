@@ -395,12 +395,13 @@ function classePrioridade(codigo) {
 function descricaoPrazoListagem(demanda) {
   if (!demanda.prazo_em) {
     return demanda.id_ciclo_tratamento
-      ? { principal: "Sem prazo definido", auxiliar: "Definição pendente" }
-      : { principal: "Sem prazo definido", auxiliar: "Não aplicável" };
+      ? { principal: "Sem prazo definido", auxiliar: "Definição pendente", classe: "SEM_PRAZO" }
+      : { principal: "Sem prazo definido", auxiliar: "Não aplicável", classe: "NAO_APLICAVEL" };
   }
   return {
     principal: formatarData(demanda.prazo_em),
-    auxiliar: rotuloPainel(demanda.situacao_prazo || "NO_PRAZO")
+    auxiliar: rotuloPainel(demanda.situacao_prazo || "NO_PRAZO"),
+    classe: demanda.situacao_prazo || "NO_PRAZO"
   };
 }
 
@@ -445,7 +446,7 @@ function renderizarDemandas() {
       <td class="col-situacao"><span class="badge ${classeSituacao(d.situacao_operacional)}">${escapeHtml(rotuloSituacao(d.situacao_operacional))}</span></td>
       <td class="col-prioridade"><span class="priority-badge ${classePrioridade(d.codigo_prioridade)}">${escapeHtml(prioridade)}</span></td>
       <td class="col-operador">${escapeHtml(d.nome_operador_principal, "Sem responsável")}</td>
-      <td class="col-prazo"><strong>${escapeHtml(prazo.principal)}</strong><span class="deadline-indicator ${escapeHtml(d.situacao_prazo || "")}">${escapeHtml(prazo.auxiliar)}</span></td>
+      <td class="col-prazo"><span class="deadline-label ${escapeHtml(prazo.classe)}"><strong>${escapeHtml(prazo.principal)}</strong><span class="deadline-indicator">${escapeHtml(prazo.auxiliar)}</span></span></td>
       <td class="col-atualizacao"><strong>${formatarData(d.data_ultima_modificacao)}</strong><br><small>e-Pessoal<br>${diasEstoque} ${diasEstoque === 1 ? "dia" : "dias"} no estoque</small></td>
       <td class="col-acoes sticky-actions"><button class="btn btn-secondary" type="button" data-visualizar="${d.id_indicio}">Detalhes</button></td>
     </tr>`;
