@@ -2169,6 +2169,7 @@ function prepararNavegacaoGestao() {
 }
 async function inicializarAplicacao() {
   prepararNavegacaoGestao();
+  registrarEventosExportacao();
 
   // Filtro inicial aplicado uma única vez ao abrir a página.
   el.situacaoSelect.value = "DISPONIVEL_PARA_ATRIBUICAO";
