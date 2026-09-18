@@ -1264,7 +1264,117 @@ function atualizarHistoricoFiltrado() {
   painel.querySelector("[data-history-list]").innerHTML = filtrados.map(item => { const meta=rotuloHistoricoGestor(item); const data=new Date(item.realizada_em); const dia=Number.isNaN(data.getTime())?"Data não informada":data.toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"}); const divisor=dia!==diaAtual?`<h3 class="history-day">${dia}</h3>`:""; diaAtual=dia; const executor=item.nome_executor||item.executor?.nome_exibicao||item.email_executor||item.categoria||"Evento automático"; return `${divisor}<article class="timeline-item ${meta[1]}"><span class="history-icon">${meta[2]}</span><div class="history-content"><div class="history-heading"><strong>${escapeHtml(meta[0])}</strong><time>${formatarDataHora(item.realizada_em)}</time></div><p>${escapeHtml(descricaoHistoricoGestor(item,meta[0]))}</p><small>${escapeHtml(executor)}</small></div></article>`; }).join("") || '<div class="history-empty-state"><strong>Nenhuma movimentação corresponde aos filtros.</strong></div>';
   painel.querySelector("[data-history-count]").textContent = `${filtrados.length} ${filtrados.length === 1 ? "movimentação encontrada" : "movimentações encontradas"}`;
 }
-function exportarRelatorioGestor(){const d=estado.detalhe.dados,item=estado.detalhe.demanda;if(!d||!item)return;const ciclo=d.ciclo_selecionado||d,equipe=ciclo.equipe||d.equipe||[],proc=d.processos_sei||d.processos||[],hist=estado.detalhe.historico||[];const field=(l,v)=>`<div class="f"><span>${escapeHtml(l)}</span><b>${escapeHtml(v||"Não informado")}</b></div>`;const section=(t,b)=>`<section><h2>${t}</h2>${b}</section>`;const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório ${escapeHtml(item.identificador_do_indicio)}</title><style>@page{size:A4;margin:15mm}body{font:9.5pt Arial;color:#172033;line-height:1.45}h1{color:#155eef}h2{font-size:13pt;color:#1849a9;border-bottom:1px solid #b9c8dd;padding-bottom:5px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.f,.card{border:1px solid #d0d5dd;border-radius:6px;padding:8px;break-inside:avoid}.f span{display:block;color:#667085;font-size:7.5pt;text-transform:uppercase}.card{border-left:4px solid #155eef;margin:7px 0}.card header{display:flex;justify-content:space-between;gap:10px}.muted{color:#667085}</style></head><body><h1>Relatório detalhado do indício</h1><p class="muted">Informações operacionais, administrativas e automáticas para consulta e auditoria.</p>${section("1. Identificação",`<div class="grid">${field("Indício",d.identificador_do_indicio||item.identificador_do_indicio)}${field("Pessoa",d.nome_atual||item.nome_atual)}${field("CPF",d.cpf_mascarado||item.cpf_mascarado)}${field("Tipo",d.tipo_indicio||item.tipo_indicio)}${field("Situação funcional",d.situacoes_funcionais_resumo||item.situacoes_funcionais_resumo)}${field("Atualização na origem",formatarDataHora(d.data_ultima_modificacao||item.data_ultima_modificacao))}</div>`)}${section("2. Ciclo e participantes",`<div class="grid">${field("Ciclo",ciclo.numero_ciclo)}${field("Situação",ciclo.nome_status_ciclo||rotuloSituacao(item.situacao_operacional))}${field("Prioridade",ciclo.nome_prioridade||item.nome_prioridade)}${field("Prazo",formatarDataHora(ciclo.prazo_em||item.prazo_em))}</div>${equipe.map(x=>`<div class="card"><b>${escapeHtml(x.nome_exibicao||x.nome)}</b><br>${escapeHtml(x.nome_papel||x.codigo_papel)} · ${x.participacao_ativa?"Ativo":"Histórico"}</div>`).join("")}`)}${section("3. Processos SEI",proc.length?proc.map(x=>`<div class="card"><b>${escapeHtml(x.numero_processo)}</b> ${x.processo_principal?"· Principal":""}<br>${escapeHtml(x.assunto||"Sem assunto")}</div>`).join(""):'<p>Nenhum processo registrado.</p>')}${section("4. Histórico integral",hist.length?hist.map(x=>{const m=rotuloHistoricoGestor(x);return `<div class="card"><header><b>${escapeHtml(m[0])}</b><time>${formatarDataHora(x.realizada_em)}</time></header><p>${escapeHtml(x.descricao||"Sem descrição.")}</p><small>${escapeHtml(x.nome_executor||x.categoria||"")}</small></div>`}).join(""):'<p>Nenhuma movimentação registrada.</p>')}<p class="muted">Documento gerado pelo Sistema de Monitoramento de Indícios em ${formatarDataHora(new Date())}.</p></body></html>`;const frame=document.createElement("iframe");frame.style.cssText="position:fixed;width:1px;height:1px;border:0";document.body.appendChild(frame);frame.contentDocument.open();frame.contentDocument.write(html);frame.contentDocument.close();setTimeout(()=>{frame.contentWindow.print();setTimeout(()=>frame.remove(),2500)},450)}
+function pdfBiblioteca() {
+  const JsPdf = window.jspdf?.jsPDF;
+  if (!JsPdf) throw new Error("BIBLIOTECA_PDF_NAO_CARREGADA");
+  return JsPdf;
+}
+function pdfTexto(valor, fallback = "Não informado") {
+  const texto = valor === null || valor === undefined || valor === "" ? fallback : String(valor);
+  return texto.replace(/[\u2012-\u2015]/g, "-").replace(/\u00a0/g, " ");
+}
+function pdfCpfMascarado(dados = {}, demanda = {}) {
+  const mascara = dados.cpf_mascarado || demanda.cpf_mascarado || "CPF protegido";
+  const digitos = String(mascara).replace(/\D/g, "");
+  if (digitos.length === 11 && !String(mascara).includes("*")) return `***.${digitos.slice(3,6)}.${digitos.slice(6,9)}-**`;
+  return mascara;
+}
+function pdfNatureza(item) {
+  const cat = categoriaHistorico(item);
+  return ({HUMANA:"Atividade humana",ADMINISTRATIVA:"Administrativa",AUTOMATICA:"Automática",ORIGEM:"Atualização da origem"})[cat] || "Movimentação";
+}
+function pdfResumoMovimentacoes(historico = []) {
+  const contagem = codigo => historico.filter(x => x.codigo_movimentacao === codigo).length;
+  return [
+    ["Tratamentos iniciados", contagem("INICIO_TRATAMENTO")],
+    ["Observações", contagem("OBSERVACAO")],
+    ["Providências", contagem("PROVIDENCIA")],
+    ["Processos vinculados", contagem("VINCULO_PROCESSO_SEI")],
+    ["Processos inativados", contagem("INATIVACAO_PROCESSO_SEI")],
+    ["Redistribuições", contagem("REDISTRIBUICAO") + contagem("SUBSTITUICAO_PRINCIPAL")],
+    ["Alterações de prioridade", contagem("ALTERACAO_PRIORIDADE") + contagem("ALTERACAO_PRIORIDADE_PRAZO")],
+    ["Alterações de prazo", contagem("ALTERACAO_PRAZO") + contagem("ALTERACAO_PRIORIDADE_PRAZO")],
+    ["Conclusões", contagem("ENCERRAMENTO_INTERNO")],
+    ["Eventos automáticos", historico.filter(x => x.evento_automatico).length],
+    ["Total de movimentações", historico.length]
+  ];
+}
+function criarDocumentoPdfGerencial({dados, demanda, ciclo, historico, equipe, processos}) {
+  const JsPdf = pdfBiblioteca();
+  const doc = new JsPdf({orientation:"portrait",unit:"mm",format:"a4",compress:true,putOnlyUsedFonts:true});
+  doc.setProperties({title:`Relatório do indício ${demanda.identificador_do_indicio || ""}`,subject:"Relatório gerencial do Ciclo de Tratamento Interno",author:"Sistema de Monitoramento de Indícios",creator:"Sistema de Monitoramento de Indícios"});
+  const W=210,H=297,M=15,CW=W-M*2,AZUL=[21,94,239],ESCURO=[23,32,51],CINZA=[102,112,133],LINHA=[208,213,221],FUNDO=[248,250,252];
+  let y=18, pagina=1, secao=0;
+  const setBody=()=>{doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...ESCURO)};
+  const rodape=()=>{doc.setDrawColor(...LINHA);doc.line(M,H-13,W-M,H-13);doc.setFont("helvetica","normal");doc.setFontSize(7.2);doc.setTextColor(...CINZA);doc.text("Sistema de Monitoramento de Indícios",M,H-8);doc.text(`Página ${pagina}`,W-M,H-8,{align:"right"});};
+  const cabecalhoContinuacao=()=>{doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...AZUL);doc.text(`INDÍCIO ${pdfTexto(demanda.identificador_do_indicio)}`,M,10);doc.setTextColor(...CINZA);doc.text(`Ciclo de Tratamento Interno ${pdfTexto(ciclo.numero_ciclo,"não informado")}`,W-M,10,{align:"right"});doc.setDrawColor(...LINHA);doc.line(M,13,W-M,13);};
+  const novaPagina=()=>{rodape();doc.addPage();pagina++;y=19;cabecalhoContinuacao();setBody();};
+  const garantir=altura=>{if(y+altura>H-18)novaPagina();};
+  const linhas=(texto,largura=CW)=>doc.splitTextToSize(pdfTexto(texto),largura);
+  const blocoTexto=(texto,opts={})=>{const fs=opts.size||9,lh=opts.lineHeight||4.3,ls=linhas(texto,opts.width||CW);garantir(ls.length*lh+(opts.after||0));doc.setFont("helvetica",opts.bold?"bold":"normal");doc.setFontSize(fs);doc.setTextColor(...(opts.color||ESCURO));doc.text(ls,opts.x||M,y);y+=ls.length*lh+(opts.after||0);setBody();};
+  const tituloSecao=t=>{secao++;garantir(12);y+=2;doc.setFillColor(...AZUL);doc.roundedRect(M,y-4,5,5,1,1,"F");doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...ESCURO);doc.text(`${secao}. ${t}`,M+8,y);doc.setDrawColor(...LINHA);doc.line(M+8,y+2,W-M,y+2);y+=8;setBody();};
+  const campos=(itens,colunas=2)=>{const gap=4,w=(CW-gap*(colunas-1))/colunas;for(let i=0;i<itens.length;i+=colunas){const row=itens.slice(i,i+colunas);const heights=row.map(([,v])=>Math.max(16,9+linhas(v,w-8).length*4));const ht=Math.max(...heights);garantir(ht+4);row.forEach(([l,v],k)=>{const x=M+k*(w+gap);doc.setFillColor(...FUNDO);doc.setDrawColor(...LINHA);doc.roundedRect(x,y,w,ht,2,2,"FD");doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...CINZA);doc.text(pdfTexto(l).toUpperCase(),x+4,y+5);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...ESCURO);doc.text(linhas(v,w-8),x+4,y+10);});y+=ht+4;}setBody();};
+  const cartao=(titulo,subtitulo,descricao,meta="")=>{const desc=linhas(descricao,CW-12),ht=Math.max(22,15+desc.length*4+(meta?4:0));garantir(ht+3);doc.setFillColor(255,255,255);doc.setDrawColor(...LINHA);doc.roundedRect(M,y,CW,ht,2,2,"FD");doc.setFillColor(...AZUL);doc.rect(M,y,2,ht,"F");doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...ESCURO);doc.text(pdfTexto(titulo),M+6,y+6);doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(...CINZA);doc.text(pdfTexto(subtitulo),W-M-5,y+6,{align:"right"});doc.setFontSize(8.5);doc.setTextColor(...ESCURO);doc.text(desc,M+6,y+12);if(meta){doc.setFontSize(7.3);doc.setTextColor(...CINZA);doc.text(pdfTexto(meta),M+6,y+ht-4);}y+=ht+3;setBody();};
+  // Cover/header
+  doc.setFillColor(...AZUL);doc.rect(0,0,W,43,"F");doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);doc.setFontSize(8);doc.text("SISTEMA DE MONITORAMENTO DE INDÍCIOS",M,13);doc.setFontSize(18);doc.text("Relatório detalhado do indício",M,24);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text("Informações operacionais, administrativas e automáticas para consulta e auditoria",M,31);doc.setFontSize(8);doc.text(`Indício ${pdfTexto(demanda.identificador_do_indicio)}  |  Ciclo de Tratamento Interno ${pdfTexto(ciclo.numero_ciclo,"não informado")}`,M,38);y=51;setBody();
+  tituloSecao("Identificação do indício");
+  campos([["Número do indício",dados.identificador_do_indicio||demanda.identificador_do_indicio],["Base de dados",dados.base_de_dados||demanda.base_de_dados],["Tipo de indício",dados.tipo_indicio||demanda.tipo_indicio],["Situação atual",ciclo.nome_status_ciclo||rotuloSituacao(demanda.situacao_operacional)]],2);
+  blocoTexto("Descrição do indício",{bold:true,size:8,color:CINZA,after:2});blocoTexto(dados.descricao_indicio||"Descrição não informada.",{after:3});
+  tituloSecao("Identificação da pessoa");
+  campos([["Nome atual",dados.nome_atual||demanda.nome_atual],["CPF",pdfCpfMascarado(dados,demanda)],["Situação funcional",dados.situacoes_funcionais_resumo||demanda.situacoes_funcionais_resumo||"Sem situação funcional registrada"],["Quantidade de vínculos",String((dados.origens||demanda.origens||[]).length||"Não informado")]],2);
+  tituloSecao("Vínculos funcionais");
+  const vinculos=dados.origens||demanda.origens||[];
+  if(vinculos.length)vinculos.forEach((v,i)=>cartao(v.situacao_funcional||`Vínculo ${i+1}`,v.orgao||v.organizacao||"Origem funcional",[v.matricula&&`Matrícula: ${v.matricula}`,v.nome_upag&&`UPAG: ${v.nome_upag}`].filter(Boolean).join("  |  ")||"Sem informações adicionais."));else blocoTexto("Sem situação funcional registrada.",{after:3});
+  tituloSecao("Ciclo de Tratamento Interno");
+  const eq=normalizarEquipeDoCiclo({...dados,ciclo_selecionado:ciclo},demanda);
+  campos([["Número do ciclo",ciclo.numero_ciclo],["Situação do ciclo",ciclo.nome_status_ciclo||rotuloSituacao(ciclo.codigo_status_ciclo)],["Prioridade",ciclo.nome_prioridade||demanda.nome_prioridade],["Prazo",ciclo.prazo_em?formatarDataHora(ciclo.prazo_em):"Sem prazo definido"],["Modo de trabalho",eq.nomeModo],["Responsável principal",eq.principal.nome_exibicao||demanda.nome_operador_principal],["Aberto em",formatarDataHora(ciclo.aberto_em)],["Iniciado em",ciclo.iniciado_em?formatarDataHora(ciclo.iniciado_em):"Ainda não iniciado"],["Concluído em",ciclo.encerrado_em?formatarDataHora(ciclo.encerrado_em):"Não concluído"],["Tempo de tratamento",duracaoCiclo(ciclo)]],2);
+  tituloSecao("Resultado do tratamento");blocoTexto(ciclo.resultado_encerramento||"Resultado ainda não registrado.",{after:2});if(ciclo.encerrado_em)blocoTexto(`Conclusão registrada em ${formatarDataHora(ciclo.encerrado_em)}.`,{size:8,color:CINZA,after:3});
+  tituloSecao("Processos SEI");
+  const ativos=processos.filter(x=>x.processo_ativo!==false),inativos=processos.filter(x=>x.processo_ativo===false);
+  blocoTexto(`Processos ativos (${ativos.length})`,{bold:true,size:9,after:2});if(ativos.length)ativos.forEach(x=>cartao(x.numero_processo,x.processo_principal?"Principal · Ativo":"Adicional · Ativo",x.assunto||"Assunto não informado",x.observacao||""));else blocoTexto("Nenhum processo ativo.",{after:3});
+  blocoTexto(`Processos inativados (${inativos.length})`,{bold:true,size:9,after:2});if(inativos.length)inativos.forEach(x=>cartao(x.numero_processo,"Inativo",x.assunto||"Assunto não informado",x.observacao||""));else blocoTexto("Nenhum processo inativado.",{after:3});
+  tituloSecao("Equipe do Ciclo de Tratamento Interno");
+  if(equipe.length)equipe.forEach(x=>cartao(x.nome_exibicao||x.nome,papelParticipante(normalizarParticipante(x)),`Participação ${x.participacao_ativa===false?"histórica":"ativa"}.`,periodoParticipacao(x)));else blocoTexto("Nenhum participante informado.",{after:3});
+  tituloSecao("Resumo das movimentações");campos(pdfResumoMovimentacoes(historico).map(([a,b])=>[a,String(b)]),3);
+  tituloSecao("Histórico integral");
+  if(historico.length)historico.forEach(x=>{const m=rotuloHistoricoGestor(x);const executor=x.nome_executor||x.executor?.nome_exibicao||x.email_executor||"Sistema";cartao(m[0],`${formatarDataHora(x.realizada_em)} · ${pdfNatureza(x)}`,descricaoHistoricoGestor(x,m[0]),`Executada por: ${executor}`);});else blocoTexto("Nenhuma movimentação registrada.",{after:3});
+  tituloSecao("Informações da emissão");
+  campos([["Emitido por",estado.contexto?.nome_exibicao||estado.contexto?.email_institucional||"Usuário autenticado"],["Perfil",estado.contexto?.nome_perfil||estado.contexto?.codigo_perfil||"Gestor"],["Data e hora",formatarDataHora(new Date())],["Escopo","Histórico integral do Ciclo de Tratamento Interno selecionado"]],2);
+  blocoTexto("Este relatório apoia a consulta e a auditoria e não substitui os documentos e autos existentes no processo SEI.",{size:7.5,color:CINZA,after:2});
+  rodape();
+  return doc;
+}
+async function exportarRelatorioGestor() {
+  const dados=estado.detalhe.dados,demanda=estado.detalhe.demanda;if(!dados||!demanda)return;
+  const ciclo=dados.ciclo_selecionado||estado.detalhe.cicloSelecionado||dados;
+  const equipe=ciclo.equipe||dados.equipe||[];
+  const processos=dados.processos_sei||dados.processos||[];
+  const historico=estado.detalhe.historico||[];
+  const botoes=[el.exportarRelatorioGestorBtn,el.painelRelatorioGestor.querySelector("[data-export-report]")].filter(Boolean);
+  try {
+    botoes.forEach(b=>{b.disabled=true;b.dataset.textoOriginal=b.textContent;b.textContent="Gerando PDF..."});
+    const doc=criarDocumentoPdfGerencial({dados,demanda,ciclo,historico,equipe,processos});
+    const data=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Fortaleza",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+    doc.save(`relatorio_indicio_${demanda.identificador_do_indicio||demanda.id_indicio}_ciclo_${ciclo.numero_ciclo||"historico"}_${data}.pdf`);
+    exibirMensagem("Relatório em PDF gerado com texto pesquisável e CPF mascarado.","success");
+  } catch(error) {
+    console.error(error);
+    exibirMensagem(error.message==="BIBLIOTECA_PDF_NAO_CARREGADA"?"Não foi possível carregar o gerador de PDF. Verifique a conexão e tente novamente.":"Não foi possível gerar o relatório em PDF.","error");
+  } finally {botoes.forEach(b=>{b.disabled=false;b.textContent=b.dataset.textoOriginal||"Gerar relatório em PDF"})}
+}
+async function exportarHistoricoConcluidasPdf() {
+  if(!estado.concluidas.itens.length){exibirMensagem("Nenhum indício concluído está disponível para o relatório.","warning");return;}
+  const JsPdf=pdfBiblioteca(),doc=new JsPdf({unit:"mm",format:"a4",orientation:"landscape",compress:true,putOnlyUsedFonts:true});
+  const M=12,W=297,H=210,CW=W-M*2;let y=18,pagina=1;
+  const rodape=()=>{doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(102,112,133);doc.text("Sistema de Monitoramento de Indícios",M,H-7);doc.text(`Página ${pagina}`,W-M,H-7,{align:"right"});};
+  const nova=()=>{rodape();doc.addPage();pagina++;y=17;cabecalho()};
+  const cabecalho=()=>{doc.setFont("helvetica","bold");doc.setTextColor(21,94,239);doc.setFontSize(15);doc.text("Relatório do histórico de indícios concluídos",M,y);y+=7;doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(102,112,133);doc.text(`Registros da página atual · Gerado em ${formatarDataHora(new Date())}`,M,y);y+=7;};
+  cabecalho();
+  const cols=[18,30,54,30,38,28,32,28],headers=["Indício","Ciclo","Pessoa","Situação final","Responsável","Processo SEI","Concluído em","Duração"];
+  const header=()=>{doc.setFillColor(21,94,239);doc.rect(M,y,CW,8,"F");let x=M;headers.forEach((t,i)=>{doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(255,255,255);doc.text(t,x+2,y+5);x+=cols[i]});y+=8;};header();
+  estado.concluidas.itens.forEach(item=>{const vals=[item.identificador_do_indicio,item.numero_ciclo,item.nome_atual,item.nome_status_ciclo,item.nome_operador_principal||"Não informado",item.processo_sei_principal||"Não vinculado",formatarDataHora(item.encerrado_em),duracaoCiclo(item)];const wraps=vals.map((v,i)=>doc.splitTextToSize(pdfTexto(v),cols[i]-4));const ht=Math.max(9,...wraps.map(a=>a.length*3.5+3));if(y+ht>H-15){nova();header()}doc.setDrawColor(208,213,221);doc.setFillColor(248,250,252);doc.rect(M,y,CW,ht,"FD");let x=M;wraps.forEach((ls,i)=>{doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(23,32,51);doc.text(ls,x+2,y+4);x+=cols[i]});y+=ht;});
+  rodape();const data=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Fortaleza",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());doc.save(`historico_indicios_concluidos_pagina_${data}.pdf`);
+}
 function preencherSeletoresTipos(){const op=estado.tiposIndicio.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join("");el.loteTipoSelect.innerHTML='<option value="">Selecione um tipo</option>'+op;el.redistribuicaoTipoSelect.innerHTML='<option value="">Selecione um tipo</option>'+op;}
 function listaSelecionadasHtml(expandida=false){const itens=[...estado.selecionadas.values()],visiveis=expandida?itens:itens.slice(0,3);if(!itens.length)return '<div class="scope-empty-state">Nenhum indício selecionado.</div>';return `<div class="compact-indication-list">${visiveis.map(d=>`<article><strong>${escapeHtml(d.identificador_do_indicio)}</strong><span>${escapeHtml(d.nome_atual)}</span><small>${escapeHtml(d.tipo_indicio)}</small></article>`).join("")}</div>${!expandida&&itens.length>3?`<p class="more-selected">+${itens.length-3} ${itens.length-3===1?"indício adicional":"indícios adicionais"}</p>`:""}`;}
 function atualizarSelecionadasLote(){
@@ -2136,7 +2246,7 @@ function alterarAbaPrincipal(aba) {
 function prepararNavegacaoGestao() {
   const fim = new Date(), inicio = new Date(Date.now() - 29 * 86400000); dom("painelFim").value = fim.toISOString().slice(0,10); dom("painelInicio").value = inicio.toISOString().slice(0,10);
   document.querySelectorAll("[data-gestao-tab]").forEach(b => b.addEventListener("click", () => alterarAbaPrincipal(b.dataset.gestaoTab)));
-  dom("aplicarPainelBtn").addEventListener("click", carregarPainelGestao); dom("exportarAtuaisBtn").addEventListener("click", () => abrirExportacaoCsv(false)); dom("exportarConcluidasBtn").addEventListener("click", () => abrirExportacaoCsv(true));
+  dom("aplicarPainelBtn").addEventListener("click", carregarPainelGestao); dom("exportarAtuaisBtn").addEventListener("click", () => abrirExportacaoCsv(false)); dom("exportarConcluidasBtn").addEventListener("click", () => abrirExportacaoCsv(true)); dom("exportarConcluidasPdfBtn").addEventListener("click", exportarHistoricoConcluidasPdf);
   dom("toggleFiltrosConcluidas").addEventListener("click", () => {
     const abrir = dom("filtrosAvancadosConcluidas").hidden;
     dom("filtrosAvancadosConcluidas").hidden = !abrir;
