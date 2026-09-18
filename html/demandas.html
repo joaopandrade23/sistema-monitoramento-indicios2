@@ -44,6 +44,7 @@
 <button aria-selected="true" class="main-tab active" data-gestao-tab="painel" type="button">Painel</button>
 <button aria-selected="false" class="main-tab" data-gestao-tab="atuais" type="button">Indícios atuais</button>
 <button aria-selected="false" class="main-tab" data-gestao-tab="concluidas" type="button">Indícios concluídos</button>
+<button aria-selected="false" class="main-tab dilation-main-tab" data-gestao-tab="dilacoes" type="button">Solicitações de dilação <span class="tab-count" id="dilacaoTabCount">0</span></button>
 </nav>
 <section class="main-section" id="secaoPainelGestao">
 <div class="panel dashboard-filter"><div class="field"><label for="painelInicio">Período inicial</label><input class="control" id="painelInicio" name="painelInicio" type="date"/></div><div class="field"><label for="painelFim">Período final</label><input class="control" id="painelFim" name="painelFim" type="date"/></div><button class="btn btn-primary" id="aplicarPainelBtn" type="button">Atualizar painel</button></div>
@@ -397,6 +398,29 @@
       <div class="status-banner" hidden id="exportacaoCsvAviso"></div>
     </div>
     <footer class="modal-footer"><button class="btn" id="cancelarExportacaoCsvBtn" type="button">Cancelar</button><button class="btn btn-primary" id="gerarExportacaoCsvBtn" type="button">Gerar CSV</button></footer>
+  </section>
+</div>
+
+
+<div class="overlay" hidden id="dilacaoAnaliseOverlay">
+  <section aria-labelledby="dilacaoAnaliseTitulo" aria-modal="true" class="modal dilation-analysis-modal" role="dialog">
+    <header class="modal-header"><div><span class="eyebrow">Solicitação de dilação</span><h2 id="dilacaoAnaliseTitulo">Analisar solicitação</h2></div><button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharDilacaoAnaliseBtn" type="button">×</button></header>
+    <div class="modal-body">
+      <div id="dilacaoAnaliseContexto" class="dilation-analysis-context"></div>
+      <div id="dilacaoComparativo" class="dilation-comparison"></div>
+      <section id="dilacaoDecisaoFormulario">
+        <fieldset class="dilation-decision-options"><legend>Decisão</legend>
+          <label><input checked name="dilacaoDecisao" type="radio" value="APROVAR"><span><strong>Aprovar a data solicitada</strong><small>O novo prazo será aplicado imediatamente.</small></span></label>
+          <label><input name="dilacaoDecisao" type="radio" value="APROVAR_COM_AJUSTE"><span><strong>Aprovar com outra data</strong><small>Defina a data que deverá vigorar.</small></span></label>
+          <label><input name="dilacaoDecisao" type="radio" value="REJEITAR"><span><strong>Rejeitar a solicitação</strong><small>O prazo atual será preservado.</small></span></label>
+        </fieldset>
+        <div class="field" hidden id="dilacaoPrazoAjustadoField"><label for="dilacaoPrazoAjustadoInput">Data aprovada</label><input class="control" id="dilacaoPrazoAjustadoInput" type="date"></div>
+        <div class="field" id="dilacaoManifestacaoField"><label for="dilacaoManifestacaoInput">Manifestação do gestor</label><textarea class="control textarea" id="dilacaoManifestacaoInput" maxlength="500" placeholder="Obrigatória ao ajustar a data ou rejeitar"></textarea><small>Ao aprovar exatamente a data solicitada, a manifestação é opcional.</small></div>
+      </section>
+      <section hidden id="dilacaoRevisao"><h3>Revisar decisão</h3><div id="dilacaoRevisaoResumo"></div><label class="check-option review-accept"><input id="dilacaoConfirmacaoCheck" type="checkbox"><span>Revisei os dados e confirmo esta decisão administrativa.</span></label></section>
+      <div class="status-banner" hidden id="dilacaoAnaliseAviso"></div>
+    </div>
+    <footer class="modal-footer"><button class="btn" id="cancelarDilacaoAnaliseBtn" type="button">Cancelar</button><div class="cycle-config-actions"><button class="btn" hidden id="voltarDilacaoAnaliseBtn" type="button">Voltar</button><button class="btn btn-primary" id="revisarDilacaoAnaliseBtn" type="button">Revisar decisão</button><button class="btn btn-primary" disabled hidden id="confirmarDilacaoAnaliseBtn" type="button">Confirmar decisão</button></div></footer>
   </section>
 </div>
 
