@@ -90,7 +90,7 @@ function classeSituacao(c) {
 }
 
 function mensagemErro(error, fallback) {
-  const bruto=String(error?.message||error?.details||fallback||"");
+  const bruto=String(error?.message||error?.details||error?.hint||error?.code||fallback||"");
   const codigo=bruto.match(/[A-Z][A-Z0-9_]{4,}/)?.[0]||"";
   const traducoes={
     PRAZO_ANTERIOR_A_DATA_ATUAL:"A nova data limite não pode ser anterior à data atual. Escolha a data de hoje ou uma data futura.",
@@ -99,6 +99,11 @@ function mensagemErro(error, fallback) {
     JUSTIFICATIVA_MUITO_CURTA:"A justificativa deve possuir pelo menos 10 caracteres.",
     NOVO_RESPONSAVEL_NAO_INFORMADO:"Selecione o novo responsável principal.",
     NOVO_RESPONSAVEL_NAO_DISPONIVEL:"O responsável selecionado não está disponível para receber indícios.",
+    CRITERIO_REDISTRIBUICAO_INVALIDO:"Selecione um escopo válido para a redistribuição em lote.",
+    TIPO_INDICIO_NAO_INFORMADO:"Selecione o tipo de indício.",
+    CPF_INVALIDO:"Informe um CPF válido com 11 dígitos.",
+    PARAMETROS_DE_CRITERIO_CONFLITANTES:"Use apenas um critério de localização: CPF ou tipo de indício.",
+    LIMITE_RESULTADOS_INVALIDO:"Não foi possível consultar a carteira porque o limite da operação é inválido.",
     NENHUMA_DEMANDA_ELEGIVEL:"Nenhum indício está elegível para redistribuição em lote.",
     CICLO_NAO_ENCONTRADO_OU_NAO_PERMITE_MOVIMENTACAO:"O Ciclo de Tratamento Interno não está disponível para alteração.",
     VERSAO_DESATUALIZADA:"O Ciclo de Tratamento Interno foi alterado por outra operação. Atualize a página e tente novamente."
@@ -848,7 +853,6 @@ function abrirRedistribuicao(){estado.redistribuicao={criterio:null,escopo:null,
 function fecharRedistribuicao(){el.redistribuicaoOverlay.hidden=true;document.body.style.overflow="";}
 function renderizarImpactoDestinoRedistribuicao(data){
   const n=data?.novo_responsavel||{},r=data?.resumo||{};
-  renderizarImpactoDestinoRedistribuicao(data);
   el.redistribuicaoImpactoDestino.innerHTML=`<div class="impact-metrics"><article><span>Carga atual</span><strong>${Number(n.carga_atual_principal||0)}</strong></article><article><span>A receber</span><strong>+${Number(n.quantidade_a_receber||0)}</strong></article><article><span>Carga estimada</span><strong>${Number(n.carga_estimada_principal||0)}</strong></article></div>`;
   const carteiras=(data?.responsaveis_atuais||[]).filter(x=>Number(x.quantidade_elegivel||0)>0);
   el.redistribuicaoCarteiras.innerHTML=carteiras.length?`<div class="portfolio-heading"><h4>Carteiras de origem</h4><p>Responsáveis principais dos indícios que serão redistribuídos</p></div><div class="portfolio-list">${carteiras.map(x=>`<article><div><strong>${escapeHtml(x.nome_exibicao)}</strong><span>${Number(x.quantidade_elegivel||0)} ${Number(x.quantidade_elegivel||0)===1?"indício":"indícios"}</span></div></article>`).join("")}</div>`:'<div class="scope-empty-state">Nenhuma carteira elegível para o destino selecionado.</div>';
@@ -1210,7 +1214,7 @@ function registrarEventos() {
   el.remocaoJustificativa.addEventListener("input", () => { el.equipeAviso.hidden = true; });
   el.confirmarRemocaoColaboradorBtn.addEventListener("click",() => removerColaborador());
   el.redistribuirIndividualBtn.addEventListener("click",redistribuirIndividual);
-  el.redistribuicaoNovoSelect.addEventListener("change",async()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;if(!el.redistribuicaoNovoSelect.value){el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Selecione o destino para calcular o impacto.</div>';atualizarResumoRedistribuicao();return;}el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Calculando impacto...</div>';try{const{data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",parametrosRedistribuicao());if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();renderizarImpactoDestinoRedistribuicao(data);atualizarResumoRedistribuicao();}catch(e){el.redistribuicaoAviso.textContent=mensagemErro(e,e.message);el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}});
+  el.redistribuicaoNovoSelect.addEventListener("change",async()=>{estado.redistribuicao.previa=null;estado.redistribuicao.assinatura=null;if(!el.redistribuicaoNovoSelect.value){el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Selecione o destino para calcular o impacto.</div>';atualizarResumoRedistribuicao();return;}el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder">Calculando impacto...</div>';try{const{data,error}=await sb.rpc("prever_redistribuicao_demandas_v2",parametrosRedistribuicao());if(error)throw error;estado.redistribuicao.previa=data;estado.redistribuicao.assinatura=assinaturaRedistribuicao();renderizarImpactoDestinoRedistribuicao(data);atualizarResumoRedistribuicao();}catch(e){el.redistribuicaoImpactoDestino.innerHTML='<div class="impact-placeholder error">Não foi possível calcular o impacto para o destino selecionado.</div>';el.redistribuicaoAviso.textContent=mensagemErro(e,"Não foi possível calcular o impacto da redistribuição.");el.redistribuicaoAviso.className="status-banner error";el.redistribuicaoAviso.hidden=false;}});
   el.fecharRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao); el.cancelarRedistribuicaoBtn.addEventListener("click",fecharRedistribuicao);
   el.redistribuicaoOverlay.addEventListener("click",e=>{if(e.target===el.redistribuicaoOverlay)fecharRedistribuicao();});
   el.revisarRedistribuicaoBtn.addEventListener("click",avancarRedistribuicao); el.voltarRedistribuicaoBtn.addEventListener("click",()=>mostrarEtapaRedistribuicao(estado.redistribuicao.etapa-1)); el.redistribuicaoConfirmacaoCheck.addEventListener("change",()=>{el.confirmarRedistribuicaoBtn.disabled=!estado.redistribuicao.previa?.pode_confirmar||!el.redistribuicaoConfirmacaoCheck.checked;}); el.confirmarRedistribuicaoBtn.addEventListener("click",confirmarRedistribuicao);
