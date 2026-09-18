@@ -354,6 +354,36 @@
 <footer class="modal-footer wizard-footer"><button class="btn" id="cancelarRedistribuicaoBtn" type="button">Cancelar</button><div class="wizard-footer-nav"><button class="btn" hidden="" id="voltarRedistribuicaoBtn" type="button">Voltar</button><button class="btn btn-primary" id="revisarRedistribuicaoBtn" type="button">Continuar</button><button class="btn btn-primary" disabled="" hidden="" id="confirmarRedistribuicaoBtn" type="button">Confirmar redistribuição em lote</button></div></footer>
 </section>
 </div>
+
+<div class="overlay" hidden id="configuracaoCicloOverlay">
+  <section aria-labelledby="configuracaoCicloTitulo" aria-modal="true" class="modal cycle-config-modal" role="dialog">
+    <header class="modal-header">
+      <div><span class="eyebrow">Configuração administrativa</span><h2 id="configuracaoCicloTitulo">Alterar prioridade ou prazo</h2></div>
+      <button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharConfiguracaoCicloBtn" type="button">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="cycle-config-context" id="configuracaoCicloContexto"></div>
+      <section id="configuracaoCicloFormulario">
+        <div class="cycle-config-current" id="configuracaoCicloAtual"></div>
+        <div class="field"><label for="configuracaoPrioridadeSelect">Prioridade</label><select class="control" id="configuracaoPrioridadeSelect"></select><small>Selecione a prioridade que deverá vigorar neste Ciclo de Tratamento Interno.</small></div>
+        <fieldset class="deadline-options"><legend>Prazo</legend>
+          <label><input checked name="configuracaoPrazoModo" type="radio" value="MANTER"> <span>Manter o prazo atual</span></label>
+          <label><input name="configuracaoPrazoModo" type="radio" value="DEFINIR"> <span>Definir ou alterar a data limite</span></label>
+          <label><input name="configuracaoPrazoModo" type="radio" value="REMOVER"> <span>Remover o prazo</span></label>
+        </fieldset>
+        <div class="field" hidden id="configuracaoPrazoField"><label for="configuracaoPrazoInput">Nova data limite</label><input class="control" id="configuracaoPrazoInput" type="date"></div>
+        <div class="field"><label for="configuracaoJustificativa">Justificativa da alteração</label><textarea class="control textarea" id="configuracaoJustificativa" maxlength="500" minlength="10" placeholder="Informe o motivo administrativo da alteração"></textarea><small>A justificativa será registrada no histórico integral.</small></div>
+      </section>
+      <section hidden id="configuracaoCicloRevisao"><h3>Revisar alteração</h3><div class="config-review" id="configuracaoCicloResumo"></div><label class="check-option review-accept"><input id="configuracaoCicloConfirmacao" type="checkbox"><span>Revisei os dados e confirmo a alteração.</span></label></section>
+      <div class="status-banner" hidden id="configuracaoCicloAviso"></div>
+    </div>
+    <footer class="modal-footer">
+      <button class="btn" id="cancelarConfiguracaoCicloBtn" type="button">Cancelar</button>
+      <div class="cycle-config-actions"><button class="btn" hidden id="voltarConfiguracaoCicloBtn" type="button">Voltar</button><button class="btn btn-primary" id="revisarConfiguracaoCicloBtn" type="button">Revisar alteração</button><button class="btn btn-primary" disabled hidden id="confirmarConfiguracaoCicloBtn" type="button">Confirmar alteração</button></div>
+    </footer>
+  </section>
+</div>
+
 <!-- JavaScript Principal -->
 <script src="../js/demandas.js" type="module"></script>
 <div class="overlay" hidden="" id="confirmacaoOverlay"><section aria-labelledby="confirmacaoTitulo" aria-modal="true" class="modal confirm-modal" role="dialog"><header class="modal-header"><h2 id="confirmacaoTitulo">Confirmar ação</h2></header><div class="modal-body" id="confirmacaoCorpo"></div><footer class="modal-footer"><button class="btn" id="confirmacaoCancelar" type="button">Cancelar</button><button class="btn btn-danger" id="confirmacaoOk" type="button">Confirmar</button></footer></section></div></body>
