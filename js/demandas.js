@@ -15,7 +15,7 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
-  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null, etapa: 1, escopo: null, selecionadasExpandidas: false }, detalhe: { requisicao: 0, demanda: null, dados: null, historico: [], ciclos: [], cicloSelecionado: null, contextoCiclo: null, abaAtiva: "detalhes", cpfVisivel: false, cpfCompleto: null, cpfCarregando: false },
+  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null, etapa: 1, escopo: null, selecionadasExpandidas: false }, detalhe: { requisicao: 0, demanda: null, dados: null, historico: [], ciclos: [], cicloSelecionado: null, contextoCiclo: null, abaAtiva: "detalhes", cpfVisivel: false, cpfCompleto: null, cpfCarregando: false, configuracaoEtapa: 1 },
   concluidas: { itens: [], detalhes: new Map(), expandida: null, pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   redistribuicao: { criterio: null, previa: null, assinatura: null, etapa: 1, escopo: null, diagnostico: null },
   buscaTimer: null,
@@ -36,6 +36,7 @@ const estado = {
 };
 
 const ids = [
+"configuracaoCicloOverlay","configuracaoCicloTitulo","fecharConfiguracaoCicloBtn","cancelarConfiguracaoCicloBtn","configuracaoCicloContexto","configuracaoCicloAtual","configuracaoCicloFormulario","configuracaoPrioridadeSelect","configuracaoPrazoField","configuracaoPrazoInput","configuracaoJustificativa","configuracaoCicloRevisao","configuracaoCicloResumo","configuracaoCicloConfirmacao","configuracaoCicloAviso","voltarConfiguracaoCicloBtn","revisarConfiguracaoCicloBtn","confirmarConfiguracaoCicloBtn",
 "redistributionMenu","redistributionMenuPopover","redistribuirDemandasBtn","redistribuirPorTipoBtn","redistribuirPorCpfBtn","gerenciarEquipeBtn","equipeOverlay","fecharEquipeBtn","cancelarEquipeBtn","equipeResumoAtual","equipeContextoCiclo","equipeAbaAdicionar","equipeAbaRemover","equipeAbaRedistribuir","equipePainelAdicionar","equipePainelRemover","equipePainelRedistribuir","equipeDisponiveisLista","equipeAtivosLista","equipeConversaoAviso","incluirColaboradoresBtn","remocaoJustificativa","confirmarRemocaoColaboradorBtn","equipeNovoPrincipalSelect","equipeManterAnteriorCheck","equipeRedistribuicaoJustificativa","redistribuirIndividualBtn","equipeAviso","redistribuicaoOverlay","fecharRedistribuicaoBtn","cancelarRedistribuicaoBtn","redistribuicaoTitulo","redistribuicaoTipoSelect","redistribuicaoCpfInput","redistribuicaoNovoSelect","redistribuicaoManterCheck","redistribuicaoJustificativa","redistribuicaoAviso","redistribuicaoPrevia","redistribuicaoResumo","redistribuicaoDetalhes","revisarRedistribuicaoBtn","confirmarRedistribuicaoBtn","voltarRedistribuicaoBtn","redistribuicaoConfirmacaoCheck","redistribuicaoConfirmacaoResumo","redistribuicaoCarteiras","redistribuicaoDiagnosticoResumo","redistribuicaoImpactoDestino","redistribuicaoEscopoContexto","redistribuicaoEscopoContextoTitulo","redistribuicaoEscopoContextoDetalhe","alterarEscopoRedistribuicaoBtn","redistribuicaoConfirmacaoTexto","redistribuicaoNovoPrazoCheck","redistribuicaoNovoPrazoField","redistribuicaoNovoPrazoInput","loteOperadorLabel","scopeSelectedCount","loteQuantidadeRotulo","loteAlternarSelecionadasBtn","loteEscopoContexto","loteEscopoContextoTitulo","loteEscopoContextoDetalhe","alterarEscopoLoteBtn",
 "usuarioNome","usuarioPerfil","temaBtn","sairBtn","atualizarBtn","mensagem","atribuirDemandasBtn","assignmentMenu","assignmentMenuPopover","atribuirSelecionadasBtn","atribuirSelecionadasHint","atribuirPorTipoBtn","atribuirPorCpfBtn","cardTotal","cardDisponiveis","cardPendentes","cardEmTratamento","cardAguardandoValidacao","cardMultiplas","buscaInput","situacaoSelect","operadorFiltroSelect","tipoIndicioFiltroSelect","prioridadeFiltroSelect","situacaoPrazoSelect","ordenacaoSelect","semResponsavelCheck","multiplasCheck","analiseCheck","limparFiltrosBtn","tamanhoPaginaSelect","demandasTbody","estadoTabela","selectionInfo","verSelecionadasBtn","limparSelecaoBtn","selecionarPaginaCheck","paginacaoInfo","paginaAtualInfo","paginaAnteriorBtn","proximaPaginaBtn","atribuicaoOverlay","fecharModalBtn","cancelarModalBtn","modalIdentificador","modalSituacao","modalNumeroIndicio","modalCpf","modalNome","modalTipo","modalSituacaoFuncional","modalEspera","modalUltimaAlteracao","modalDescricao","modalPrioridade","modalModo","modalOperador","modalAtribuidoEm","modalNumeroCiclo","modalStatusCiclo","modalPrazo","modalSituacaoPrazo","loteOverlay","fecharLoteBtn","cancelarLoteBtn","revisarLoteBtn","confirmarLoteBtn","voltarLoteBtn","loteConfirmacaoCheck","loteTitulo","loteEtapaSelecionadas","loteEtapaTipo","loteEtapaCpf","loteQuantidade","loteSelecionadasLista","loteTipoSelect","loteCpfInput","loteOperadorSelect","lotePrioridadeSelect","loteModoSelect","loteModoAjuda","loteColaboradoresField","loteColaboradoresLista","lotePrazoCheck","lotePrazoField","lotePrazoInput","loteAviso","lotePrevia","lotePreviaResumo","lotePreviaParticipantes","lotePreviaDetalhes","modalColaboradores","modalProcessosQtd","modalMensagemDetalhe","painelDetalhesGestor","painelEquipeGestor","painelProcessosGestor","painelHistoricoGestor","painelRelatorioGestor","modalCicloResumo","modalAtualizacaoEPessoal","modalModoLeitura","alternarCpfModalBtn","processoSeiOverlay","fecharProcessoSeiBtn","cancelarProcessoSeiBtn","processoSeiContexto","processoSeiNumero","processoSeiAssunto","processoSeiObservacao","processoSeiPrincipal","processoSeiAviso","salvarProcessoSeiBtn","exportarRelatorioGestorBtn","toggleFiltrosAtuais","filtrosAtuaisConteudo","filtrosAvancadosAtuais","resumoFiltrosAtuais","resultadoAtualResumo","acaoAtribuirSelecionadas","acaoRedistribuirSelecionadas","acaoEquipeSelecionada","metricasConcluidas","toggleFiltrosConcluidas","filtrosAvancadosConcluidas","resumoFiltrosConcluidas","concluidaBusca","concluidaInicio","concluidaFim","concluidaTipo","limparConcluidasBtn","aplicarConcluidasBtn","exportarConcluidasPdfBtn","resumoConcluidas","infoConcluidas","loteVincularSei","loteSeiCampos","loteSeiNumero","loteSeiAssunto","loteSeiObservacao","loteSeiPrincipal","resumoAssistenteAtribuicao","resumoAssistenteRedistribuicao","aplicarFiltrosBtn","confirmacaoOverlay","confirmacaoTitulo","confirmacaoCorpo","confirmacaoCancelar","confirmacaoOk"
 ]
@@ -109,7 +110,14 @@ function mensagemErro(error, fallback) {
     LIMITE_RESULTADOS_INVALIDO:"Não foi possível consultar a carteira porque o limite da operação é inválido.",
     NENHUMA_DEMANDA_ELEGIVEL:"Nenhum indício está elegível para redistribuição em lote.",
     CICLO_NAO_ENCONTRADO_OU_NAO_PERMITE_MOVIMENTACAO:"O Ciclo de Tratamento Interno não está disponível para alteração.",
-    VERSAO_DESATUALIZADA:"O Ciclo de Tratamento Interno foi alterado por outra operação. Atualize a página e tente novamente."
+    VERSAO_DESATUALIZADA:"O Ciclo de Tratamento Interno foi alterado por outra operação. Atualize os dados e tente novamente.",
+    CICLO_NAO_ATUALIZADO_POR_CONFLITO_DE_VERSAO:"A configuração foi alterada por outra operação. Atualize os dados e tente novamente.",
+    NENHUMA_ALTERACAO_INFORMADA:"Nenhuma alteração foi identificada. Modifique a prioridade ou o prazo para continuar.",
+    PARAMETROS_PRAZO_CONFLITANTES:"Escolha somente uma opção para o prazo.",
+    PRIORIDADE_INVALIDA:"Selecione uma prioridade válida.",
+    IDENTIFICACAO_DA_DEMANDA_NAO_INFORMADA:"Não foi possível identificar o indício ou o Ciclo de Tratamento Interno.",
+    PRINCIPAL_ATIVO_NAO_ENCONTRADO:"O Ciclo de Tratamento Interno não possui responsável principal ativo.",
+    DATA_ATUAL_NAO_ENCONTRADA:"A data atual não está disponível no calendário do sistema."
   };
   if(traducoes[codigo])return traducoes[codigo];
   if(/JWT|session|auth/i.test(bruto))return "Sua sessão não é mais válida.";
@@ -648,6 +656,94 @@ function renderizarSeletorCiclos(ciclos = [], selecionado = null) {
   }).join("")}</div>`;
 }
 
+function configuracaoCicloSelecionada() {
+  return estado.detalhe.dados?.ciclo_selecionado || estado.detalhe.cicloSelecionado || {};
+}
+function valorDataInput(valor) {
+  if (!valor) return "";
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor).slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza", year: "numeric", month: "2-digit", day: "2-digit" }).format(data);
+}
+function renderConfiguracaoCiclo() {
+  const ciclo = configuracaoCicloSelecionada();
+  const contexto = estado.detalhe.contextoCiclo || {};
+  if (!contexto.possuiCiclo) return "";
+  const prioridade = ciclo.nome_prioridade || estado.detalhe.demanda?.nome_prioridade || "Não definida";
+  const prazo = ciclo.prazo_em ? formatarDataHora(ciclo.prazo_em) : "Sem prazo definido";
+  const situacao = rotuloPrazo(classificarSituacaoPrazo({ ...ciclo, possui_ciclo_ativo: contexto.possuiCiclo }), ciclo.dias_ate_prazo, true);
+  return `<section class="cycle-config-section" data-cycle-config-section><div><span class="eyebrow">Configuração do Ciclo de Tratamento Interno</span><h3>Prioridade e prazo</h3><p>Consulte a configuração vigente e o histórico das alterações administrativas.</p></div><div class="cycle-config-values"><article><span>Prioridade atual</span><strong>${escapeHtml(prioridade)}</strong></article><article><span>Prazo atual</span><strong>${escapeHtml(prazo)}</strong><small>${escapeHtml(situacao)}</small></article></div>${contexto.editavel ? '<button class="btn btn-secondary" type="button" data-alterar-configuracao-ciclo>Alterar prioridade ou prazo</button>' : '<div class="readonly-inline">Este Ciclo de Tratamento Interno está disponível somente para consulta.</div>'}</section>`;
+}
+function atualizarBlocoConfiguracaoCiclo() {
+  const atual = el.painelDetalhesGestor.querySelector("[data-cycle-config-section]");
+  const html = renderConfiguracaoCiclo();
+  if (atual) atual.outerHTML = html;
+  else if (html) el.painelDetalhesGestor.insertAdjacentHTML("beforeend", html);
+}
+function limparAvisoConfiguracao() { el.configuracaoCicloAviso.hidden = true; el.configuracaoCicloAviso.textContent = ""; }
+function modoPrazoConfiguracao() { return document.querySelector('input[name="configuracaoPrazoModo"]:checked')?.value || "MANTER"; }
+function abrirConfiguracaoCiclo() {
+  const ciclo = configuracaoCicloSelecionada(), contexto = estado.detalhe.contextoCiclo;
+  if (!contexto?.editavel || !ciclo.id_ciclo_tratamento) return;
+  estado.detalhe.configuracaoEtapa = 1;
+  el.configuracaoPrioridadeSelect.innerHTML = estado.prioridades.map(p => `<option value="${escapeHtml(p.codigo_prioridade)}">${escapeHtml(p.nome_prioridade)}</option>`).join("");
+  el.configuracaoPrioridadeSelect.value = ciclo.codigo_prioridade || estado.detalhe.demanda?.codigo_prioridade || "";
+  document.querySelector('input[name="configuracaoPrazoModo"][value="MANTER"]').checked = true;
+  el.configuracaoPrazoField.hidden = true;
+  el.configuracaoPrazoInput.value = valorDataInput(ciclo.prazo_em);
+  el.configuracaoPrazoInput.min = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Fortaleza", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date());
+  el.configuracaoJustificativa.value = "";
+  el.configuracaoCicloConfirmacao.checked = false;
+  el.configuracaoCicloContexto.innerHTML = `<span>Indício ${escapeHtml(estado.detalhe.demanda?.identificador_do_indicio)}</span><strong>Ciclo de Tratamento Interno ${escapeHtml(contexto.numero || "atual")}</strong>`;
+  el.configuracaoCicloAtual.innerHTML = `<article><span>Prioridade atual</span><strong>${escapeHtml(ciclo.nome_prioridade || estado.detalhe.demanda?.nome_prioridade || "Não definida")}</strong></article><article><span>Prazo atual</span><strong>${escapeHtml(ciclo.prazo_em ? formatarDataHora(ciclo.prazo_em) : "Sem prazo definido")}</strong></article>`;
+  mostrarEtapaConfiguracao(1); limparAvisoConfiguracao(); el.configuracaoCicloOverlay.hidden = false; document.body.style.overflow = "hidden";
+}
+function fecharConfiguracaoCiclo() { el.configuracaoCicloOverlay.hidden = true; if (el.atribuicaoOverlay.hidden) document.body.style.overflow = ""; }
+function mostrarEtapaConfiguracao(etapa) {
+  estado.detalhe.configuracaoEtapa = etapa;
+  el.configuracaoCicloFormulario.hidden = etapa !== 1;
+  el.configuracaoCicloRevisao.hidden = etapa !== 2;
+  el.voltarConfiguracaoCicloBtn.hidden = etapa !== 2;
+  el.revisarConfiguracaoCicloBtn.hidden = etapa !== 1;
+  el.confirmarConfiguracaoCicloBtn.hidden = etapa !== 2;
+  el.confirmarConfiguracaoCicloBtn.disabled = !el.configuracaoCicloConfirmacao.checked;
+}
+function dadosConfiguracaoCiclo() {
+  const ciclo = configuracaoCicloSelecionada(), modo = modoPrazoConfiguracao();
+  return { ciclo, modo, prioridade: el.configuracaoPrioridadeSelect.value, prazo: modo === "DEFINIR" ? el.configuracaoPrazoInput.value : null, remover: modo === "REMOVER", justificativa: el.configuracaoJustificativa.value.trim() };
+}
+function revisarConfiguracaoCiclo() {
+  try {
+    limparAvisoConfiguracao();
+    const x = dadosConfiguracaoCiclo();
+    if (!x.prioridade) throw Error("Selecione uma prioridade.");
+    if (x.modo === "DEFINIR" && !x.prazo) throw Error("Informe a nova data limite.");
+    if (x.justificativa.length < 10) throw Error("A justificativa deve possuir pelo menos 10 caracteres.");
+    const prioridadeAtual = x.ciclo.codigo_prioridade || estado.detalhe.demanda?.codigo_prioridade || "";
+    const prioridadeMudou = x.prioridade !== prioridadeAtual;
+    const prazoAtual = valorDataInput(x.ciclo.prazo_em);
+    const prazoMudou = x.modo === "REMOVER" ? Boolean(x.ciclo.prazo_em) : x.modo === "DEFINIR" ? x.prazo !== prazoAtual : false;
+    if (!prioridadeMudou && !prazoMudou) throw Error("Nenhuma alteração foi identificada. Modifique a prioridade ou o prazo para continuar.");
+    const prioridadeNova = estado.prioridades.find(p => p.codigo_prioridade === x.prioridade)?.nome_prioridade || x.prioridade;
+    const prazoNovo = x.modo === "MANTER" ? (x.ciclo.prazo_em ? formatarDataHora(x.ciclo.prazo_em) : "Sem prazo definido") : x.modo === "REMOVER" ? "Sem prazo definido" : formatarData(x.prazo);
+    el.configuracaoCicloResumo.innerHTML = `<dl class="review-definition-list"><div><dt>Prioridade</dt><dd>${escapeHtml(x.ciclo.nome_prioridade || "Não definida")} ${prioridadeMudou ? `→ ${escapeHtml(prioridadeNova)}` : '<small>Sem alteração</small>'}</dd></div><div><dt>Prazo</dt><dd>${escapeHtml(x.ciclo.prazo_em ? formatarDataHora(x.ciclo.prazo_em) : "Sem prazo definido")} ${prazoMudou ? `→ ${escapeHtml(prazoNovo)}` : '<small>Sem alteração</small>'}</dd></div><div class="full"><dt>Justificativa</dt><dd>${escapeHtml(x.justificativa)}</dd></div></dl>`;
+    el.configuracaoCicloConfirmacao.checked = false; mostrarEtapaConfiguracao(2);
+  } catch (error) { el.configuracaoCicloAviso.textContent = error.message; el.configuracaoCicloAviso.className = "status-banner error"; el.configuracaoCicloAviso.hidden = false; }
+}
+async function confirmarConfiguracaoCiclo() {
+  const x = dadosConfiguracaoCiclo(), contexto = estado.detalhe.contextoCiclo;
+  try {
+    el.confirmarConfiguracaoCicloBtn.disabled = true; limparAvisoConfiguracao();
+    const { data, error } = await sb.rpc("alterar_prioridade_prazo_demanda_gestor", { p_id_indicio: Number(estado.detalhe.demanda.id_indicio), p_id_ciclo_tratamento: Number(x.ciclo.id_ciclo_tratamento), p_versao_esperada: Number(contexto.versao), p_codigo_prioridade: x.prioridade, p_prazo_em: x.modo === "DEFINIR" ? `${x.prazo}T23:59:59-03:00` : null, p_remover_prazo: x.remover, p_justificativa: x.justificativa });
+    if (error) throw error;
+    fecharConfiguracaoCiclo();
+    const demanda = estado.detalhe.demanda;
+    await Promise.all([carregarResumo(), carregarDemandas()]);
+    await abrirDetalhe(demanda);
+    switchDetailTab("historico");
+    exibirMensagem(data?.alterou_prioridade && data?.alterou_prazo ? "Prioridade e prazo atualizados." : data?.alterou_prioridade ? "Prioridade atualizada." : "Prazo atualizado.", "success");
+  } catch (error) { el.configuracaoCicloAviso.textContent = mensagemErro(error, "Não foi possível atualizar a configuração."); el.configuracaoCicloAviso.className = "status-banner error"; el.configuracaoCicloAviso.hidden = false; el.confirmarConfiguracaoCicloBtn.disabled = false; }
+}
 function formatarCpfCompleto(cpf) {
   const digitos = String(cpf || "").replace(/\D/g, "");
   return digitos.length === 11
@@ -711,7 +807,7 @@ async function alternarCpfDetalhe() {
 function dCardCpf(valor) {
   return `<div class="detail-card cpf-detail-card"><span>CPF</span><strong data-cpf-detalhe>${escapeHtml(valor || "CPF protegido")}</strong></div>`;
 }
-async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;estado.detalhe.cpfVisivel=false;estado.detalhe.cpfCompleto=null;estado.detalhe.cpfCarregando=false;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipeNormalizada=normalizarEquipeDoCiclo(data,d);const principal=equipeNormalizada.principal;const colaboradores=equipeNormalizada.colaboradores;atualizarControleCpf();el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCardCpf(data.cpf_mascarado||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`)+renderListaVinculosDetalhe(data,d);atualizarControleCpf();el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML = processos.length
+async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;estado.detalhe.cpfVisivel=false;estado.detalhe.cpfCompleto=null;estado.detalhe.cpfCarregando=false;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipeNormalizada=normalizarEquipeDoCiclo(data,d);const principal=equipeNormalizada.principal;const colaboradores=equipeNormalizada.colaboradores;atualizarControleCpf();el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCardCpf(data.cpf_mascarado||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`)+renderListaVinculosDetalhe(data,d)+renderConfiguracaoCiclo();atualizarControleCpf();el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML = processos.length
   ? `<div class="process-list">${processos.map(x => `<article class="process-detail-card ${x.processo_ativo === false ? "inactive" : ""}"><header><h3>${escapeHtml(x.numero_processo)}</h3><div>${x.processo_principal ? '<span class="badge badge-primary">Principal</span>' : '<span class="badge badge-neutral">Adicional</span>'} ${x.processo_ativo === false ? '<span class="badge badge-neutral">Inativo</span>' : '<span class="badge status-progress">Ativo</span>'}</div></header><p>${escapeHtml(x.assunto || "Assunto não informado")}</p>${x.observacao ? `<p class="muted">${escapeHtml(x.observacao)}</p>` : ""}<dl><div><dt>Vinculado em</dt><dd>${formatarDataHora(x.incluido_em || x.vinculado_em)}</dd></div><div><dt>Responsável pelo vínculo</dt><dd>${escapeHtml(x.nome_executor || x.nome_usuario || "Não informado")}</dd></div></dl></article>`).join("")}</div>`
   : `<div class="process-empty-state"><div><strong>${estado.detalhe.contextoCiclo?.somenteLeitura ? "Nenhum processo foi vinculado durante este ciclo." : "Nenhum processo SEI vinculado"}</strong><p>${estado.detalhe.contextoCiclo?.somenteLeitura ? "O ciclo permanece disponível para consulta histórica." : "Este ciclo ainda não possui processo administrativo associado."}</p>${!estado.detalhe.contextoCiclo?.somenteLeitura && estado.detalhe.contextoCiclo?.possuiCiclo ? '<button class="btn btn-primary" type="button" data-add-processo-sei>Vincular processo SEI</button>' : ""}</div></div>`;
 try{const{data:hist,error:he}=await sb.rpc("listar_movimentacoes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:ciclo.id_ciclo_tratamento||d.id_ciclo_tratamento||null,p_categoria:null,p_data_inicial:null,p_data_final:null,p_pagina:1,p_tamanho_pagina:200});if(he)throw he;const rows=hist?.itens||[];estado.detalhe.historico=rows;el.painelRelatorioGestor.innerHTML=`<div class="report-cover"><span class="eyebrow">Relatório do indício</span><h3>Indício ${escapeHtml(d.identificador_do_indicio)}</h3><p>O relatório reúne identificação, vínculos funcionais, ciclo selecionado, participantes, processos SEI e auditoria integral.</p><div class="report-scope"><article><span>Escopo</span><strong>${ciclo.id_ciclo_tratamento ? `Ciclo ${ciclo.numero_ciclo || "selecionado"}` : "Histórico do indício"}</strong></article><article><span>Situação</span><strong>${escapeHtml(ciclo.nome_status_ciclo || rotuloSituacao(d.situacao_operacional))}</strong></article><article><span>Movimentações</span><strong>${rows.length}</strong></article></div><button class="btn btn-primary" type="button" data-export-report>Gerar relatório em PDF</button></div><div class="report-sections"><article><strong>Identificação e origem</strong><p>Dados da pessoa, CPF mascarado, vínculos funcionais e atualização na origem.</p></article><article><strong>Ciclo e participantes</strong><p>Responsável principal, colaboradores e participações históricas.</p></article><article><strong>Processos SEI</strong><p>Processo principal, vínculos adicionais e inativos.</p></article><article><strong>Auditoria integral</strong><p>${rows.length} ${rows.length === 1 ? "movimentação" : "movimentações"} no ciclo selecionado.</p></article></div>`;el.painelHistoricoGestor.innerHTML=renderHistoricoConsolidado(rows);atualizarHistoricoFiltrado()}catch(e){el.painelHistoricoGestor.innerHTML=`<div class="status-banner warning">Não foi possível carregar o histórico: ${escapeHtml(e.message)}</div>`}}catch(error){console.error(error);el.modalMensagemDetalhe.textContent=mensagemErro(error,"Não foi possível carregar os detalhes.");el.modalMensagemDetalhe.className="status-banner modal-message error";el.modalMensagemDetalhe.hidden=false;el.painelDetalhesGestor.innerHTML=dSection("Dados disponíveis",dCard("Indício",d.identificador_do_indicio)+dCard("Pessoa",d.nome_atual)+dCard("CPF",d.cpf_mascarado)+dCard("Tipo",d.tipo_indicio,"full"))}}
@@ -1094,7 +1190,7 @@ function renderEquipeConsolidada(dados, demanda) {
   </div>`;
 }
 
-function rotuloHistoricoGestor(x){const map={INICIO_TRATAMENTO:["Tratamento iniciado","history-start","▶"],OBSERVACAO:["Observação registrada","history-observation","✎"],PROVIDENCIA:["Providência adotada","history-providence","✓"],VINCULO_PROCESSO_SEI:["Processo SEI vinculado","history-sei","⌁"],INATIVACAO_PROCESSO_SEI:["Processo SEI inativado","history-sei","⌁"],ALTERACAO_PROCESSO_SEI_PRINCIPAL:["Processo principal alterado","history-sei","★"],ENCERRAMENTO_INTERNO:["Tratamento encerrado","history-closed","■"],REDISTRIBUICAO:["Responsabilidade redistribuída","history-manager","⇄"],INCLUSAO_COLABORADOR:["Colaborador incluído","history-manager","+"],REMOCAO_COLABORADOR:["Colaborador removido","history-manager","−"],ALTERACAO_PRIORIDADE:["Prioridade alterada","history-manager","⚑"],ALTERACAO_PRAZO:["Prazo alterado","history-manager","▣"]};return map[x.codigo_movimentacao]||(x.evento_automatico?[x.nome_movimentacao||"Evento automático","history-system","⚙"]:[x.nome_movimentacao||"Movimentação","history-default","•"])}
+function rotuloHistoricoGestor(x){const map={CRIACAO_TRATAMENTO:["Criação do acompanhamento do indício","history-system","◆"],ABERTURA_CICLO:["Abertura do Ciclo de Tratamento Interno","history-start","▶"],ATRIBUICAO_PRINCIPAL:["Atribuição do responsável principal","history-manager","●"],ATRIBUICAO_LOTE:["Atribuição em lote","history-manager","●"],INICIO_TRATAMENTO:["Início do tratamento","history-start","▶"],OBSERVACAO:["Registro de observação","history-observation","✎"],PROVIDENCIA:["Registro de providência","history-providence","✓"],VINCULO_PROCESSO_SEI:["Vinculação de processo SEI","history-sei","⌁"],INATIVACAO_PROCESSO_SEI:["Inativação de processo SEI","history-sei","⌁"],ALTERACAO_PROCESSO_SEI_PRINCIPAL:["Alteração do processo SEI principal","history-sei","★"],ENCERRAMENTO_INTERNO:["Conclusão do Ciclo de Tratamento Interno","history-closed","■"],REABERTURA:["Reabertura do Ciclo de Tratamento Interno","history-manager","↻"],CANCELAMENTO:["Cancelamento do Ciclo de Tratamento Interno","history-closed","×"],RETIFICACAO:["Retificação de movimentação","history-manager","↺"],REDISTRIBUICAO:["Redistribuição do responsável principal","history-manager","⇄"],SUBSTITUICAO_PRINCIPAL:["Substituição do responsável principal","history-manager","⇄"],INCLUSAO_COLABORADOR:["Inclusão de colaborador","history-manager","+"],REMOCAO_COLABORADOR:["Remoção de colaborador","history-manager","−"],ALTERACAO_PRIORIDADE:["Alteração da prioridade","history-manager","⚑"],ALTERACAO_PRAZO:["Alteração do prazo","history-manager","▣"],ALTERACAO_PRIORIDADE_PRAZO:["Alteração da prioridade e do prazo","history-manager","⚑"],AGUARDANDO_VALIDACAO_TCU_DETECTADO:["Espera pela validação do TCU detectada","history-system","⚙"],VALIDACAO_TCU_DETECTADA:["Validação do TCU detectada","history-system","⚙"],VALIDACAO_DURANTE_TRATAMENTO:["Validação do TCU detectada durante o tratamento","history-system","⚙"],RETORNO_INDICIO_SNAPSHOT:["Retorno do indício detectado","history-system","⚙"],ESTADO_MISTO_DETECTADO:["Divergência de estados detectada","history-system","⚙"],INDICIO_NAO_LOCALIZADO:["Indício não localizado na atualização atual","history-system","⚙"],DIVERGENCIA_POS_VALIDACAO:["Divergência após validação detectada","history-system","⚙"]};return map[x.codigo_movimentacao]||(x.evento_automatico?[x.nome_movimentacao||"Evento automático","history-system","⚙"]:[x.nome_movimentacao||"Movimentação","history-default","•"])}
 function abrirProcessoSei() {
   const contexto = estado.detalhe.contextoCiclo;
   if (!contexto?.possuiCiclo || contexto.somenteLeitura) return;
@@ -1335,6 +1431,7 @@ function registrarEventos() {
   });
   document.querySelectorAll("[data-detail-tab]").forEach(b=>b.addEventListener("click",()=>switchDetailTab(b.dataset.detailTab)));
   el.painelDetalhesGestor.addEventListener("click", e => {
+    const config = e.target.closest("[data-alterar-configuracao-ciclo]"); if (config) { abrirConfiguracaoCiclo(); return; }
     const botao = e.target.closest("[data-ciclo-selecionar]");
     if (!botao) return;
     const ciclo = estado.detalhe.ciclos.find(item => Number(item.id_ciclo_tratamento) === Number(botao.dataset.cicloSelecionar));
@@ -1345,6 +1442,7 @@ function registrarEventos() {
     const principal = normalizarEquipeDoCiclo(dadosDoCiclo, estado.detalhe.demanda).principal;
     aplicarContextoCicloModal(estado.detalhe.demanda, dadosDoCiclo, ciclo, estado.detalhe.dados.processos_sei || [], principal);
     el.painelEquipeGestor.innerHTML = renderEquipeConsolidada({ ...estado.detalhe.dados, ciclo_selecionado: ciclo }, estado.detalhe.demanda);
+    atualizarBlocoConfiguracaoCiclo();
     el.painelDetalhesGestor.querySelectorAll("[data-ciclo-selecionar]").forEach(item => {
       const ativo = item === botao;
       item.classList.toggle("active", ativo);
@@ -1352,6 +1450,9 @@ function registrarEventos() {
     });
   });
 
+  el.fecharConfiguracaoCicloBtn.addEventListener("click", fecharConfiguracaoCiclo); el.cancelarConfiguracaoCicloBtn.addEventListener("click", fecharConfiguracaoCiclo); el.configuracaoCicloOverlay.addEventListener("click", e => { if (e.target === el.configuracaoCicloOverlay) fecharConfiguracaoCiclo(); });
+  document.querySelectorAll('input[name="configuracaoPrazoModo"]').forEach(r => r.addEventListener("change", () => { el.configuracaoPrazoField.hidden = modoPrazoConfiguracao() !== "DEFINIR"; limparAvisoConfiguracao(); }));
+  el.revisarConfiguracaoCicloBtn.addEventListener("click", revisarConfiguracaoCiclo); el.voltarConfiguracaoCicloBtn.addEventListener("click", () => mostrarEtapaConfiguracao(1)); el.configuracaoCicloConfirmacao.addEventListener("change", () => { el.confirmarConfiguracaoCicloBtn.disabled = !el.configuracaoCicloConfirmacao.checked; }); el.confirmarConfiguracaoCicloBtn.addEventListener("click", confirmarConfiguracaoCiclo);
   el.fecharModalBtn.addEventListener("click", fecharDetalhe);
   el.cancelarModalBtn.addEventListener("click", fecharDetalhe);
   el.atribuicaoOverlay.addEventListener("click", e => {
@@ -1469,7 +1570,8 @@ const rotulosMovimentacao = {
   REMOCAO_COLABORADOR: "Colaboradores removidos",
   REDISTRIBUICAO: "Redistribuições realizadas",
   ALTERACAO_PRIORIDADE: "Prioridades alteradas",
-  ALTERACAO_PRAZO: "Prazos alterados"
+  ALTERACAO_PRAZO: "Prazos alterados",
+  ALTERACAO_PRIORIDADE_PRAZO: "Prioridades e prazos alterados"
 };
 
 /**
