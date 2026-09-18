@@ -713,3 +713,31 @@
 @media(min-width:1001px){#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])){grid-template-columns:1fr}#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])) .wizard-summary{display:none}}
 @media(max-width:900px){.scope-diagnosis-summary{grid-template-columns:repeat(2,1fr)}.operation-outcome{flex-direction:column}}
 @media(max-width:560px){.scope-diagnosis-summary{grid-template-columns:1fr}}
+
+/* HOMOLOGACAO FINAL DA REDISTRIBUICAO EM LOTE */
+#redistribuicaoOverlay .wizard-layout{grid-template-columns:minmax(0,1fr) 320px;align-items:start;gap:26px;padding:24px 26px 34px;overflow-y:auto;overflow-x:hidden}
+#redistribuicaoOverlay .wizard-main{display:block;min-width:0;padding:0 0 34px}
+#redistribuicaoOverlay .wizard-panel{width:100%}
+#redistribuicaoOverlay .scope-context-bar{margin-bottom:28px}
+#redistribuicaoOverlay [data-red-panel="2"] .wizard-section-heading{margin-bottom:24px}
+#redistribuicaoOverlay .scope-diagnosis-summary{margin-bottom:26px}
+#redistribuicaoOverlay .portfolio-summary{margin:0 0 26px}
+#redistribuicaoOverlay .destination-grid{display:grid;grid-template-columns:1fr;gap:16px;align-items:stretch;margin-top:8px}
+#redistribuicaoOverlay .destination-grid>.field{width:100%}
+#redistribuicaoOverlay .destination-impact{width:100%;min-width:0}
+#redistribuicaoOverlay .impact-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#redistribuicaoOverlay .impact-metrics article{min-height:82px;padding:14px}
+#redistribuicaoOverlay .collaborator-transfer-option{display:flex;align-items:flex-start;width:100%;margin:22px 0 0;padding:16px;position:static;clear:both}
+#redistribuicaoOverlay .collaborator-transfer-option input{flex:0 0 auto;margin-top:3px}
+#redistribuicaoOverlay .collaborator-transfer-option span{min-width:0;line-height:1.45;white-space:normal}
+#redistribuicaoOverlay .status-banner{margin:18px 0 0}
+#redistribuicaoOverlay .full-width-review{display:grid;gap:26px;padding:4px 0 34px}
+#redistribuicaoOverlay .full-width-review>.wizard-section-heading{margin:0 0 2px}
+#redistribuicaoOverlay .full-width-review .preview-metrics{margin:0}
+#redistribuicaoOverlay .full-width-review #redistribuicaoDetalhes{display:grid;gap:22px}
+#redistribuicaoOverlay .operation-outcome{margin:0}
+#redistribuicaoOverlay .review-section{margin:0;padding:20px}
+#redistribuicaoOverlay .redistribution-confirmation-section{margin:0!important}
+#redistribuicaoOverlay .wizard-footer{position:relative;z-index:5;background:var(--surface)}
+@media(min-width:1001px){#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])){grid-template-columns:1fr;padding-right:34px}#redistribuicaoOverlay .wizard-layout:has([data-red-panel="4"]:not([hidden])) .wizard-summary{display:none}}
+@media(max-width:900px){#redistribuicaoOverlay .wizard-layout{grid-template-columns:1fr;padding:18px}#redistribuicaoOverlay .impact-metrics{grid-template-columns:1fr}}
