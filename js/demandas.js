@@ -15,7 +15,7 @@ const estado = {
   selecionadas: new Map(),
   carregando: false,
   atribuindo: false,
-  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null, etapa: 1, escopo: null, selecionadasExpandidas: false }, detalhe: { requisicao: 0, demanda: null, dados: null, historico: [], ciclos: [], cicloSelecionado: null, contextoCiclo: null, abaAtiva: "detalhes", cpfVisivel: false },
+  prioridades: [], tiposIndicio: [], lote: { criterio: null, previa: null, assinaturaPrevia: null, etapa: 1, escopo: null, selecionadasExpandidas: false }, detalhe: { requisicao: 0, demanda: null, dados: null, historico: [], ciclos: [], cicloSelecionado: null, contextoCiclo: null, abaAtiva: "detalhes", cpfVisivel: false, cpfCompleto: null, cpfCarregando: false },
   concluidas: { itens: [], detalhes: new Map(), expandida: null, pagina: 1, tamanho: 20, total: 0, totalPaginas: 0 },
   redistribuicao: { criterio: null, previa: null, assinatura: null, etapa: 1, escopo: null, diagnostico: null },
   buscaTimer: null,
@@ -102,6 +102,9 @@ function mensagemErro(error, fallback) {
     CRITERIO_REDISTRIBUICAO_INVALIDO:"Selecione um escopo válido para a redistribuição em lote.",
     TIPO_INDICIO_NAO_INFORMADO:"Selecione o tipo de indício.",
     CPF_INVALIDO:"Informe um CPF válido com 11 dígitos.",
+    ID_INDICIO_NAO_INFORMADO:"Não foi possível identificar o indício.",
+    INDICIO_NAO_ENCONTRADO:"O indício não foi encontrado.",
+    CPF_NAO_DISPONIVEL:"O CPF completo não está disponível para este indício.",
     PARAMETROS_DE_CRITERIO_CONFLITANTES:"Use apenas um critério de localização: CPF ou tipo de indício.",
     LIMITE_RESULTADOS_INVALIDO:"Não foi possível consultar a carteira porque o limite da operação é inválido.",
     NENHUMA_DEMANDA_ELEGIVEL:"Nenhum indício está elegível para redistribuição em lote.",
@@ -645,27 +648,77 @@ function renderizarSeletorCiclos(ciclos = [], selecionado = null) {
   }).join("")}</div>`;
 }
 
-function cpfCompletoDisponivel(dados = {}, demanda = {}) {
-  const cpf = String(dados.cpf || demanda.cpf || "").replace(/\D/g, "");
-  return cpf.length === 11 ? cpf : null;
+function formatarCpfCompleto(cpf) {
+  const digitos = String(cpf || "").replace(/\D/g, "");
+  return digitos.length === 11
+    ? digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+    : null;
 }
-function formatarCpfCompleto(cpf) { return cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : null; }
 function atualizarControleCpf() {
   const dados = estado.detalhe.dados || {};
   const demanda = estado.detalhe.demanda || {};
-  const completo = cpfCompletoDisponivel(dados, demanda);
   const mascara = dados.cpf_mascarado || demanda.cpf_mascarado || "CPF protegido";
-  el.modalCpf.textContent = estado.detalhe.cpfVisivel && completo ? formatarCpfCompleto(completo) : mascara;
-  el.alternarCpfModalBtn.hidden = !completo;
-  el.alternarCpfModalBtn.textContent = estado.detalhe.cpfVisivel ? "Ocultar CPF" : "Mostrar CPF";
+  const completo = formatarCpfCompleto(estado.detalhe.cpfCompleto);
+  const valor = estado.detalhe.cpfVisivel && completo ? completo : mascara;
+  el.modalCpf.textContent = valor;
+  const cpfCartao = el.painelDetalhesGestor.querySelector("[data-cpf-detalhe]");
+  if (cpfCartao) cpfCartao.textContent = valor;
+  const permitido = dados.permissoes?.pode_revelar_cpf === true;
+  el.alternarCpfModalBtn.hidden = !permitido;
+  el.alternarCpfModalBtn.disabled = estado.detalhe.cpfCarregando;
+  el.alternarCpfModalBtn.textContent = estado.detalhe.cpfCarregando
+    ? "Consultando..."
+    : estado.detalhe.cpfVisivel ? "Ocultar CPF" : "Mostrar CPF";
   el.alternarCpfModalBtn.setAttribute("aria-pressed", String(estado.detalhe.cpfVisivel));
 }
-async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;estado.detalhe.cpfVisivel=false;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipeNormalizada=normalizarEquipeDoCiclo(data,d);const principal=equipeNormalizada.principal;const colaboradores=equipeNormalizada.colaboradores;atualizarControleCpf();el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCard("CPF",data.cpf_mascarado||data.cpf||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`)+renderListaVinculosDetalhe(data,d);el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML = processos.length
+async function alternarCpfDetalhe() {
+  if (estado.detalhe.cpfCarregando) return;
+  if (estado.detalhe.cpfVisivel) {
+    estado.detalhe.cpfVisivel = false;
+    atualizarControleCpf();
+    return;
+  }
+  if (estado.detalhe.cpfCompleto) {
+    estado.detalhe.cpfVisivel = true;
+    atualizarControleCpf();
+    return;
+  }
+  const idIndicio = Number(estado.detalhe.demanda?.id_indicio);
+  if (!idIndicio) return;
+  try {
+    estado.detalhe.cpfCarregando = true;
+    atualizarControleCpf();
+    const { data, error } = await sb.rpc("revelar_cpf_demanda_gestor", {
+      p_id_indicio: idIndicio
+    });
+    if (error) throw error;
+    const completo = formatarCpfCompleto(data?.cpf);
+    if (!completo) throw new Error("CPF_NAO_DISPONIVEL");
+    estado.detalhe.cpfCompleto = completo;
+    estado.detalhe.cpfVisivel = true;
+    el.modalMensagemDetalhe.hidden = true;
+  } catch (error) {
+    estado.detalhe.cpfCompleto = null;
+    estado.detalhe.cpfVisivel = false;
+    el.modalMensagemDetalhe.textContent = mensagemErro(error, "Não foi possível revelar o CPF.");
+    el.modalMensagemDetalhe.className = "status-banner modal-message error";
+    el.modalMensagemDetalhe.hidden = false;
+  } finally {
+    estado.detalhe.cpfCarregando = false;
+    atualizarControleCpf();
+  }
+}
+function dCardCpf(valor) {
+  return `<div class="detail-card cpf-detail-card"><span>CPF</span><strong data-cpf-detalhe>${escapeHtml(valor || "CPF protegido")}</strong></div>`;
+}
+async function abrirDetalhe(d){if(!d)return;estado.detalhe.demanda=d;estado.detalhe.cpfVisivel=false;estado.detalhe.cpfCompleto=null;estado.detalhe.cpfCarregando=false;const req=++estado.detalhe.requisicao;el.modalIdentificador.textContent=d.identificador_do_indicio||"Não informado";el.modalNome.textContent=d.nome_atual||"Não informado";el.modalCpf.textContent=d.cpf_mascarado||"CPF protegido";el.modalTipo.textContent=d.tipo_indicio||"Não informado";el.modalSituacao.textContent=rotuloSituacao(d.situacao_operacional);el.modalSituacao.className=`badge ${classeSituacao(d.situacao_operacional)}`;el.modalPrioridade.textContent=d.nome_prioridade||"Não definida";el.modalPrazo.textContent=d.id_ciclo_tratamento?(d.prazo_em?formatarDataHora(d.prazo_em):"Sem prazo definido"):"Não aplicável";el.modalOperador.textContent=d.id_ciclo_tratamento?(d.nome_operador_principal||"Consultando histórico"):"Não atribuído";el.modalProcessosQtd.textContent="Consultando...";el.modalCicloResumo.textContent=d.id_ciclo_tratamento?"Consultando ciclo...":"Ainda não iniciado";el.modalModoLeitura.hidden=true;el.modalMensagemDetalhe.hidden=true;el.gerenciarEquipeBtn.hidden=true;el.atribuicaoOverlay.hidden=false;document.body.style.overflow="hidden";switchDetailTab("detalhes");[el.painelDetalhesGestor,el.painelEquipeGestor,el.painelProcessosGestor,el.painelHistoricoGestor,el.painelRelatorioGestor].forEach(x=>x.innerHTML='<div class="table-state">Carregando...</div>');try{const{data,error}=await sb.rpc("obter_detalhes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:d.id_ciclo_tratamento||null});if(error)throw error;if(req!==estado.detalhe.requisicao)return;estado.detalhe.dados=data;const ciclo=data.ciclo_selecionado||data;const processos=data.processos_sei||data.processos||[];const equipeNormalizada=normalizarEquipeDoCiclo(data,d);const principal=equipeNormalizada.principal;const colaboradores=equipeNormalizada.colaboradores;atualizarControleCpf();el.modalAtualizacaoEPessoal.textContent=formatarDataHora(data.data_ultima_modificacao||d.data_ultima_modificacao);aplicarContextoCicloModal(d,data,ciclo,processos,principal);el.painelDetalhesGestor.innerHTML=dSection("Identificação",dCard("Número do indício",data.identificador_do_indicio||d.identificador_do_indicio)+dCard("Base de dados",data.base_de_dados||d.base_de_dados)+dCard("Tipo de indício",data.tipo_indicio||d.tipo_indicio,"full classified-text")+dCard("Descrição",data.descricao_indicio||"Descrição não informada.","full narrative-text"))+dSection("Pessoa",dCard("Nome atual",data.nome_atual||d.nome_atual,"wide")+dCardCpf(data.cpf_mascarado||d.cpf_mascarado)+`<div class="detail-card full detail-bonds"><span>Situação funcional</span><strong>${renderVinculosDetalhe(data,d)}</strong></div>`)+renderListaVinculosDetalhe(data,d);atualizarControleCpf();el.painelEquipeGestor.innerHTML=renderEquipeConsolidada(data,d);el.painelProcessosGestor.innerHTML = processos.length
   ? `<div class="process-list">${processos.map(x => `<article class="process-detail-card ${x.processo_ativo === false ? "inactive" : ""}"><header><h3>${escapeHtml(x.numero_processo)}</h3><div>${x.processo_principal ? '<span class="badge badge-primary">Principal</span>' : '<span class="badge badge-neutral">Adicional</span>'} ${x.processo_ativo === false ? '<span class="badge badge-neutral">Inativo</span>' : '<span class="badge status-progress">Ativo</span>'}</div></header><p>${escapeHtml(x.assunto || "Assunto não informado")}</p>${x.observacao ? `<p class="muted">${escapeHtml(x.observacao)}</p>` : ""}<dl><div><dt>Vinculado em</dt><dd>${formatarDataHora(x.incluido_em || x.vinculado_em)}</dd></div><div><dt>Responsável pelo vínculo</dt><dd>${escapeHtml(x.nome_executor || x.nome_usuario || "Não informado")}</dd></div></dl></article>`).join("")}</div>`
   : `<div class="process-empty-state"><div><strong>${estado.detalhe.contextoCiclo?.somenteLeitura ? "Nenhum processo foi vinculado durante este ciclo." : "Nenhum processo SEI vinculado"}</strong><p>${estado.detalhe.contextoCiclo?.somenteLeitura ? "O ciclo permanece disponível para consulta histórica." : "Este ciclo ainda não possui processo administrativo associado."}</p>${!estado.detalhe.contextoCiclo?.somenteLeitura && estado.detalhe.contextoCiclo?.possuiCiclo ? '<button class="btn btn-primary" type="button" data-add-processo-sei>Vincular processo SEI</button>' : ""}</div></div>`;
 try{const{data:hist,error:he}=await sb.rpc("listar_movimentacoes_demanda_gestor",{p_id_indicio:Number(d.id_indicio),p_id_ciclo_tratamento:ciclo.id_ciclo_tratamento||d.id_ciclo_tratamento||null,p_categoria:null,p_data_inicial:null,p_data_final:null,p_pagina:1,p_tamanho_pagina:200});if(he)throw he;const rows=hist?.itens||[];estado.detalhe.historico=rows;el.painelRelatorioGestor.innerHTML=`<div class="report-cover"><span class="eyebrow">Relatório do indício</span><h3>Indício ${escapeHtml(d.identificador_do_indicio)}</h3><p>O relatório reúne identificação, vínculos funcionais, ciclo selecionado, participantes, processos SEI e auditoria integral.</p><div class="report-scope"><article><span>Escopo</span><strong>${ciclo.id_ciclo_tratamento ? `Ciclo ${ciclo.numero_ciclo || "selecionado"}` : "Histórico do indício"}</strong></article><article><span>Situação</span><strong>${escapeHtml(ciclo.nome_status_ciclo || rotuloSituacao(d.situacao_operacional))}</strong></article><article><span>Movimentações</span><strong>${rows.length}</strong></article></div><button class="btn btn-primary" type="button" data-export-report>Gerar relatório em PDF</button></div><div class="report-sections"><article><strong>Identificação e origem</strong><p>Dados da pessoa, CPF mascarado, vínculos funcionais e atualização na origem.</p></article><article><strong>Ciclo e participantes</strong><p>Responsável principal, colaboradores e participações históricas.</p></article><article><strong>Processos SEI</strong><p>Processo principal, vínculos adicionais e inativos.</p></article><article><strong>Auditoria integral</strong><p>${rows.length} ${rows.length === 1 ? "movimentação" : "movimentações"} no ciclo selecionado.</p></article></div>`;el.painelHistoricoGestor.innerHTML=renderHistoricoConsolidado(rows);atualizarHistoricoFiltrado()}catch(e){el.painelHistoricoGestor.innerHTML=`<div class="status-banner warning">Não foi possível carregar o histórico: ${escapeHtml(e.message)}</div>`}}catch(error){console.error(error);el.modalMensagemDetalhe.textContent=mensagemErro(error,"Não foi possível carregar os detalhes.");el.modalMensagemDetalhe.className="status-banner modal-message error";el.modalMensagemDetalhe.hidden=false;el.painelDetalhesGestor.innerHTML=dSection("Dados disponíveis",dCard("Indício",d.identificador_do_indicio)+dCard("Pessoa",d.nome_atual)+dCard("CPF",d.cpf_mascarado)+dCard("Tipo",d.tipo_indicio,"full"))}}
 function fecharDetalhe() {
   estado.detalhe.cpfVisivel = false;
+  estado.detalhe.cpfCompleto = null;
+  estado.detalhe.cpfCarregando = false;
   estado.detalhe.requisicao++;
   el.atribuicaoOverlay.hidden = true;
   if (el.equipeOverlay.hidden) document.body.style.overflow = "";
@@ -1189,7 +1242,7 @@ function registrarEventos() {
   el.gerenciarEquipeBtn.addEventListener("click",()=>switchDetailTab("equipe"));
   el.exportarRelatorioGestorBtn.addEventListener("click",exportarRelatorioGestor);
   el.painelRelatorioGestor.addEventListener("click",e=>{if(e.target.closest("[data-export-report]"))exportarRelatorioGestor()});
-  el.alternarCpfModalBtn.addEventListener("click", () => { estado.detalhe.cpfVisivel = !estado.detalhe.cpfVisivel; atualizarControleCpf(); });
+  el.alternarCpfModalBtn.addEventListener("click", alternarCpfDetalhe);
   el.painelProcessosGestor.addEventListener("click", e => { if (e.target.closest("[data-add-processo-sei]")) abrirProcessoSei(); });
   el.painelHistoricoGestor.addEventListener("input", atualizarHistoricoFiltrado);
   el.painelHistoricoGestor.addEventListener("change", atualizarHistoricoFiltrado);
