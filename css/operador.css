@@ -1107,3 +1107,22 @@ html:not([data-theme="dark"]) .bar-track{background:#e7edf5;border-color:#d0d9e6
 [data-theme="dark"] .bar-row .bar-value {
   filter: brightness(1.25);
 }
+
+
+/* Fase 1: integração visual, prazos semânticos e mapa de movimentações */
+.deadline-cell{--deadline-color:var(--muted);--deadline-soft:var(--neutral-soft)}
+.deadline-cell strong{color:var(--deadline-color)}
+.deadline-cell small{background:var(--deadline-soft)!important;color:var(--deadline-color)!important;border:1px solid color-mix(in srgb,var(--deadline-color) 28%,transparent)}
+.deadline-cell.deadline-overdue{--deadline-color:var(--danger);--deadline-soft:var(--danger-soft)}
+.deadline-cell.deadline-today{--deadline-color:#c2410c;--deadline-soft:#fff7ed}
+.deadline-cell.deadline-critical{--deadline-color:#b54708;--deadline-soft:#fffaeb}
+.deadline-cell.deadline-warning{--deadline-color:#9a6700;--deadline-soft:#fefbe8}
+.deadline-cell.deadline-ok{--deadline-color:var(--success);--deadline-soft:var(--success-soft)}
+.deadline-cell.deadline-none{--deadline-color:var(--muted);--deadline-soft:var(--neutral-soft)}
+.context-strip [data-deadline="deadline-overdue"] strong{color:var(--danger)}
+.context-strip [data-deadline="deadline-today"] strong,.context-strip [data-deadline="deadline-critical"] strong{color:var(--warning)}
+.context-strip [data-deadline="deadline-ok"] strong{color:var(--success)}
+.timeline-item.history-administrative{--history-color:#7c3aed;--history-soft:#f5f3ff}
+.timeline-item.history-automatic{--history-color:#64748b;--history-soft:#f1f5f9}
+[data-theme="dark"] .timeline-item.history-administrative{--history-color:#c4b5fd;--history-soft:#2e1f50}
+[data-theme="dark"] .timeline-item.history-automatic{--history-color:#cbd5e1;--history-soft:#263244}
