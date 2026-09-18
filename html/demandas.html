@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="light dark" name="color-scheme"/>
-<title>Indícios | Sistema de Monitoramento de Indícios</title>
+<title>Gestão dos Indícios | Sistema de Monitoramento de Indícios</title>
 <meta content="Consulta, atribuição e acompanhamento de indícios pela SEGEP/CE." name="description"/>
 <!-- Vinculação do arquivo CSS unificado -->
 <link href="../css/demandas.css" rel="stylesheet"/>
@@ -381,6 +381,22 @@
       <button class="btn" id="cancelarConfiguracaoCicloBtn" type="button">Cancelar</button>
       <div class="cycle-config-actions"><button class="btn" hidden id="voltarConfiguracaoCicloBtn" type="button">Voltar</button><button class="btn btn-primary" id="revisarConfiguracaoCicloBtn" type="button">Revisar alteração</button><button class="btn btn-primary" disabled hidden id="confirmarConfiguracaoCicloBtn" type="button">Confirmar alteração</button></div>
     </footer>
+  </section>
+</div>
+
+
+<div class="overlay" hidden id="exportacaoCsvOverlay">
+  <section aria-labelledby="exportacaoCsvTitulo" aria-modal="true" class="modal export-modal" role="dialog">
+    <header class="modal-header"><div><span class="eyebrow">Exportação de dados</span><h2 id="exportacaoCsvTitulo">Exportar CSV</h2></div><button aria-label="Fechar" class="btn icon-btn btn-ghost" id="fecharExportacaoCsvBtn" type="button">×</button></header>
+    <div class="modal-body export-modal-body">
+      <section><h3>1. Escopo</h3><div class="export-choice-grid" id="exportacaoEscopos"></div></section>
+      <section><h3>2. Perfil de colunas</h3><div class="export-profile-grid" role="radiogroup"><label><input name="exportacaoPerfil" type="radio" value="RESUMIDO"><span><strong>Resumido</strong><small>Informações essenciais para consulta rápida.</small></span></label><label><input checked name="exportacaoPerfil" type="radio" value="GERENCIAL"><span><strong>Gerencial</strong><small>Visão administrativa completa, sem códigos técnicos.</small></span></label><label><input name="exportacaoPerfil" type="radio" value="PERSONALIZADO"><span><strong>Personalizado</strong><small>Escolha individualmente os dados do arquivo.</small></span></label></div></section>
+      <section><div class="export-section-heading"><div><h3>3. Colunas</h3><p id="exportacaoColunasContador">0 colunas selecionadas</p></div><button aria-expanded="false" class="btn btn-ghost btn-sm" id="alternarColunasExportacaoBtn" type="button">Exibir colunas</button></div><div class="export-columns-panel" hidden id="exportacaoColunasPainel"><div class="export-column-actions"><button class="btn btn-ghost btn-sm" id="selecionarTodasColunasBtn" type="button">Selecionar todas</button><button class="btn btn-ghost btn-sm" id="limparColunasBtn" type="button">Limpar seleção</button><button class="btn btn-ghost btn-sm" id="restaurarColunasBtn" type="button">Restaurar perfil</button></div><div class="export-column-groups" id="exportacaoColunasLista"></div></div></section>
+      <aside class="export-summary" id="exportacaoResumo"></aside>
+      <div class="export-progress-panel" hidden id="exportacaoProgresso"><div class="export-progress-heading"><strong id="exportacaoProgressoTitulo">Preparando exportação</strong><span id="exportacaoProgressoPercentual">0%</span></div><progress id="exportacaoProgressoBarra" max="100" value="0"></progress><p id="exportacaoProgressoTexto">Aguarde...</p></div>
+      <div class="status-banner" hidden id="exportacaoCsvAviso"></div>
+    </div>
+    <footer class="modal-footer"><button class="btn" id="cancelarExportacaoCsvBtn" type="button">Cancelar</button><button class="btn btn-primary" id="gerarExportacaoCsvBtn" type="button">Gerar CSV</button></footer>
   </section>
 </div>
 
