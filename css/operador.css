@@ -1126,3 +1126,22 @@ html:not([data-theme="dark"]) .bar-track{background:#e7edf5;border-color:#d0d9e6
 .timeline-item.history-automatic{--history-color:#64748b;--history-soft:#f1f5f9}
 [data-theme="dark"] .timeline-item.history-administrative{--history-color:#c4b5fd;--history-soft:#2e1f50}
 [data-theme="dark"] .timeline-item.history-automatic{--history-color:#cbd5e1;--history-soft:#263244}
+
+
+/* Fase 2: modal integrado, ciclos, equipe, histórico, relatório e somente leitura */
+.contextual-v2{grid-template-columns:minmax(180px,1.25fr) repeat(5,minmax(120px,1fr));align-items:stretch}
+.contextual-v2>div{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0}
+.cycle-select{height:36px;padding:6px 34px 6px 10px;font-weight:750}
+.readonly-notice{margin:12px 22px 0;padding:11px 14px;border:1px solid var(--warning);background:var(--warning-soft);color:var(--warning);border-radius:10px;font-weight:750}
+.team-summary,.report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.team-summary>div,.report-grid>div{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-soft);display:flex;flex-direction:column;gap:6px}
+.team-summary span,.report-grid span{font-size:.75rem;text-transform:uppercase;color:var(--muted);font-weight:750;letter-spacing:.03em}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.team-grid h3{margin:0 0 10px}
+.member-card{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:9px;background:var(--surface-soft)}
+.member-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:800}.member-card div{display:flex;flex-direction:column;gap:4px}.member-card small{color:var(--muted)}
+.empty-inline{padding:18px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);text-align:center}
+.is-readonly{position:relative}.is-readonly:before{content:"Somente leitura";display:block;margin-bottom:12px;padding:8px 12px;border-radius:8px;background:var(--neutral-soft);color:var(--muted);font-weight:750}
+.report-view{max-width:1050px;margin:auto}.report-view>header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.report-view h3{font-size:1.35rem;margin:5px 0}.report-section{border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:14px}.report-section h4{margin:0 0 10px}.report-section p{margin:0;color:var(--muted);line-height:1.6}.report-section ul{list-style:none;padding:0;margin:0}.report-section li{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--border)}
+.closing-date strong{color:var(--success)}.closing-date small{display:block;color:var(--muted);margin-top:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1050px){.contextual-v2{grid-template-columns:repeat(3,1fr)}.team-grid{grid-template-columns:1fr}}@media(max-width:700px){.contextual-v2,.team-summary,.report-grid{grid-template-columns:1fr 1fr}}
