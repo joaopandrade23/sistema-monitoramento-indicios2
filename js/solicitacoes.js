@@ -34,7 +34,18 @@ const state = {
   oldestPendingAt: null,
   loading: false,
   submittingDecision: false,
-  activeModule: "solicitacoes"
+  activeModule: "solicitacoes",
+  users: [],
+  usersProfiles: [],
+  usersSummary: null,
+  usersLoaded: false,
+  usersLoading: false,
+  usersOffset: 0,
+  usersLimit: 20,
+  usersTotal: 0,
+  selectedUser: null,
+  userSubmitting: false,
+  usersFilters: { search: "", profile: "", status: "", type: "", auth: "TODOS", order: "NOME_ASC" }
 };
 
 let elements = {};
@@ -110,7 +121,26 @@ function cacheDOMElements() {
     analysisInformationTitle: byId("analysis-information-title"),
     analysisInformationText: byId("analysis-information-text"),
     decisionConfirmationArea: byId("decision-confirmation-area"),
-    confirmDecisionButton: byId("confirm-decision-button")
+    confirmDecisionButton: byId("confirm-decision-button"),
+    usersRefreshButton: byId("users-refresh-button"), usersPageMessage: byId("users-page-message"),
+    usersTotalSummary: byId("users-total-summary"), usersTypesSummary: byId("users-types-summary"),
+    usersActiveSummary: byId("users-active-summary"), usersInactiveSummary: byId("users-inactive-summary"),
+    usersProfilesSummary: byId("users-profiles-summary"), usersAuthSummary: byId("users-auth-summary"),
+    usersRecordsCounter: byId("users-records-counter"), usersFilterForm: byId("users-filter-form"),
+    usersSearch: byId("users-search"), usersProfileFilter: byId("users-profile-filter"), usersStatusFilter: byId("users-status-filter"),
+    usersTypeFilter: byId("users-type-filter"), usersAuthFilter: byId("users-auth-filter"), usersOrderFilter: byId("users-order-filter"),
+    usersClearFilterButton: byId("users-clear-filter-button"), usersListLoading: byId("users-list-loading"),
+    usersEmptyState: byId("users-empty-state"), usersTableRegion: byId("users-table-region"), usersTableBody: byId("users-table-body"),
+    usersPaginationDescription: byId("users-pagination-description"), usersPaginationIndicator: byId("users-pagination-indicator"),
+    usersPreviousPageButton: byId("users-previous-page-button"), usersNextPageButton: byId("users-next-page-button"),
+    userDetailsModal: byId("user-details-modal"), userModalTitle: byId("user-modal-title"), userModalCloseButton: byId("user-modal-close-button"),
+    userModalCancelButton: byId("user-modal-cancel-button"), userModalLoading: byId("user-modal-loading"), userModalContent: byId("user-modal-content"),
+    userDetailStatus: byId("user-detail-status"), userDetailProfile: byId("user-detail-profile"), userDetailType: byId("user-detail-type"),
+    userDetailAuth: byId("user-detail-auth"), userDetailFields: byId("user-detail-fields"), userAdminForm: byId("user-admin-form"),
+    userAdminAction: byId("user-admin-action"), userAdminProfileField: byId("user-admin-profile-field"), userAdminProfile: byId("user-admin-profile"),
+    userAdminStatusField: byId("user-admin-status-field"), userAdminStatus: byId("user-admin-status"), userAdminJustification: byId("user-admin-justification"),
+    userAdminCounter: byId("user-admin-counter"), userAdminMessage: byId("user-admin-message"), userAdminSubmit: byId("user-admin-submit"),
+    userHistoryList: byId("user-history-list"), userHistoryEmpty: byId("user-history-empty")
   };
 }
 
@@ -1319,6 +1349,7 @@ function trapModalFocus(event) {
  * Trata as teclas usadas no modal.
  */
 function handleDocumentKeydown(event) {
+  if (event.key === "Escape" && !elements.userDetailsModal.hidden && !state.userSubmitting) { closeUserModal(); return; }
   if (event.key === "Escape" && !elements.detailsModal.hidden && !state.submittingDecision) {
     closeModal();
     return;
@@ -1327,11 +1358,60 @@ function handleDocumentKeydown(event) {
 }
 
 
+
+
+function createSimpleBadge(text, className) {
+  const badge = document.createElement("span"); badge.className = `status-badge ${className}`; badge.textContent = text; return badge;
+}
+function showUsersMessage(message, type="error") { elements.usersPageMessage.textContent=message; elements.usersPageMessage.classList.toggle("success",type==="success"); elements.usersPageMessage.hidden=false; }
+function hideUsersMessage() { elements.usersPageMessage.hidden=true; elements.usersPageMessage.textContent=""; elements.usersPageMessage.classList.remove("success"); }
+function showUserAdminMessage(message,type="error") { elements.userAdminMessage.textContent=message; elements.userAdminMessage.classList.toggle("success",type==="success"); elements.userAdminMessage.hidden=false; }
+function hideUserAdminMessage(){ elements.userAdminMessage.hidden=true; elements.userAdminMessage.textContent=""; elements.userAdminMessage.classList.remove("success"); }
+function getUsersPage(){ return Math.floor(state.usersOffset/state.usersLimit)+1; }
+function getUsersPages(){ return Math.max(1,Math.ceil(state.usersTotal/state.usersLimit)); }
+function setUsersLoading(value){ state.usersLoading=value; elements.usersListLoading.hidden=!value; elements.usersRefreshButton.disabled=value; elements.usersPreviousPageButton.disabled=true; elements.usersNextPageButton.disabled=true; if(value){elements.usersEmptyState.hidden=true;elements.usersTableRegion.hidden=true;} }
+function fillUsersProfiles(){
+  const current=elements.usersProfileFilter.value; const currentAdmin=elements.userAdminProfile.value;
+  elements.usersProfileFilter.replaceChildren(new Option("Todos os perfis","")); elements.userAdminProfile.replaceChildren(new Option("Selecione o perfil",""));
+  state.usersProfiles.forEach(p=>{ elements.usersProfileFilter.add(new Option(p.nome_perfil,p.codigo_perfil)); if(p.perfil_ativo) elements.userAdminProfile.add(new Option(p.nome_perfil,p.codigo_perfil)); });
+  elements.usersProfileFilter.value=current; elements.userAdminProfile.value=currentAdmin;
+}
+async function fetchUsersModuleData(){
+  if(state.usersLoading)return; hideUsersMessage(); setUsersLoading(true);
+  try{
+    const f=state.usersFilters;
+    const [summaryResult,profilesResult,usersResult]=await Promise.all([
+      supabase.schema("api").rpc("resumo_usuarios_administracao"),
+      supabase.schema("api").rpc("listar_perfis_administracao",{p_incluir_inativos:false}),
+      supabase.schema("api").rpc("listar_usuarios_administracao",{p_busca:f.search||null,p_codigo_perfil:f.profile||null,p_usuario_ativo:f.status===""?null:f.status==="ATIVO",p_tipo_usuario:f.type||null,p_vinculo_auth:f.auth,p_ordenacao:f.order,p_limite:state.usersLimit,p_deslocamento:state.usersOffset})
+    ]);
+    if(summaryResult.error)throw summaryResult.error; if(profilesResult.error)throw profilesResult.error; if(usersResult.error)throw usersResult.error;
+    state.usersSummary=Array.isArray(summaryResult.data)?summaryResult.data[0]:summaryResult.data;
+    state.usersProfiles=Array.isArray(profilesResult.data)?profilesResult.data:[]; state.users=Array.isArray(usersResult.data)?usersResult.data:[];
+    state.usersTotal=Number(state.users[0]?.total_registros??0); state.usersLoaded=true; fillUsersProfiles(); renderUsersModule();
+    if(!state.users.length&&state.usersOffset>0){state.usersOffset=0; await fetchUsersModuleData();}
+  }catch(error){console.error("Erro ao carregar usuários:",error); state.users=[]; state.usersTotal=0; renderUsersModule(); showUsersMessage(getUserOperationError(error,"Não foi possível carregar os usuários."));}
+  finally{setUsersLoading(false); updateUsersPagination();}
+}
+function renderUsersSummary(){ const s=state.usersSummary||{}; elements.usersTotalSummary.textContent=Number(s.total_usuarios||0).toLocaleString("pt-BR"); elements.usersTypesSummary.textContent=`${Number(s.total_humanos||0)} humanos e ${Number(s.total_sistema||0)} de sistema`; elements.usersActiveSummary.textContent=Number(s.total_ativos||0).toLocaleString("pt-BR"); elements.usersInactiveSummary.textContent=`${Number(s.total_inativos||0)} inativos`; elements.usersProfilesSummary.textContent=Number(s.total_perfis_ativos||0).toLocaleString("pt-BR"); const inc=Number(s.total_inconsistencias_auth||0); elements.usersAuthSummary.textContent=inc?`${inc} inconsistência(s) no Auth`:"Nenhuma inconsistência no Auth"; }
+function renderUsersModule(){ renderUsersSummary(); elements.usersTableBody.replaceChildren(); elements.usersRecordsCounter.textContent=state.usersTotal===1?"1 registro":`${state.usersTotal.toLocaleString("pt-BR")} registros`; if(!state.users.length){elements.usersEmptyState.hidden=false;elements.usersTableRegion.hidden=true;return;} const frag=document.createDocumentFragment(); state.users.forEach(u=>{const row=document.createElement("tr"); const identity=document.createElement("div");identity.className="user-identity";const strong=document.createElement("strong");strong.textContent=u.nome_exibicao;const email=document.createElement("span");email.textContent=u.email_institucional||"Sem e-mail";identity.append(strong,email); const btn=document.createElement("button");btn.type="button";btn.className="details-button";btn.textContent="Detalhes";btn.addEventListener("click",()=>openUserModal(u.id_usuario,btn)); const action=createTableCell(btn);action.classList.add("table-action-cell"); const authOk=u.tipo_usuario==="SISTEMA"||Boolean(u.auth_encontrado&&u.email_auth_compativel); row.append(createTableCell(identity),createTableCell(u.codigo_usuario),createTableCell(u.nome_perfil),createTableCell(u.tipo_usuario==="HUMANO"?"Humano":"Sistema"),createTableCell(createSimpleBadge(u.usuario_ativo?"Ativo":"Inativo",u.usuario_ativo?"status-active":"status-inactive")),createTableCell(createSimpleBadge(authOk?"Regular":"Verificar",authOk?"status-auth-ok":"status-auth-warning")),action);frag.append(row);}); elements.usersTableBody.append(frag);elements.usersEmptyState.hidden=true;elements.usersTableRegion.hidden=false; }
+function updateUsersPagination(){const first=state.usersTotal?state.usersOffset+1:0,last=Math.min(state.usersOffset+state.users.length,state.usersTotal);elements.usersPaginationDescription.textContent=state.usersTotal?`Exibindo ${first} a ${last} de ${state.usersTotal.toLocaleString("pt-BR")} usuários.`:"Nenhum registro exibido.";elements.usersPaginationIndicator.textContent=`Página ${getUsersPage()} de ${getUsersPages()}`;elements.usersPreviousPageButton.disabled=state.usersLoading||state.usersOffset===0;elements.usersNextPageButton.disabled=state.usersLoading||state.usersOffset+state.usersLimit>=state.usersTotal;}
+function appendDetail(dl,label,value){const wrap=document.createElement("div");wrap.className="applicant-detail-item";const dt=document.createElement("dt");dt.textContent=label;const dd=document.createElement("dd");dd.textContent=value??"Não informado";wrap.append(dt,dd);dl.append(wrap);}
+function resetUserAdminForm(){elements.userAdminForm.reset();elements.userAdminProfileField.hidden=true;elements.userAdminStatusField.hidden=true;elements.userAdminCounter.textContent="0 / 2000";elements.userAdminSubmit.disabled=true;hideUserAdminMessage();}
+function validateUserAdminForm(){const action=elements.userAdminAction.value,j=elements.userAdminJustification.value.trim();let valid=j.length>=10&&j.length<=2000;if(action==="PERFIL")valid=valid&&Boolean(elements.userAdminProfile.value)&&elements.userAdminProfile.value!==state.selectedUser?.perfil?.codigo_perfil;else if(action==="SITUACAO")valid=valid&&elements.userAdminStatus.value!==""&&String(state.selectedUser?.usuario_ativo)!==elements.userAdminStatus.value;else valid=false;elements.userAdminSubmit.disabled=!valid||state.userSubmitting;}
+function renderUserDetails(user){state.selectedUser=user;elements.userDetailStatus.replaceChildren(createSimpleBadge(user.usuario_ativo?"Ativo":"Inativo",user.usuario_ativo?"status-active":"status-inactive"));elements.userDetailProfile.textContent=user.perfil?.nome_perfil||"Não informado";elements.userDetailType.textContent=user.tipo_usuario==="HUMANO"?"Humano":"Sistema";const auth=user.auth||{};elements.userDetailAuth.textContent=user.tipo_usuario==="SISTEMA"?"Não aplicável":auth.identidade_encontrada&&auth.email_compativel?"Regular":"Verificar";elements.userDetailFields.replaceChildren();appendDetail(elements.userDetailFields,"Nome",user.nome_exibicao);appendDetail(elements.userDetailFields,"Código",user.codigo_usuario);appendDetail(elements.userDetailFields,"E-mail",user.email_institucional);appendDetail(elements.userDetailFields,"Criado em",formatDateTime(user.criado_em));appendDetail(elements.userDetailFields,"Atualizado em",formatDateTime(user.atualizado_em));appendDetail(elements.userDetailFields,"Último acesso",formatDateTime(auth.ultimo_acesso_em));resetUserAdminForm(); const system=user.tipo_usuario==="SISTEMA";elements.userAdminAction.disabled=system;elements.userAdminJustification.disabled=system; if(system)showUserAdminMessage("Usuários de sistema estão disponíveis somente para consulta.");}
+function renderUserHistory(items){elements.userHistoryList.replaceChildren();elements.userHistoryEmpty.hidden=items.length>0;if(!items.length)return;const frag=document.createDocumentFragment();items.forEach(item=>{const article=document.createElement("article");article.className="user-history-item";const head=document.createElement("div");const title=document.createElement("strong");title.textContent=({ALTERACAO_PERFIL:"Alteração de perfil",ATIVACAO:"Ativação",INATIVACAO:"Inativação"})[item.tipo_operacao]||item.tipo_operacao;const exec=document.createElement("p");exec.textContent=`Por ${item.nome_executor||item.codigo_usuario_executor}`;head.append(title,exec);const reason=document.createElement("p");reason.textContent=item.justificativa;const time=document.createElement("time");time.textContent=formatDateTime(item.criado_em);article.append(head,reason,time);frag.append(article);});elements.userHistoryList.append(frag);}
+async function openUserModal(id,trigger){state.lastFocusedElement=trigger||document.activeElement;elements.userDetailsModal.hidden=false;document.body.classList.add("modal-open");elements.userModalLoading.hidden=false;elements.userModalContent.hidden=true;try{const [detailResult,historyResult]=await Promise.all([supabase.schema("api").rpc("obter_usuario_administracao",{p_id_usuario:id}),supabase.schema("api").rpc("listar_historico_usuario_administracao",{p_id_usuario:id,p_limite:20,p_deslocamento:0})]);if(detailResult.error)throw detailResult.error;if(historyResult.error)throw historyResult.error;renderUserDetails(detailResult.data);renderUserHistory(Array.isArray(historyResult.data)?historyResult.data:[]);elements.userModalContent.hidden=false;window.requestAnimationFrame(()=>elements.userModalTitle.focus());}catch(error){console.error("Erro ao abrir usuário:",error);closeUserModal();showUsersMessage(getUserOperationError(error,"Não foi possível carregar os detalhes do usuário."));}finally{elements.userModalLoading.hidden=true;}}
+function closeUserModal(){if(elements.userDetailsModal.hidden||state.userSubmitting)return;elements.userDetailsModal.hidden=true;document.body.classList.remove("modal-open");state.selectedUser=null;resetUserAdminForm();if(state.lastFocusedElement instanceof HTMLElement&&document.contains(state.lastFocusedElement))state.lastFocusedElement.focus();state.lastFocusedElement=null;}
+function getUserOperationError(error,fallback){const msg=String(error?.message||"");const code=error?.code;if(code==="42501"||msg.includes("PERFIL_NAO_AUTORIZADO"))return"Seu perfil não possui autorização para esta operação.";if(code==="P0002"||msg.includes("USUARIO_NAO_ENCONTRADO"))return"O usuário não foi encontrado. Atualize a lista.";if(msg.includes("AUTO_INATIVACAO_NAO_PERMITIDA"))return"Você não pode inativar o próprio cadastro.";if(msg.includes("ULTIMO_ADMINISTRADOR_ATIVO"))return"A operação deixaria o sistema sem outro Gestor de Dados e Sistema ativo.";if(msg.includes("USUARIO_SISTEMA_NAO_EDITAVEL"))return"Usuários de sistema não podem ser alterados por este módulo.";if(msg.includes("SEM_ALTERACAO"))return"Selecione um valor diferente do atual.";if(code==="23505"||msg.includes("TOKEN_OPERACAO"))return"A operação já foi processada. Atualize os dados.";if(code==="22023")return"Revise os dados informados e a justificativa.";return fallback;}
+async function submitUserAdministration(event){event.preventDefault();validateUserAdminForm();if(elements.userAdminSubmit.disabled||!state.selectedUser)return;state.userSubmitting=true;elements.userAdminSubmit.disabled=true;elements.userAdminSubmit.textContent="Registrando...";hideUserAdminMessage();try{const action=elements.userAdminAction.value,j=elements.userAdminJustification.value.trim(),token=crypto.randomUUID();let result;if(action==="PERFIL")result=await supabase.schema("api").rpc("alterar_perfil_usuario",{p_id_usuario:state.selectedUser.id_usuario,p_codigo_perfil:elements.userAdminProfile.value,p_justificativa:j,p_token_operacao:token});else result=await supabase.schema("api").rpc("alterar_situacao_usuario",{p_id_usuario:state.selectedUser.id_usuario,p_usuario_ativo:elements.userAdminStatus.value==="true",p_justificativa:j,p_token_operacao:token});if(result.error)throw result.error;renderUserDetails(result.data);const historyResult=await supabase.schema("api").rpc("listar_historico_usuario_administracao",{p_id_usuario:state.selectedUser.id_usuario,p_limite:20,p_deslocamento:0});if(historyResult.error)throw historyResult.error;renderUserHistory(historyResult.data||[]);await fetchUsersModuleData();showUserAdminMessage("Alteração registrada com sucesso.","success");}catch(error){console.error("Erro ao administrar usuário:",error);showUserAdminMessage(getUserOperationError(error,"Não foi possível registrar a alteração."));}finally{state.userSubmitting=false;elements.userAdminSubmit.textContent="Confirmar alteração";validateUserAdminForm();}}
+
 /** Alterna os módulos administrativos sem destruir o estado atual. */
 function activateAdminModule(moduleCode, moveFocus = true) {
   const targetPanel = document.querySelector(`[data-admin-panel="${moduleCode}"]`);
   if (!targetPanel) return;
   state.activeModule = moduleCode;
+  if (moduleCode === "usuarios" && !state.usersLoaded) fetchUsersModuleData();
   document.querySelectorAll("[data-admin-panel]").forEach((panel) => {
     panel.hidden = panel !== targetPanel;
   });
@@ -1369,6 +1449,17 @@ function setupEventListeners() {
   elements.approvedProfileSelect.addEventListener("change", validateDecisionForm);
   elements.analysisJustification.addEventListener("input", updateJustificationCounter);
   elements.confirmDecisionButton.addEventListener("click", handleDecisionSubmit);
+  elements.usersRefreshButton.addEventListener("click", fetchUsersModuleData);
+  elements.usersFilterForm.addEventListener("submit", async (event) => { event.preventDefault(); state.usersFilters={search:elements.usersSearch.value.trim(),profile:elements.usersProfileFilter.value,status:elements.usersStatusFilter.value,type:elements.usersTypeFilter.value,auth:elements.usersAuthFilter.value,order:elements.usersOrderFilter.value};state.usersOffset=0;await fetchUsersModuleData(); });
+  elements.usersClearFilterButton.addEventListener("click", async () => { elements.usersFilterForm.reset();elements.usersAuthFilter.value="TODOS";elements.usersOrderFilter.value="NOME_ASC";state.usersFilters={search:"",profile:"",status:"",type:"",auth:"TODOS",order:"NOME_ASC"};state.usersOffset=0;await fetchUsersModuleData(); });
+  elements.usersPreviousPageButton.addEventListener("click", async()=>{if(state.usersOffset>0){state.usersOffset=Math.max(0,state.usersOffset-state.usersLimit);await fetchUsersModuleData();}});
+  elements.usersNextPageButton.addEventListener("click", async()=>{if(state.usersOffset+state.usersLimit<state.usersTotal){state.usersOffset+=state.usersLimit;await fetchUsersModuleData();}});
+  elements.userModalCloseButton.addEventListener("click",closeUserModal); elements.userModalCancelButton.addEventListener("click",closeUserModal);
+  elements.userAdminAction.addEventListener("change",()=>{elements.userAdminProfileField.hidden=elements.userAdminAction.value!=="PERFIL";elements.userAdminStatusField.hidden=elements.userAdminAction.value!=="SITUACAO";validateUserAdminForm();});
+  elements.userAdminProfile.addEventListener("change",validateUserAdminForm); elements.userAdminStatus.addEventListener("change",validateUserAdminForm);
+  elements.userAdminJustification.addEventListener("input",()=>{elements.userAdminCounter.textContent=`${elements.userAdminJustification.value.length} / 2000`;validateUserAdminForm();});
+  elements.userAdminForm.addEventListener("submit",submitUserAdministration);
+  elements.userDetailsModal.addEventListener("click",event=>{if(event.target===elements.userDetailsModal)closeUserModal();});
 
   elements.detailsModal.addEventListener("click", (event) => {
     if (event.target === elements.detailsModal && !state.submittingDecision) closeModal();
