@@ -27,10 +27,11 @@
     Solicitações de Acesso | Monitoramento de Indícios
   </title>
 
-  <link rel="stylesheet" href="../css/solicitacoes.css">
+  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-1">
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
   <div
     id="page-loading"
     class="page-loading"
@@ -130,55 +131,11 @@
           aria-label="Funcionalidades do Gestor de Dados e Sistema"
         >
           <ul class="navigation-list">
-            <li>
-              <a href="./solicitacoes.html" class="navigation-link">
-                Solicitações de acesso
-              </a>
-            </li>
-
-            <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
-                Usuários
-              </button>
-            </li>
-
-            <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
-                Perfis e permissões
-              </button>
-            </li>
-
-            <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
-                Atualização da base
-              </button>
-            </li>
-
-            <li>
-              <button
-                class="navigation-link"
-                type="button"
-                disabled
-                title="Funcionalidade em desenvolvimento"
-              >
-                Auditoria
-              </button>
-            </li>
+            <li><button class="navigation-link active" type="button" data-admin-module="solicitacoes" aria-current="page">Solicitações de acesso</button></li>
+            <li><button class="navigation-link" type="button" data-admin-module="usuarios">Usuários</button></li>
+            <li><button class="navigation-link" type="button" data-admin-module="perfis">Perfis e permissões</button></li>
+            <li><button class="navigation-link" type="button" data-admin-module="cargas">Atualização da base</button></li>
+            <li><button class="navigation-link" type="button" data-admin-module="auditoria">Auditoria</button></li>
           </ul>
         </nav>
 
@@ -193,6 +150,7 @@
         class="main-content"
         tabindex="-1"
       >
+        <section id="module-solicitacoes" class="admin-module" data-admin-panel="solicitacoes" aria-labelledby="page-title">
         <section
           class="page-heading"
           aria-labelledby="page-title"
@@ -476,6 +434,28 @@
             </div>
           </div>
         </section>
+
+        </section>
+        <section id="module-usuarios" class="admin-module module-placeholder" data-admin-panel="usuarios" aria-labelledby="usuarios-title" tabindex="-1" hidden>
+          <p class="eyebrow">Administração de acesso</p>
+          <h1 id="usuarios-title">Usuários</h1>
+          <p>Este módulo será implementado após a homologação de Solicitações de acesso.</p>
+        </section>
+        <section id="module-perfis" class="admin-module module-placeholder" data-admin-panel="perfis" aria-labelledby="perfis-title" tabindex="-1" hidden>
+          <p class="eyebrow">Governança de acesso</p>
+          <h1 id="perfis-title">Perfis e permissões</h1>
+          <p>Este módulo será implementado após a definição dos contratos de consulta e auditoria.</p>
+        </section>
+        <section id="module-cargas" class="admin-module module-placeholder" data-admin-panel="cargas" aria-labelledby="cargas-title" tabindex="-1" hidden>
+          <p class="eyebrow">Governança de dados</p>
+          <h1 id="cargas-title">Atualização da base</h1>
+          <p>Este módulo será implementado após a instrumentação segura das cargas e do ETL.</p>
+        </section>
+        <section id="module-auditoria" class="admin-module module-placeholder" data-admin-panel="auditoria" aria-labelledby="auditoria-title" tabindex="-1" hidden>
+          <p class="eyebrow">Rastreabilidade</p>
+          <h1 id="auditoria-title">Auditoria</h1>
+          <p>Este módulo será implementado após a consolidação dos eventos administrativos.</p>
+        </section>
       </main>
     </div>
 
@@ -508,7 +488,7 @@
             Análise de solicitação
           </p>
 
-          <h2 id="details-modal-title">
+          <h2 id="details-modal-title" tabindex="-1">
             Solicitação de acesso
 
             <span
@@ -975,6 +955,6 @@
     </div>
   </noscript>
 
-  <script type="module" src="../js/solicitacoes.js"></script>
+  <script type="module" src="../js/solicitacoes.js?v=20260921-1"></script>
 </body>
 </html>
