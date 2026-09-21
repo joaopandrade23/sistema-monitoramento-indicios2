@@ -303,7 +303,7 @@ function setListLoading(value) {
  * Redireciona o usuário para o login.
  */
 function redirectToLogin() {
-  window.location.replace("./index.html");
+  window.location.replace("../index.html");
 }
 
 /**
@@ -682,10 +682,10 @@ function configureExpiredMode() {
   elements.decisionConfirmationArea.hidden = true;
 
   elements.decisionPanelDescription.textContent =
-    "Esta solicitação foi encerrada automaticamente após o término do prazo de análise.";
+    "Esta solicitação está expirada e permanece disponível somente para consulta.";
   elements.analysisInformationTitle.textContent = "Solicitação expirada";
   elements.analysisInformationText.textContent =
-    "A solicitação permaneceu pendente por 3 dias corridos e foi encerrada automaticamente pelo sistema. Para prosseguir, o solicitante deverá enviar um novo pedido de acesso.";
+    "Consulte o histórico administrativo para verificar a origem desta alteração. Para prosseguir, o solicitante deverá enviar um novo pedido de acesso.";
 }
 
 /**
