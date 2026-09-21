@@ -52,7 +52,7 @@ function showProtectedContent() {
 }
 
 function redirectToLogin() {
-  window.location.replace("./index.html");
+  window.location.replace("../index.html");
 }
 
 async function safelySignOut() {
