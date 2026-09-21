@@ -2012,3 +2012,47 @@ html[data-theme="dark"] .decision-option:has(input:focus-visible) {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Navegação modular e acessibilidade */
+.skip-link {
+  position: fixed;
+  z-index: 200;
+  top: 10px;
+  left: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 750;
+  transform: translateY(-160%);
+  transition: transform 150ms ease;
+}
+.skip-link:focus { transform: translateY(0); }
+.admin-module { min-width: 0; }
+.module-placeholder {
+  min-height: 360px;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.module-placeholder h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.45rem);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+.module-placeholder p:last-child {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+.table-action-cell { text-align: right; }
+#details-modal-title:focus { outline: none; }
+#details-modal-title:focus-visible {
+  border-radius: 6px;
+  outline: 3px solid rgba(47, 115, 184, 0.3);
+  outline-offset: 4px;
+}
