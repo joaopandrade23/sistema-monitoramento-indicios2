@@ -27,7 +27,7 @@
     Solicitações de Acesso | Monitoramento de Indícios
   </title>
 
-  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-1">
+  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-2">
 </head>
 
 <body>
@@ -436,10 +436,39 @@
         </section>
 
         </section>
-        <section id="module-usuarios" class="admin-module module-placeholder" data-admin-panel="usuarios" aria-labelledby="usuarios-title" tabindex="-1" hidden>
-          <p class="eyebrow">Administração de acesso</p>
-          <h1 id="usuarios-title">Usuários</h1>
-          <p>Este módulo será implementado após a homologação de Solicitações de acesso.</p>
+        <section id="module-usuarios" class="admin-module" data-admin-panel="usuarios" aria-labelledby="usuarios-title" tabindex="-1" hidden>
+          <section class="page-heading" aria-labelledby="usuarios-title">
+            <div>
+              <p class="eyebrow">Administração de acesso</p>
+              <h1 id="usuarios-title">Usuários</h1>
+              <p class="page-description">Consulte os cadastros funcionais, acompanhe o vínculo com o Auth e administre perfil e situação de acesso.</p>
+            </div>
+            <button id="users-refresh-button" class="secondary-button" type="button">Atualizar usuários</button>
+          </section>
+          <div id="users-page-message" class="page-message" role="alert" aria-live="assertive" hidden></div>
+          <section class="summary-grid users-summary-grid" aria-label="Resumo administrativo dos usuários">
+            <article class="summary-card"><span class="summary-label">Usuários cadastrados</span><strong id="users-total-summary">0</strong><small id="users-types-summary">0 humanos e 0 de sistema</small></article>
+            <article class="summary-card"><span class="summary-label">Usuários ativos</span><strong id="users-active-summary">0</strong><small id="users-inactive-summary">0 inativos</small></article>
+            <article class="summary-card"><span class="summary-label">Perfis ativos</span><strong id="users-profiles-summary">0</strong><small id="users-auth-summary">Nenhuma inconsistência no Auth</small></article>
+          </section>
+          <section class="requests-card users-card" aria-labelledby="users-list-title">
+            <div class="card-heading"><div><p class="card-eyebrow">Cadastros funcionais</p><h2 id="users-list-title">Usuários registrados</h2></div><span id="users-records-counter" class="records-counter">0 registros</span></div>
+            <form id="users-filter-form" class="filters users-filters" novalidate>
+              <div class="filter-field filter-field-wide"><label for="users-search">Busca</label><input id="users-search" type="search" maxlength="150" placeholder="Nome, código ou e-mail"></div>
+              <div class="filter-field"><label for="users-profile-filter">Perfil</label><select id="users-profile-filter"><option value="">Todos os perfis</option></select></div>
+              <div class="filter-field"><label for="users-status-filter">Situação</label><select id="users-status-filter"><option value="">Todas</option><option value="ATIVO">Ativos</option><option value="INATIVO">Inativos</option></select></div>
+              <div class="filter-field"><label for="users-type-filter">Tipo</label><select id="users-type-filter"><option value="">Todos</option><option value="HUMANO">Humano</option><option value="SISTEMA">Sistema</option></select></div>
+              <div class="filter-field"><label for="users-auth-filter">Vínculo Auth</label><select id="users-auth-filter"><option value="TODOS">Todos</option><option value="VINCULADO">Vinculado</option><option value="SEM_VINCULO">Sem vínculo</option><option value="INCONSISTENTE">Inconsistente</option></select></div>
+              <div class="filter-field"><label for="users-order-filter">Ordenação</label><select id="users-order-filter"><option value="NOME_ASC">Nome A-Z</option><option value="NOME_DESC">Nome Z-A</option><option value="CRIADO_DESC">Mais recentes</option><option value="ATUALIZADO_DESC">Atualizados recentemente</option><option value="PERFIL_ASC">Perfil</option></select></div>
+              <div class="users-filter-actions"><button class="primary-button" type="submit">Aplicar</button><button id="users-clear-filter-button" class="secondary-button" type="button">Limpar</button></div>
+            </form>
+            <div id="users-list-loading" class="list-loading" role="status" aria-live="polite" hidden><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Carregando usuários...</span></div>
+            <div id="users-empty-state" class="empty-state" hidden><strong>Nenhum usuário encontrado</strong><p>Não existem cadastros correspondentes aos filtros selecionados.</p></div>
+            <div id="users-table-region" class="table-region" aria-live="polite" hidden>
+              <div class="table-scroll"><table class="requests-table users-table"><caption class="sr-only">Lista administrativa de usuários</caption><thead><tr><th scope="col">Usuário</th><th scope="col">Código</th><th scope="col">Perfil</th><th scope="col">Tipo</th><th scope="col">Situação</th><th scope="col">Auth</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead><tbody id="users-table-body"></tbody></table></div>
+              <div class="pagination"><p id="users-pagination-description">Nenhum registro exibido.</p><div class="pagination-actions"><button id="users-previous-page-button" class="pagination-button" type="button" disabled>Anterior</button><span id="users-pagination-indicator" class="pagination-indicator">Página 1</span><button id="users-next-page-button" class="pagination-button" type="button" disabled>Próxima</button></div></div>
+            </div>
+          </section>
         </section>
         <section id="module-perfis" class="admin-module module-placeholder" data-admin-panel="perfis" aria-labelledby="perfis-title" tabindex="-1" hidden>
           <p class="eyebrow">Governança de acesso</p>
@@ -948,6 +977,36 @@
     </section>
   </div>
 
+
+  <div id="user-details-modal" class="modal-backdrop" hidden>
+    <section class="analysis-modal user-modal" role="dialog" aria-modal="true" aria-labelledby="user-modal-title" aria-describedby="user-modal-description">
+      <header class="analysis-modal-header"><div class="analysis-modal-heading"><p class="card-eyebrow">Administração de usuário</p><h2 id="user-modal-title" tabindex="-1">Detalhes do usuário</h2><p id="user-modal-description" class="modal-description">Consulte o cadastro, o vínculo de autenticação e o histórico administrativo.</p></div><button id="user-modal-close-button" class="modal-close-button" type="button" aria-label="Fechar detalhes do usuário"><span aria-hidden="true">×</span></button></header>
+      <div id="user-modal-loading" class="list-loading"><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Carregando detalhes...</span></div>
+      <div id="user-modal-content" hidden>
+        <section class="analysis-status-bar user-status-bar" aria-label="Resumo do usuário">
+          <div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">ST</span><div><span class="analysis-status-label">Situação</span><div id="user-detail-status"></div></div></div>
+          <div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">PF</span><div><span class="analysis-status-label">Perfil</span><strong id="user-detail-profile">Não informado</strong></div></div>
+          <div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">TP</span><div><span class="analysis-status-label">Tipo</span><strong id="user-detail-type">Não informado</strong></div></div>
+          <div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">AU</span><div><span class="analysis-status-label">Identidade Auth</span><strong id="user-detail-auth">Não informada</strong></div></div>
+        </section>
+        <div class="user-modal-content-grid">
+          <section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">US</span><div><h3>Cadastro funcional</h3><p>Dados atuais do usuário.</p></div></div><dl id="user-detail-fields" class="applicant-details"></dl></section>
+          <section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">AD</span><div><h3>Administração</h3><p>Altere perfil ou situação com justificativa.</p></div></div>
+            <form id="user-admin-form" class="analysis-form" novalidate>
+              <div class="analysis-field"><label for="user-admin-action">Operação <span aria-hidden="true">*</span></label><select id="user-admin-action"><option value="">Selecione uma operação</option><option value="PERFIL">Alterar perfil</option><option value="SITUACAO">Alterar situação</option></select></div>
+              <div id="user-admin-profile-field" class="analysis-field" hidden><label for="user-admin-profile">Novo perfil <span aria-hidden="true">*</span></label><select id="user-admin-profile"><option value="">Selecione o perfil</option></select></div>
+              <div id="user-admin-status-field" class="analysis-field" hidden><label for="user-admin-status">Nova situação <span aria-hidden="true">*</span></label><select id="user-admin-status"><option value="">Selecione a situação</option><option value="true">Ativo</option><option value="false">Inativo</option></select></div>
+              <div class="analysis-field"><div class="field-label-row"><label for="user-admin-justification">Justificativa <span aria-hidden="true">*</span></label><span id="user-admin-counter" class="character-counter">0 / 2000</span></div><textarea id="user-admin-justification" minlength="10" maxlength="2000" rows="4" placeholder="Explique o motivo da alteração."></textarea><p class="field-help">Obrigatória, entre 10 e 2.000 caracteres.</p></div>
+              <div id="user-admin-message" class="analysis-form-message" role="alert" aria-live="assertive" hidden></div>
+              <button id="user-admin-submit" class="primary-button" type="submit" disabled>Confirmar alteração</button>
+            </form>
+          </section>
+          <section class="analysis-panel user-history-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">HI</span><div><h3>Histórico administrativo</h3><p>Alterações realizadas neste cadastro.</p></div></div><div id="user-history-list" class="user-history-list"></div><div id="user-history-empty" class="empty-state compact-empty" hidden><strong>Nenhum evento registrado</strong><p>O usuário ainda não possui alterações administrativas.</p></div></section>
+        </div>
+      </div>
+      <footer class="analysis-modal-footer"><button id="user-modal-cancel-button" class="secondary-button analysis-close-button" type="button">Fechar</button></footer>
+    </section>
+  </div>
   <noscript>
     <div class="noscript-message">
       O JavaScript precisa estar habilitado para validar sua
@@ -955,6 +1014,6 @@
     </div>
   </noscript>
 
-  <script type="module" src="../js/solicitacoes.js?v=20260921-1"></script>
+  <script type="module" src="../js/solicitacoes.js?v=20260921-2"></script>
 </body>
 </html>
