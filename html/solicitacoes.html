@@ -27,7 +27,7 @@
     Solicitações de Acesso | Monitoramento de Indícios
   </title>
 
-  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-2">
+  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-3">
 </head>
 
 <body>
@@ -470,11 +470,16 @@
             </div>
           </section>
         </section>
-        <section id="module-perfis" class="admin-module module-placeholder" data-admin-panel="perfis" aria-labelledby="perfis-title" tabindex="-1" hidden>
-          <p class="eyebrow">Governança de acesso</p>
-          <h1 id="perfis-title">Perfis e permissões</h1>
-          <p>Este módulo será implementado após a definição dos contratos de consulta e auditoria.</p>
-        </section>
+        <section id="module-perfis" class="admin-module" data-admin-panel="perfis" aria-labelledby="perfis-title" tabindex="-1" hidden>
+  <section class="page-heading" aria-labelledby="perfis-title"><div><p class="eyebrow">Governança de acesso</p><h1 id="perfis-title">Perfis e permissões</h1><p class="page-description">Consulte os perfis, seus vínculos e dependências, e administre metadados e situação com análise de impacto.</p></div><button id="profiles-refresh-button" class="secondary-button" type="button">Atualizar perfis</button></section>
+  <div id="profiles-page-message" class="page-message" role="alert" aria-live="assertive" hidden></div>
+  <section class="summary-grid profiles-summary-grid" aria-label="Resumo dos perfis"><article class="summary-card"><span class="summary-label">Perfis cadastrados</span><strong id="profiles-total-summary">0</strong><small id="profiles-types-summary">0 funcionais e 0 técnicos</small></article><article class="summary-card"><span class="summary-label">Perfis ativos</span><strong id="profiles-active-summary">0</strong><small id="profiles-inactive-summary">0 inativos</small></article><article class="summary-card"><span class="summary-label">Usuários vinculados</span><strong id="profiles-users-summary">0</strong><small id="profiles-active-users-summary">0 usuários ativos</small></article></section>
+  <section class="requests-card" aria-labelledby="profiles-list-title"><div class="card-heading"><div><p class="card-eyebrow">Catálogo de acesso</p><h2 id="profiles-list-title">Perfis registrados</h2></div><span id="profiles-records-counter" class="records-counter">0 perfis</span></div>
+    <div id="profiles-list-loading" class="list-loading" role="status" aria-live="polite" hidden><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Carregando perfis...</span></div>
+    <div id="profiles-empty-state" class="empty-state" hidden><strong>Nenhum perfil encontrado</strong><p>Não existem perfis disponíveis para consulta.</p></div>
+    <div id="profiles-grid" class="profiles-grid" aria-live="polite"></div>
+  </section>
+</section>
         <section id="module-cargas" class="admin-module module-placeholder" data-admin-panel="cargas" aria-labelledby="cargas-title" tabindex="-1" hidden>
           <p class="eyebrow">Governança de dados</p>
           <h1 id="cargas-title">Atualização da base</h1>
@@ -1007,6 +1012,16 @@
       <footer class="analysis-modal-footer"><button id="user-modal-cancel-button" class="secondary-button analysis-close-button" type="button">Fechar</button></footer>
     </section>
   </div>
+
+<div id="profile-details-modal" class="modal-backdrop" hidden><section class="analysis-modal profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" aria-describedby="profile-modal-description">
+<header class="analysis-modal-header"><div class="analysis-modal-heading"><p class="card-eyebrow">Governança de perfil</p><h2 id="profile-modal-title" tabindex="-1">Detalhes do perfil</h2><p id="profile-modal-description" class="modal-description">Consulte vínculos, dependências e histórico, ou registre uma alteração administrativa.</p></div><button id="profile-modal-close-button" class="modal-close-button" type="button" aria-label="Fechar detalhes do perfil"><span aria-hidden="true">×</span></button></header>
+<div id="profile-modal-loading" class="list-loading"><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Carregando perfil...</span></div>
+<div id="profile-modal-content" hidden><section class="analysis-status-bar profile-status-bar" aria-label="Resumo do perfil"><div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">ST</span><div><span class="analysis-status-label">Situação</span><div id="profile-detail-status"></div></div></div><div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">CD</span><div><span class="analysis-status-label">Código técnico</span><strong id="profile-detail-code">Não informado</strong></div></div><div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">US</span><div><span class="analysis-status-label">Usuários vinculados</span><strong id="profile-detail-users">0</strong></div></div><div class="analysis-status-item"><span class="analysis-status-icon" aria-hidden="true">AT</span><div><span class="analysis-status-label">Atualizado em</span><strong id="profile-detail-updated">Não informado</strong></div></div></section>
+<div class="profile-modal-grid"><section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">PF</span><div><h3>Cadastro do perfil</h3><p>O código técnico é imutável.</p></div></div><dl id="profile-detail-fields" class="applicant-details"></dl></section>
+<section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">AD</span><div><h3>Administração</h3><p>Edite metadados ou altere a situação.</p></div></div><form id="profile-admin-form" class="analysis-form" novalidate><div class="analysis-field"><label for="profile-admin-action">Operação <span aria-hidden="true">*</span></label><select id="profile-admin-action"><option value="">Selecione uma operação</option><option value="METADADOS">Editar nome e descrição</option><option value="SITUACAO">Alterar situação</option></select></div><div id="profile-admin-metadata-fields" hidden><div class="analysis-field"><label for="profile-admin-name">Nome do perfil <span aria-hidden="true">*</span></label><input id="profile-admin-name" maxlength="120"></div><div class="analysis-field"><label for="profile-admin-description">Descrição</label><textarea id="profile-admin-description" maxlength="1000" rows="4"></textarea></div></div><div id="profile-admin-status-field" class="analysis-field" hidden><label for="profile-admin-status">Nova situação <span aria-hidden="true">*</span></label><select id="profile-admin-status"><option value="">Selecione</option><option value="true">Ativo</option><option value="false">Inativo</option></select><p id="profile-impact-message" class="field-help"></p></div><div class="analysis-field"><div class="field-label-row"><label for="profile-admin-justification">Justificativa <span aria-hidden="true">*</span></label><span id="profile-admin-counter" class="character-counter">0 / 2000</span></div><textarea id="profile-admin-justification" minlength="10" maxlength="2000" rows="4"></textarea></div><div id="profile-admin-message" class="analysis-form-message" role="alert" aria-live="assertive" hidden></div><button id="profile-admin-submit" class="primary-button" type="submit" disabled>Confirmar alteração</button></form></section>
+<section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">DP</span><div><h3>Dependências</h3><p>Contratos que utilizam este código.</p></div></div><div id="profile-dependencies-list" class="profile-list"></div><div id="profile-dependencies-empty" class="empty-state compact-empty" hidden><strong>Nenhuma dependência identificada</strong></div></section>
+<section class="analysis-panel"><div class="analysis-panel-heading"><span class="analysis-panel-icon" aria-hidden="true">HI</span><div><h3>Histórico administrativo</h3><p>Alterações registradas para o perfil.</p></div></div><div id="profile-history-list" class="profile-list"></div><div id="profile-history-empty" class="empty-state compact-empty" hidden><strong>Nenhum evento registrado</strong></div></section></div></div>
+<footer class="analysis-modal-footer"><button id="profile-modal-cancel-button" class="secondary-button analysis-close-button" type="button">Fechar</button></footer></section></div>
   <noscript>
     <div class="noscript-message">
       O JavaScript precisa estar habilitado para validar sua
@@ -1014,6 +1029,6 @@
     </div>
   </noscript>
 
-  <script type="module" src="../js/solicitacoes.js?v=20260921-2"></script>
+  <script type="module" src="../js/solicitacoes.js?v=20260921-3"></script>
 </body>
 </html>
