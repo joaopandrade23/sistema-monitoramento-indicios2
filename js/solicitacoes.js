@@ -33,7 +33,8 @@ const state = {
   pendingTotal: 0,
   oldestPendingAt: null,
   loading: false,
-  submittingDecision: false
+  submittingDecision: false,
+  activeModule: "solicitacoes"
 };
 
 let elements = {};
@@ -74,6 +75,7 @@ function cacheDOMElements() {
     previousPageButton: byId("previous-page-button"),
     nextPageButton: byId("next-page-button"),
     detailsModal: byId("details-modal"),
+    detailsModalTitle: byId("details-modal-title"),
     analysisModal: document.querySelector("#details-modal .analysis-modal"),
     closeModalButton: byId("close-modal-button"),
     cancelAnalysisButton: byId("cancel-analysis-button"),
@@ -313,6 +315,11 @@ function redirectUnauthorizedProfile() {
   window.location.replace("./inicio.html");
 }
 
+/** Normaliza códigos de perfil sem ampliar permissões. */
+function normalizeProfileCode(value) {
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
+}
+
 /**
  * Valida a sessão autenticada.
  */
@@ -357,17 +364,19 @@ async function loadFunctionalContext() {
     contextError.reason = "NO_FUNCTIONAL_CONTEXT";
     throw contextError;
   }
-  if (data.codigo_perfil !== AUTHORIZED_PROFILE) {
+  const receivedProfile = normalizeProfileCode(data.codigo_perfil);
+  const authorizedProfile = normalizeProfileCode(AUTHORIZED_PROFILE);
+  if (receivedProfile !== authorizedProfile) {
     const profileError = new Error("UNAUTHORIZED_PROFILE");
     profileError.code = "42501";
     profileError.reason = "UNAUTHORIZED_PROFILE";
     throw profileError;
   }
 
-  state.context = data;
+  state.context = { ...data, codigo_perfil: receivedProfile };
   elements.userName.textContent = data.nome_exibicao || "Usuário";
-  elements.userProfile.textContent = data.nome_perfil || data.codigo_perfil || "Perfil";
-  return data;
+  elements.userProfile.textContent = data.nome_perfil || receivedProfile || "Perfil";
+  return state.context;
 }
 
 /**
@@ -494,7 +503,7 @@ function renderTablePage() {
     email.title = request.email_normalizado || "";
 
     const action = createTableCell(createDetailsButton(request));
-    action.style.textAlign = "right";
+    action.classList.add("table-action-cell");
 
     row.append(
       createTableCell(number),
@@ -762,7 +771,7 @@ function openDetailsModal(request, triggerElement = null) {
 
   elements.detailsModal.hidden = false;
   document.body.classList.add("modal-open");
-  window.requestAnimationFrame(() => elements.closeModalButton.focus());
+  window.requestAnimationFrame(() => elements.detailsModalTitle.focus());
 }
 
 /**
@@ -1317,10 +1326,35 @@ function handleDocumentKeydown(event) {
   trapModalFocus(event);
 }
 
+
+/** Alterna os módulos administrativos sem destruir o estado atual. */
+function activateAdminModule(moduleCode, moveFocus = true) {
+  const targetPanel = document.querySelector(`[data-admin-panel="${moduleCode}"]`);
+  if (!targetPanel) return;
+  state.activeModule = moduleCode;
+  document.querySelectorAll("[data-admin-panel]").forEach((panel) => {
+    panel.hidden = panel !== targetPanel;
+  });
+  document.querySelectorAll("[data-admin-module]").forEach((button) => {
+    const active = button.dataset.adminModule === moduleCode;
+    button.classList.toggle("active", active);
+    if (active) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  if (moveFocus) {
+    const focusTarget = targetPanel.querySelector("h1") || targetPanel;
+    if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
+    focusTarget.focus();
+  }
+}
+
 /**
  * Registra os eventos da interface.
  */
 function setupEventListeners() {
+  document.querySelectorAll("[data-admin-module]").forEach((button) => {
+    button.addEventListener("click", () => activateAdminModule(button.dataset.adminModule));
+  });
   elements.themeToggleButton.addEventListener("click", toggleTheme);
   elements.logoutButton.addEventListener("click", handleLogout);
   elements.filterForm.addEventListener("submit", handleFilterSubmit);
