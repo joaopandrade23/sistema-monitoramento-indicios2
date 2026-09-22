@@ -47,7 +47,9 @@ const state = {
   userSubmitting: false,
   usersFilters: { search: "", profile: "", status: "", type: "", auth: "TODOS", order: "NOME_ASC" },
   profiles: [], profilesSummary: null, profilesLoaded: false, profilesLoading: false,
-  selectedProfile: null, profileSubmitting: false
+  selectedProfile: null, profileSubmitting: false,
+  loadsLoaded: false, loadsLoading: false, loadsPublishing: false,
+  loadsEvaluation: null, loadsExecutionId: null, publishedExtractions: []
 };
 
 let elements = {};
@@ -144,7 +146,22 @@ function cacheDOMElements() {
     userAdminCounter: byId("user-admin-counter"), userAdminMessage: byId("user-admin-message"), userAdminSubmit: byId("user-admin-submit"),
     userHistoryList: byId("user-history-list"), userHistoryEmpty: byId("user-history-empty"),
     profilesRefreshButton: byId("profiles-refresh-button"), profilesPageMessage: byId("profiles-page-message"), profilesTotalSummary: byId("profiles-total-summary"), profilesTypesSummary: byId("profiles-types-summary"), profilesActiveSummary: byId("profiles-active-summary"), profilesInactiveSummary: byId("profiles-inactive-summary"), profilesUsersSummary: byId("profiles-users-summary"), profilesActiveUsersSummary: byId("profiles-active-users-summary"), profilesRecordsCounter: byId("profiles-records-counter"), profilesListLoading: byId("profiles-list-loading"), profilesEmptyState: byId("profiles-empty-state"), profilesGrid: byId("profiles-grid"),
-    profileDetailsModal: byId("profile-details-modal"), profileModalTitle: byId("profile-modal-title"), profileModalCloseButton: byId("profile-modal-close-button"), profileModalCancelButton: byId("profile-modal-cancel-button"), profileModalLoading: byId("profile-modal-loading"), profileModalContent: byId("profile-modal-content"), profileDetailStatus: byId("profile-detail-status"), profileDetailCode: byId("profile-detail-code"), profileDetailUsers: byId("profile-detail-users"), profileDetailUpdated: byId("profile-detail-updated"), profileDetailFields: byId("profile-detail-fields"), profileAdminForm: byId("profile-admin-form"), profileAdminAction: byId("profile-admin-action"), profileAdminMetadataFields: byId("profile-admin-metadata-fields"), profileAdminName: byId("profile-admin-name"), profileAdminDescription: byId("profile-admin-description"), profileAdminStatusField: byId("profile-admin-status-field"), profileAdminStatus: byId("profile-admin-status"), profileImpactMessage: byId("profile-impact-message"), profileAdminJustification: byId("profile-admin-justification"), profileAdminCounter: byId("profile-admin-counter"), profileAdminMessage: byId("profile-admin-message"), profileAdminSubmit: byId("profile-admin-submit"), profileDependenciesList: byId("profile-dependencies-list"), profileDependenciesEmpty: byId("profile-dependencies-empty"), profileHistoryList: byId("profile-history-list"), profileHistoryEmpty: byId("profile-history-empty")
+    profileDetailsModal: byId("profile-details-modal"), profileModalTitle: byId("profile-modal-title"), profileModalCloseButton: byId("profile-modal-close-button"), profileModalCancelButton: byId("profile-modal-cancel-button"), profileModalLoading: byId("profile-modal-loading"), profileModalContent: byId("profile-modal-content"), profileDetailStatus: byId("profile-detail-status"), profileDetailCode: byId("profile-detail-code"), profileDetailUsers: byId("profile-detail-users"), profileDetailUpdated: byId("profile-detail-updated"), profileDetailFields: byId("profile-detail-fields"), profileAdminForm: byId("profile-admin-form"), profileAdminAction: byId("profile-admin-action"), profileAdminMetadataFields: byId("profile-admin-metadata-fields"), profileAdminName: byId("profile-admin-name"), profileAdminDescription: byId("profile-admin-description"), profileAdminStatusField: byId("profile-admin-status-field"), profileAdminStatus: byId("profile-admin-status"), profileImpactMessage: byId("profile-impact-message"), profileAdminJustification: byId("profile-admin-justification"), profileAdminCounter: byId("profile-admin-counter"), profileAdminMessage: byId("profile-admin-message"), profileAdminSubmit: byId("profile-admin-submit"), profileDependenciesList: byId("profile-dependencies-list"), profileDependenciesEmpty: byId("profile-dependencies-empty"),     profileHistoryList: byId("profile-history-list"), profileHistoryEmpty: byId("profile-history-empty"),
+    loadsRefreshButton: byId("loads-refresh-button"), loadsPageMessage: byId("loads-page-message"),
+    loadsCurrentDate: byId("loads-current-date"), loadsCurrentDescription: byId("loads-current-description"),
+    loadsTotalPublished: byId("loads-total-published"), loadsCurrentRecords: byId("loads-current-records"),
+    loadsDecisionBadge: byId("loads-decision-badge"), loadsEvaluationForm: byId("loads-evaluation-form"),
+    loadsExecutionId: byId("loads-execution-id"), loadsEvaluateButton: byId("loads-evaluate-button"),
+    loadsEvaluationLoading: byId("loads-evaluation-loading"), loadsEvaluationEmpty: byId("loads-evaluation-empty"),
+    loadsEvaluationResult: byId("loads-evaluation-result"), loadsCandidateDate: byId("loads-candidate-date"),
+    loadsLastPublishedDate: byId("loads-last-published-date"), loadsPublishableRecords: byId("loads-publishable-records"),
+    loadsPreviewBlocks: byId("loads-preview-blocks"), loadsReasonsPanel: byId("loads-reasons-panel"),
+    loadsReasonsList: byId("loads-reasons-list"), loadsConfirmationPanel: byId("loads-confirmation-panel"),
+    loadsConfirmCheck: byId("loads-confirm-check"), loadsConfirmPhrase: byId("loads-confirm-phrase"),
+    loadsPublishButton: byId("loads-publish-button"), loadsPublicationResult: byId("loads-publication-result"),
+    loadsHistoryCounter: byId("loads-history-counter"), loadsHistoryLoading: byId("loads-history-loading"),
+    loadsHistoryEmpty: byId("loads-history-empty"), loadsHistoryRegion: byId("loads-history-region"),
+    loadsHistoryBody: byId("loads-history-body")
   };
 }
 
@@ -1427,6 +1444,43 @@ async function openProfileModal(id,trigger){state.lastFocusedElement=trigger||do
 function closeProfileModal(){if(elements.profileDetailsModal.hidden||state.profileSubmitting)return;elements.profileDetailsModal.hidden=true;document.body.classList.remove("modal-open");state.selectedProfile=null;resetProfileForm();if(state.lastFocusedElement instanceof HTMLElement&&document.contains(state.lastFocusedElement))state.lastFocusedElement.focus();state.lastFocusedElement=null}
 async function submitProfileAdministration(e){e.preventDefault();validateProfileForm();if(elements.profileAdminSubmit.disabled||!state.selectedProfile)return;state.profileSubmitting=true;elements.profileAdminSubmit.disabled=true;elements.profileAdminSubmit.textContent="Registrando...";hideProfileAdminMessage();try{const p=state.selectedProfile,j=elements.profileAdminJustification.value.trim(),t=crypto.randomUUID();let r;if(elements.profileAdminAction.value==="METADADOS")r=await supabase.schema("api").rpc("atualizar_perfil_administracao",{p_id_perfil_acesso:p.id_perfil_acesso,p_nome_perfil:elements.profileAdminName.value.trim(),p_descricao_perfil:elements.profileAdminDescription.value.trim()||null,p_justificativa:j,p_token_operacao:t});else r=await supabase.schema("api").rpc("alterar_situacao_perfil",{p_id_perfil_acesso:p.id_perfil_acesso,p_perfil_ativo:elements.profileAdminStatus.value==="true",p_justificativa:j,p_token_operacao:t});if(r.error)throw r.error;renderProfileDetail(r.data);const hist=await supabase.schema("api").rpc("listar_historico_perfil_administracao",{p_id_perfil_acesso:p.id_perfil_acesso,p_limite:20,p_deslocamento:0});if(hist.error)throw hist.error;renderProfileItems(elements.profileHistoryList,elements.profileHistoryEmpty,hist.data||[],true);await fetchProfilesModuleData();showProfileAdminMessage("Alteração registrada com sucesso.","success")}catch(err){console.error("Erro ao administrar perfil:",err);showProfileAdminMessage(profileError(err,"Não foi possível registrar a alteração."))}finally{state.profileSubmitting=false;elements.profileAdminSubmit.textContent="Confirmar alteração";validateProfileForm()}}
 
+
+const LOAD_PUBLICATION_REASON_LABELS = Object.freeze({
+  EXECUCAO_NAO_PRONTA_PARA_REVISAO: "A execução ainda não está pronta para revisão.",
+  PREVIA_NAO_DISPONIVEL: "A prévia da carga não está disponível.",
+  PREVIA_COM_BLOQUEIOS: "A prévia contém bloqueios de publicação.",
+  DATA_EXTRACAO_JA_PUBLICADA: "A data desta extração já foi incorporada ao histórico.",
+  HASH_JA_PUBLICADO: "O conteúdo deste arquivo já foi publicado.",
+  RETROCESSO_DA_FOTOGRAFIA_CORRENTE: "A extração é anterior à fotografia corrente do banco."
+});
+function formatDateOnly(value) {
+  if (!value) return "Não informada";
+  const date = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "Data inválida";
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(date);
+}
+function showLoadsMessage(message,type="error") { elements.loadsPageMessage.textContent=message;elements.loadsPageMessage.classList.toggle("success",type==="success");elements.loadsPageMessage.hidden=false; }
+function hideLoadsMessage(){elements.loadsPageMessage.hidden=true;elements.loadsPageMessage.textContent="";elements.loadsPageMessage.classList.remove("success");}
+function setLoadsLoading(value){state.loadsLoading=value;elements.loadsRefreshButton.disabled=value;elements.loadsEvaluateButton.disabled=value;elements.loadsExecutionId.disabled=value;elements.loadsHistoryLoading.hidden=!value;}
+function getLoadErrorMessage(error,fallback){const message=String(error?.message||"");if(error?.code==="42501"||message.includes("PERFIL_NAO_AUTORIZADO"))return"Seu perfil não possui autorização para esta operação.";if(error?.code==="P0002"||message.includes("EXECUCAO_NAO_ENCONTRADA"))return"A execução informada não foi encontrada.";if(message.includes("PUBLICACAO_CARGA_BLOQUEADA"))return"A publicação foi bloqueada após a revalidação do backend.";if(error?.code==="55000")return message||"A carga não está disponível para publicação.";if(error?.code==="28000"||/jwt|session/i.test(message))return"Sua sessão expirou. Entre novamente no sistema.";return fallback;}
+function renderLoadsHistory(){
+  const rows=state.publishedExtractions;elements.loadsHistoryBody.replaceChildren();elements.loadsHistoryCounter.textContent=rows.length===1?"1 registro":`${rows.length} registros`;elements.loadsHistoryEmpty.hidden=rows.length>0;elements.loadsHistoryRegion.hidden=rows.length===0;
+  if(!rows.length){elements.loadsCurrentDate.textContent="Não informada";elements.loadsCurrentDescription.textContent="Nenhuma fotografia registrada";elements.loadsTotalPublished.textContent="0";elements.loadsCurrentRecords.textContent="0";return;}
+  const current=rows.find(row=>row.fotografia_corrente)||rows[0];elements.loadsCurrentDate.textContent=formatDateOnly(current.data_extracao);elements.loadsCurrentDescription.textContent=current.fotografia_corrente?"Fotografia corrente do banco":"Última data registrada";elements.loadsTotalPublished.textContent=Number(rows[0]?.total_registros??rows.length).toLocaleString("pt-BR");elements.loadsCurrentRecords.textContent=Number(current.quantidade_registros||0).toLocaleString("pt-BR");
+  const fragment=document.createDocumentFragment();rows.forEach(item=>{const row=document.createElement("tr");row.append(createTableCell(formatDateOnly(item.data_extracao)),createTableCell(item.origem_registro==="LEGADO_RECONCILIADO"?"Legado reconciliado":"Módulo de carga"),createTableCell(createSimpleBadge(item.fotografia_corrente?"Atual":"Histórico",item.fotografia_corrente?"status-auth-ok":"status-neutral")),createTableCell(Number(item.quantidade_registros||0).toLocaleString("pt-BR")),createTableCell(formatDateTime(item.publicada_em)));fragment.append(row);});elements.loadsHistoryBody.append(fragment);
+}
+async function fetchLoadsHistory(){
+  const result=await supabase.schema("api").rpc("listar_extracoes_epessoal_publicadas",{p_limite:50,p_deslocamento:0});if(result.error)throw result.error;state.publishedExtractions=Array.isArray(result.data)?result.data:[];renderLoadsHistory();
+}
+function resetLoadEvaluation(){state.loadsEvaluation=null;state.loadsExecutionId=null;elements.loadsEvaluationEmpty.hidden=false;elements.loadsEvaluationResult.hidden=true;elements.loadsConfirmationPanel.hidden=true;elements.loadsPublicationResult.hidden=true;elements.loadsConfirmCheck.checked=false;elements.loadsConfirmPhrase.value="";elements.loadsPublishButton.disabled=true;elements.loadsDecisionBadge.className="status-badge status-neutral";elements.loadsDecisionBadge.textContent="Não avaliada";}
+function renderLoadEvaluation(data){
+  state.loadsEvaluation=data;const eligible=data?.decisao==="ELEGIVEL_PARA_CONFIRMACAO";const reasons=Array.isArray(data?.motivos)?data.motivos:[];elements.loadsEvaluationEmpty.hidden=true;elements.loadsEvaluationResult.hidden=false;elements.loadsCandidateDate.textContent=formatDateOnly(data?.data_candidata);elements.loadsLastPublishedDate.textContent=formatDateOnly(data?.ultima_extracao_publicada);elements.loadsPublishableRecords.textContent=Number(data?.registros_publicaveis||0).toLocaleString("pt-BR");elements.loadsPreviewBlocks.textContent=Number(data?.bloqueios_previa||0).toLocaleString("pt-BR");elements.loadsReasonsList.replaceChildren();(reasons.length?reasons:["NENHUM_IMPEDIMENTO"]).forEach(code=>{const li=document.createElement("li");li.textContent=code==="NENHUM_IMPEDIMENTO"?"Nenhum impedimento identificado.":LOAD_PUBLICATION_REASON_LABELS[code]||code;elements.loadsReasonsList.append(li);});elements.loadsReasonsPanel.dataset.result=eligible?"eligible":"blocked";elements.loadsDecisionBadge.className=`status-badge ${eligible?"status-approved":"status-rejected"}`;elements.loadsDecisionBadge.textContent=eligible?"Elegível":"Bloqueada";elements.loadsConfirmationPanel.hidden=!eligible;elements.loadsConfirmCheck.checked=false;elements.loadsConfirmPhrase.value="";elements.loadsPublishButton.disabled=true;elements.loadsPublicationResult.hidden=true;
+}
+async function evaluateLoadPublication(event){event.preventDefault();hideLoadsMessage();const id=Number(elements.loadsExecutionId.value);if(!Number.isInteger(id)||id<1){showLoadsMessage("Informe um identificador de execução válido.");elements.loadsExecutionId.focus();return;}state.loadsExecutionId=id;elements.loadsEvaluationLoading.hidden=false;elements.loadsEvaluateButton.disabled=true;try{const result=await supabase.schema("api").rpc("avaliar_publicacao_carga_epessoal",{p_id_execucao:id});if(result.error)throw result.error;renderLoadEvaluation(result.data);}catch(error){console.error("Erro ao avaliar publicação:",error);resetLoadEvaluation();showLoadsMessage(getLoadErrorMessage(error,"Não foi possível avaliar a publicação."));}finally{elements.loadsEvaluationLoading.hidden=true;elements.loadsEvaluateButton.disabled=false;}}
+function validateLoadConfirmation(){const phrase=elements.loadsConfirmPhrase.value.trim().toUpperCase();elements.loadsPublishButton.disabled=state.loadsPublishing||!elements.loadsConfirmCheck.checked||phrase!=="PUBLICAR EXTRAÇÃO";}
+async function publishLoad(){if(state.loadsPublishing||state.loadsEvaluation?.decisao!=="ELEGIVEL_PARA_CONFIRMACAO"||!state.loadsExecutionId)return;state.loadsPublishing=true;elements.loadsPublishButton.disabled=true;elements.loadsPublishButton.textContent="Publicando...";hideLoadsMessage();try{const result=await supabase.schema("api").rpc("publicar_carga_epessoal",{p_id_execucao:state.loadsExecutionId});if(result.error)throw result.error;elements.loadsPublicationResult.textContent=`Publicação concluída. ${Number(result.data?.registros_historico_publicados||0).toLocaleString("pt-BR")} registros históricos e ${Number(result.data?.pendentes_fotografia||0).toLocaleString("pt-BR")} pendentes na fotografia corrente.`;elements.loadsPublicationResult.hidden=false;elements.loadsConfirmationPanel.hidden=true;elements.loadsDecisionBadge.textContent="Publicada";elements.loadsDecisionBadge.className="status-badge status-approved";showLoadsMessage("A extração foi publicada com sucesso.","success");await fetchLoadsHistory();}catch(error){console.error("Erro ao publicar carga:",error);showLoadsMessage(getLoadErrorMessage(error,"A publicação foi interrompida e revertida."));}finally{state.loadsPublishing=false;elements.loadsPublishButton.textContent="Publicar extração";validateLoadConfirmation();}}
+async function fetchLoadsModuleData(){if(state.loadsLoading)return;hideLoadsMessage();setLoadsLoading(true);try{await fetchLoadsHistory();state.loadsLoaded=true;}catch(error){console.error("Erro ao carregar módulo de cargas:",error);showLoadsMessage(getLoadErrorMessage(error,"Não foi possível carregar as extrações incorporadas."));}finally{setLoadsLoading(false);}}
+
 /** Alterna os módulos administrativos sem destruir o estado atual. */
 function activateAdminModule(moduleCode, moveFocus = true) {
   const targetPanel = document.querySelector(`[data-admin-panel="${moduleCode}"]`);
@@ -1434,6 +1488,7 @@ function activateAdminModule(moduleCode, moveFocus = true) {
   state.activeModule = moduleCode;
   if (moduleCode === "usuarios" && !state.usersLoaded) fetchUsersModuleData();
   if (moduleCode === "perfis" && !state.profilesLoaded) fetchProfilesModuleData();
+  if (moduleCode === "cargas" && !state.loadsLoaded) fetchLoadsModuleData();
   document.querySelectorAll("[data-admin-panel]").forEach((panel) => {
     panel.hidden = panel !== targetPanel;
   });
@@ -1483,6 +1538,11 @@ function setupEventListeners() {
   elements.userAdminForm.addEventListener("submit",submitUserAdministration);
   elements.userDetailsModal.addEventListener("click",event=>{if(event.target===elements.userDetailsModal)closeUserModal();});
   elements.profilesRefreshButton.addEventListener("click",fetchProfilesModuleData);
+  elements.loadsRefreshButton.addEventListener("click",fetchLoadsModuleData);
+  elements.loadsEvaluationForm.addEventListener("submit",evaluateLoadPublication);
+  elements.loadsConfirmCheck.addEventListener("change",validateLoadConfirmation);
+  elements.loadsConfirmPhrase.addEventListener("input",validateLoadConfirmation);
+  elements.loadsPublishButton.addEventListener("click",publishLoad);
   elements.profileModalCloseButton.addEventListener("click",closeProfileModal);elements.profileModalCancelButton.addEventListener("click",closeProfileModal);
   elements.profileDetailsModal.addEventListener("click",e=>{if(e.target===elements.profileDetailsModal)closeProfileModal()});
   elements.profileAdminAction.addEventListener("change",()=>{elements.profileAdminMetadataFields.hidden=elements.profileAdminAction.value!=="METADADOS";elements.profileAdminStatusField.hidden=elements.profileAdminAction.value!=="SITUACAO";validateProfileForm()});
