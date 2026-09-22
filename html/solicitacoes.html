@@ -23,11 +23,9 @@
     content="default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
   >
 
-  <title>
-    Solicitações de Acesso | Monitoramento de Indícios
-  </title>
+  <title>Gestor de Dados e Sistema | Monitoramento de Indícios</title>
 
-  <link rel="stylesheet" href="../css/solicitacoes.css?v=20260921-3">
+  <link rel="stylesheet" href="../css/solicitacoes.css">
 </head>
 
 <body>
@@ -480,10 +478,53 @@
     <div id="profiles-grid" class="profiles-grid" aria-live="polite"></div>
   </section>
 </section>
-        <section id="module-cargas" class="admin-module module-placeholder" data-admin-panel="cargas" aria-labelledby="cargas-title" tabindex="-1" hidden>
-          <p class="eyebrow">Governança de dados</p>
-          <h1 id="cargas-title">Atualização da base</h1>
-          <p>Este módulo será implementado após a instrumentação segura das cargas e do ETL.</p>
+        <section id="module-cargas" class="admin-module" data-admin-panel="cargas" aria-labelledby="cargas-title" tabindex="-1" hidden>
+          <section class="page-heading" aria-labelledby="cargas-title">
+            <div>
+              <p class="eyebrow">Governança de dados</p>
+              <h1 id="cargas-title">Atualização da base</h1>
+              <p class="page-description">Revise a elegibilidade de uma execução, consulte as extrações incorporadas e publique somente cargas inéditas e posteriores à fotografia corrente.</p>
+            </div>
+            <button id="loads-refresh-button" class="secondary-button" type="button">Atualizar módulo</button>
+          </section>
+          <div id="loads-page-message" class="page-message" role="alert" aria-live="assertive" hidden></div>
+          <section class="summary-grid loads-summary-grid" aria-label="Resumo das extrações incorporadas">
+            <article class="summary-card"><span class="summary-label">Última extração publicada</span><strong id="loads-current-date">Não informada</strong><small id="loads-current-description">Aguardando consulta</small></article>
+            <article class="summary-card"><span class="summary-label">Extrações incorporadas</span><strong id="loads-total-published">0</strong><small>Datas reconciliadas ou publicadas pelo módulo</small></article>
+            <article class="summary-card"><span class="summary-label">Registros na fotografia atual</span><strong id="loads-current-records">0</strong><small>Quantidade registrada para a extração corrente</small></article>
+          </section>
+          <section class="requests-card loads-review-card" aria-labelledby="loads-review-title">
+            <div class="card-heading"><div><p class="card-eyebrow">Fase 6</p><h2 id="loads-review-title">Revisão e publicação</h2></div><span id="loads-decision-badge" class="status-badge status-neutral">Não avaliada</span></div>
+            <form id="loads-evaluation-form" class="filters loads-evaluation-form" novalidate>
+              <div class="filter-field"><label for="loads-execution-id">Identificador da execução</label><input id="loads-execution-id" type="number" min="1" step="1" inputmode="numeric" required></div>
+              <button id="loads-evaluate-button" class="primary-button" type="submit">Avaliar publicação</button>
+            </form>
+            <div id="loads-evaluation-loading" class="list-loading loads-compact-loading" role="status" aria-live="polite" hidden><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Avaliando elegibilidade...</span></div>
+            <div id="loads-evaluation-empty" class="empty-state compact-empty"><strong>Nenhuma execução avaliada</strong><p>Informe o identificador de uma execução pronta para revisão.</p></div>
+            <div id="loads-evaluation-result" hidden>
+              <section class="summary-grid loads-evaluation-summary" aria-label="Indicadores da avaliação">
+                <article class="summary-card"><span class="summary-label">Data candidata</span><strong id="loads-candidate-date">Não informada</strong></article>
+                <article class="summary-card"><span class="summary-label">Última publicação</span><strong id="loads-last-published-date">Não informada</strong></article>
+                <article class="summary-card"><span class="summary-label">Registros publicáveis</span><strong id="loads-publishable-records">0</strong></article>
+                <article class="summary-card"><span class="summary-label">Bloqueios da prévia</span><strong id="loads-preview-blocks">0</strong></article>
+              </section>
+              <div id="loads-reasons-panel" class="loads-reasons-panel"><strong>Resultado da avaliação</strong><ul id="loads-reasons-list"></ul></div>
+              <section id="loads-confirmation-panel" class="loads-confirmation-panel" hidden aria-labelledby="loads-confirmation-title">
+                <h3 id="loads-confirmation-title">Confirmação administrativa</h3>
+                <p>A publicação acrescentará o histórico e substituirá a fotografia corrente em uma única transação.</p>
+                <label class="loads-confirm-check"><input id="loads-confirm-check" type="checkbox"> Confirmo que revisei a prévia e os indicadores da carga.</label>
+                <div class="analysis-field"><label for="loads-confirm-phrase">Digite PUBLICAR EXTRAÇÃO</label><input id="loads-confirm-phrase" type="text" autocomplete="off"></div>
+                <button id="loads-publish-button" class="danger-button" type="button" disabled>Publicar extração</button>
+              </section>
+              <div id="loads-publication-result" class="analysis-form-message success" role="status" aria-live="polite" hidden></div>
+            </div>
+          </section>
+          <section class="requests-card loads-history-card" aria-labelledby="loads-history-title">
+            <div class="card-heading"><div><p class="card-eyebrow">Rastreabilidade</p><h2 id="loads-history-title">Extrações incorporadas</h2></div><span id="loads-history-counter" class="records-counter">0 registros</span></div>
+            <div id="loads-history-loading" class="list-loading loads-compact-loading" role="status" aria-live="polite" hidden><div class="loading-spinner loading-spinner-small" aria-hidden="true"></div><span>Carregando extrações...</span></div>
+            <div id="loads-history-empty" class="empty-state compact-empty" hidden><strong>Nenhuma extração registrada</strong></div>
+            <div id="loads-history-region" class="table-region" hidden><div class="table-scroll"><table class="requests-table loads-table"><caption class="sr-only">Extrações incorporadas ao histórico</caption><thead><tr><th scope="col">Data</th><th scope="col">Origem</th><th scope="col">Posição</th><th scope="col">Registros</th><th scope="col">Publicado em</th></tr></thead><tbody id="loads-history-body"></tbody></table></div></div>
+          </section>
         </section>
         <section id="module-auditoria" class="admin-module module-placeholder" data-admin-panel="auditoria" aria-labelledby="auditoria-title" tabindex="-1" hidden>
           <p class="eyebrow">Rastreabilidade</p>
@@ -1029,6 +1070,6 @@
     </div>
   </noscript>
 
-  <script type="module" src="../js/solicitacoes.js?v=20260921-3"></script>
+  <script type="module" src="../js/solicitacoes.js"></script>
 </body>
 </html>
